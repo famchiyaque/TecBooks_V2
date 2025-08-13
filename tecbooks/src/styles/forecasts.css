@@ -1,0 +1,306 @@
+.forecasts-tabs-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    /* border: solid red 2px; */
+    height: 8vh;
+}
+
+.forecasts-tabs-title {
+    flex-basis: 15%;
+    display: inline-block;
+    height: 98%;
+    background-color: #fdfdfd;
+    color: #03045e;
+    margin: auto auto;
+    border-bottom: solid lightgray 1px;
+    /* border-right: solid gray 1px; */
+    display: flex;
+    align-items: center;
+    /* border: solid green 2px; */
+    justify-content: center;
+}
+
+.forecasts-tabs-box {
+    flex-basis: 85%;
+    display: inline-block;
+    background-color: white;
+    /* border: solid red 1px; */
+}
+
+.methods-flex {
+    height: 8vh;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    border-bottom: solid lightgray 1px;
+    background-color: white;
+}
+
+.methods-label {
+    flex-basis: 15%;
+    color: #03045e;
+    border-right: solid lightgray 1px;
+}
+
+.methods-buttons {
+    flex-basis: 54%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.forecast-graph-section {
+    /* border: solid black 1px; */
+    /* height: 81vh; */
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding: 0.5rem 0 1rem 0;
+    width: 97%;
+    margin: 0 auto;
+}
+
+@media (max-height: '1000px') {
+    .forecast-graph-section {
+        display: flex;
+        flex-direction: column;
+    }
+}
+ 
+.graph-part {
+    /* border: solid black 1px; */
+    flex-basis: 73%;
+    /* max-width: 60%; */
+    /* background-color: white; */
+}
+
+.info-part {
+    /* border: solid black 1px; */
+    flex-basis: 24%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* background-color: white; */
+    /* padding: 20px; */
+}
+
+.leaderboard-div {
+    width: 95%;
+    height: 100%;
+    margin: 0.5rem auto 0 auto;
+}
+
+.leaderboard-columns {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: solid lightgray 1px;
+}
+
+.leaderboard-flex {
+    display: flex;
+    flex-direction: column;
+    width: 95%;
+    margin: 0 auto;
+    padding: 0.5rem 0;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.cast {
+    display: flex;
+    width: 100%;
+    /* height: 20px; */
+    /* margin: 0.25rem auto; */
+    padding: 0.8rem 0.3rem;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: solid gray 1px;
+    border-radius: 5px;
+}
+
+.info-charts-flex {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: flex-start;
+}
+
+.info-chart {
+    flex-basis: 40%;
+}
+
+.graph-tabs-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.row-tabs {
+    display: flex;
+    align-items: center;
+    width: 95%;
+    /* border: solid red 1px; */
+}
+
+.row-title {
+    color: gray;
+    height: 100%;
+    border-bottom: solid lightgray 1px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.graph-and-options-div {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    gap: 1rem;
+}
+
+.timelines-container {
+    flex-basis: 25%;
+    height: 25%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    /* border-radius: 5px; */
+}
+
+.timelines-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 95%;
+    color: darkslategray;
+    font-weight: 600;
+}
+
+.timelines-intervals {
+    width: 95%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.whitecard-b {
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, #00b4d8 0px 0px 0px 1px;
+    background-color: white;
+    border-radius: 5px;
+}
+
+.main-graph-div {
+    /* box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px; */
+    /* height: 40%; */
+    /* height: 400px; */
+    height: 400px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.all-options {
+    width: 27%;
+    height: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+}
+
+.intervals-and-winters, .sliders {
+    width: 48%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+}
+
+.sliders {
+    border-left: solid lightgray 1px;
+}
+
+.main-graph {
+    width: 71%;
+}
+
+.input-quadrant {
+    width: 100%;
+    height: 45%;
+    padding: 0.5rem 0;
+}
+
+.help-icon {
+    position: absolute;
+}
+
+.data-types-container {
+    height: 25%;
+    width: 100%;
+    padding: 0.2rem 0;
+}
+
+.leaderboard-container  {
+    height: 72%;
+    width: 100%;
+}
+
+/* CSS */
+.button-81 {
+  background-color: #fff;
+  border: 0 solid #e2e8f0;
+  border-radius: 1.5rem;
+  box-sizing: border-box;
+  color: #00b4d8;
+  cursor: pointer;
+  display: inline-block;
+  font-family: "Basier circle",-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.8rem 1.2rem;
+  text-align: center;
+  text-decoration: none #0d172a solid;
+  text-decoration-thickness: auto;
+  transition: all .1s cubic-bezier(.4, 0, .2, 1);
+  /* box-shadow: 0px 1px 2px rgba(166, 175, 195, 0.25); */
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 2px, rgb(51, 51, 51) 0px 0px 0px 1px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-81:hover {
+  /* background-color: #03045e; */
+  background-color: #00b4d8;
+  color: #fff;
+}
+
+.button-81.active {
+    color: #fff;
+    background-color: #00b4d8;
+}
+
+/* .button-81.active:hover {
+    color: #03045e;
+    background-color: #fff;
+} */
+
+/* @media (min-width: 768px) {
+  .button-81 {
+    font-size: 1.125rem;
+    padding: 1rem 2rem;
+  }
+} */

@@ -1,0 +1,357 @@
+const generateBalancePDF = () => {
+    const doc = new jsPDF();
+
+    // Add date
+    doc.setFontSize(9);
+    const currentDate = new Date().toLocaleDateString();
+    doc.text(`Generated on: ${currentDate}`, 160, 15);
+
+    // Add header and team info
+    doc.setFontSize(20);
+    doc.text("Balance Sheet", 105, 25, { align: "center" });
+    doc.setFontSize(12);
+    doc.text(`Team: ${simData.teamName}`, 105, 35, { align: "center" });
+
+    // Set column headers
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("August", 120, 48);
+    doc.text("September", 150, 48);
+    doc.text("October", 180, 48);
+
+    doc.setFont("helvetica", "normal");
+    // Define rows with labels and positioning
+    const rows = [
+      // Assets section
+      {
+        label: "Assets",
+        y: 55,
+        indent: 0,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Current Assets",
+        y: 60,
+        indent: 5,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Cash and Banks",
+        y: 65,
+        indent: 10,
+        bold: false,
+        august: balanceData.cashAndBanks[0],
+        september: balanceData.cashAndBanks[1],
+        october: balanceData.cashAndBanks[2],
+      },
+      {
+        label: "Customers",
+        y: 70,
+        indent: 10,
+        bold: false,
+        august: balanceData.customers[0],
+        september: balanceData.customers[1],
+        october: balanceData.customers[2],
+      },
+      {
+        label: "Accounts Receivable",
+        y: 75,
+        indent: 10,
+        bold: false,
+        august: balanceData.accountsReceivable[0],
+        september: balanceData.accountsReceivable[1],
+        october: balanceData.accountsReceivable[2],
+      },
+      {
+        label: "Inventory",
+        y: 80,
+        indent: 10,
+        bold: false,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Raw Material",
+        y: 85,
+        indent: 15,
+        bold: false,
+        august: balanceData.rawMaterials[0],
+        september: balanceData.rawMaterials[1],
+        october: balanceData.rawMaterials[2],
+      },
+      {
+        label: "Goods in Process",
+        y: 90,
+        indent: 15,
+        bold: false,
+        august: balanceData.goodsInProcess[0],
+        september: balanceData.goodsInProcess[1],
+        october: balanceData.goodsInProcess[2],
+      },
+      {
+        label: "Finished Goods",
+        y: 95,
+        indent: 15,
+        bold: false,
+        august: balanceData.finishedGoods[0],
+        september: balanceData.finishedGoods[1],
+        october: balanceData.finishedGoods[2],
+      },
+      {
+        label: "Total Current Assets",
+        y: 100,
+        indent: 10,
+        bold: true,
+        august: balanceData.totalCurrentAssets[0],
+        september: balanceData.totalCurrentAssets[1],
+        october: balanceData.totalCurrentAssets[2],
+      },
+
+      {
+        label: "Fixed Assets",
+        y: 115,
+        indent: 5,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Buildings",
+        y: 120,
+        indent: 10,
+        bold: false,
+        august: balanceData.buildings[0],
+        september: balanceData.buildings[1],
+        october: balanceData.buildings[2],
+      },
+      {
+        label: "Transportation",
+        y: 125,
+        indent: 10,
+        bold: false,
+        august: balanceData.transportation[0],
+        september: balanceData.transportation[1],
+        october: balanceData.transportation[2],
+      },
+      {
+        label: "Machinery",
+        y: 130,
+        indent: 10,
+        bold: false,
+        august: balanceData.machinery[0],
+        september: balanceData.machinery[1],
+        october: balanceData.machinery[2],
+      },
+      {
+        label: "Equipment",
+        y: 135,
+        indent: 10,
+        bold: false,
+        august: balanceData.equipment[0],
+        september: balanceData.equipment[1],
+        october: balanceData.equipment[2],
+      },
+      {
+        label: "Net Accumulated Depreciation",
+        y: 140,
+        indent: 10,
+        bold: false,
+        august: balanceData.netAccumulatedDepreciation[0],
+        september: balanceData.netAccumulatedDepreciation[1],
+        october: balanceData.netAccumulatedDepreciation[2],
+      },
+      {
+        label: "Others",
+        y: 145,
+        indent: 10,
+        bold: false,
+        august: balanceData.others[0],
+        september: balanceData.others[1],
+        october: balanceData.others[2],
+      },
+      {
+        label: "Total Fixed Assets",
+        y: 150,
+        indent: 10,
+        bold: true,
+        august: balanceData.totalFixedAssets[0],
+        september: balanceData.totalFixedAssets[1],
+        october: balanceData.totalFixedAssets[2],
+      },
+
+      {
+        label: "Total Assets",
+        y: 165,
+        indent: 5,
+        bold: true,
+        august: balanceData.totalAssets[0],
+        september: balanceData.totalAssets[1],
+        october: balanceData.totalAssets[2],
+      },
+
+      // Liabilities section
+      {
+        label: "Liabilities",
+        y: 180,
+        indent: 0,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Current Liabilities",
+        y: 185,
+        indent: 5,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Suppliers",
+        y: 190,
+        indent: 10,
+        bold: false,
+        august: balanceData.suppliers[0],
+        september: balanceData.suppliers[1],
+        october: balanceData.suppliers[2],
+      },
+      {
+        label: "Accounts Payable",
+        y: 195,
+        indent: 10,
+        bold: false,
+        august: balanceData.accountsPayable[0],
+        september: balanceData.accountsPayable[1],
+        october: balanceData.accountsPayable[2],
+      },
+      {
+        label: "Total Current Liabilities",
+        y: 200,
+        indent: 10,
+        bold: true,
+        august: balanceData.totalCurrentLiabilities[0],
+        september: balanceData.totalCurrentLiabilities[1],
+        october: balanceData.totalCurrentLiabilities[2],
+      },
+
+      {
+        label: "Long-Term Liabilities",
+        y: 215,
+        indent: 5,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Long-Term Accounts Payable",
+        y: 220,
+        indent: 10,
+        bold: false,
+        august: balanceData.longtermAccountsPayable[0],
+        september: balanceData.longtermAccountsPayable[1],
+        october: balanceData.longtermAccountsPayable[2],
+      },
+      {
+        label: "Total Long-Term Liabilities",
+        y: 225,
+        indent: 10,
+        bold: true,
+        august: balanceData.totalLongTermLiabilities[0],
+        september: balanceData.totalLongTermLiabilities[1],
+        october: balanceData.totalLongTermLiabilities[2],
+      },
+
+      {
+        label: "Total Liabilities",
+        y: 240,
+        indent: 5,
+        bold: true,
+        august: balanceData.totalLiabilities[0],
+        september: balanceData.totalLiabilities[1],
+        october: balanceData.totalLiabilities[2],
+      },
+
+      // Equity section
+      {
+        label: "Equity",
+        y: 255,
+        indent: 0,
+        bold: true,
+        august: "",
+        september: "",
+        october: "",
+      },
+      {
+        label: "Capital",
+        y: 260,
+        indent: 10,
+        bold: false,
+        august: balanceData.capital[0],
+        september: balanceData.capital[1],
+        october: balanceData.capital[2],
+      },
+      {
+        label: "Period Earnings",
+        y: 265,
+        indent: 10,
+        bold: false,
+        august: balanceData.periodEarnings[0],
+        september: balanceData.periodEarnings[1],
+        october: balanceData.periodEarnings[2],
+      },
+      {
+        label: "Retained Earnings",
+        y: 270,
+        indent: 10,
+        bold: false,
+        august: balanceData.retainedEarnings[0],
+        september: balanceData.retainedEarnings[1],
+        october: balanceData.retainedEarnings[2],
+      },
+      {
+        label: "Total Equity",
+        y: 275,
+        indent: 10,
+        bold: true,
+        august: balanceData.totalEquity[0],
+        september: balanceData.totalEquity[1],
+        october: balanceData.totalEquity[2],
+      },
+
+      {
+        label: "Total Liabilities and Equity",
+        y: 290,
+        indent: 5,
+        bold: true,
+        august: balanceData.totalLiabilitiesAndEquity[0],
+        september: balanceData.totalLiabilitiesAndEquity[1],
+        october: balanceData.totalLiabilitiesAndEquity[2],
+      },
+    ];
+
+    // Loop through each row and add text with indentation and bold styling
+    rows.forEach((row) => {
+      doc.setFont("helvetica", row.bold ? "bold" : "normal");
+      doc.text(row.label, 20 + row.indent, row.y);
+      doc.text(`${row.august}`, 120, row.y);
+      doc.text(`${row.september}`, 150, row.y);
+      doc.text(`${row.october}`, 180, row.y);
+    });
+
+    // Save the PDF
+    const fileName = `${simData.teamName}_Balance_Sheet_${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
+    doc.save(fileName);
+  };

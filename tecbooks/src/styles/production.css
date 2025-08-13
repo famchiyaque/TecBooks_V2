@@ -1,0 +1,204 @@
+/* Estilos globales */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+/* Header */
+.header {
+  position: fixed;
+  top: 0;
+  height: 4vh;
+  width: 100%;
+  background-color: #1e90ff;
+  color: white;
+  /* padding: 15px 20px; */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.header .user-info {
+  display: flex;
+  gap: 10px;
+  margin-right: 2rem;
+}
+
+.header .user-info span {
+  /* font-size: 16px; */
+  color: white;
+}
+
+.header-icon-flex {
+  display: flex;
+  width: auto;
+  align-items: center;
+  height: 100%;
+}
+
+/* Contenedor de pestañas */
+.tab-container {
+  display: flex;
+  justify-content: flex-start;
+  background-color: white;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: #f0f0f0;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+
+.tab.active {
+  background-color: #1e90ff;
+  color: white;
+}
+
+/* Filtros de periodo */
+.period-filter {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.period-filter select {
+  padding: 5px;
+  font-size: 16px;
+}
+
+/* Contenedor de tarjetas */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  padding: 30px 20px;
+  justify-items: center;
+}
+
+.card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  width: 150px;
+  text-align: center;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.card p {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.card .percentage {
+  font-size: 16px;
+  color: #666;
+}
+
+.card.positive .percentage {
+  color: green;
+}
+
+.card.negative .percentage {
+  color: red;
+}
+
+/* Contenedor de pestañas personalizado */ 
+.custom-tab-container {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #e0e0e0; /* Línea fina separadora */
+  background-color: #fff;
+  padding: 10px;
+}
+
+/* Botones de pestañas */
+.custom-tab {
+  background-color: #f8f8f8; /* Fondo de pestañas inactivas */
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  font-size: 16px;
+  color: #555;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 5px;
+}
+
+.custom-tab.active {
+  background-color: #e0f3ff; /* Azul claro para pestaña activa */
+  color: #333;
+  font-weight: bold;
+  border-bottom: 2px solid #1e90ff; /* Borde inferior azul para la pestaña activa */
+}
+
+.custom-tab:hover {
+  background-color: #f1f1f1; /* Hover para pestañas inactivas */
+}
+
+/* Botón Dropdown para "Period/All-Time" */
+.custom-period-filter {
+  margin-left: auto; /* Mueve el botón dropdown a la derecha */
+}
+
+.custom-dropbtn {
+  background-color: #f8f8f8;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #555;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.custom-dropbtn:hover {
+  background-color: #f1f1f1;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .card-container {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  /* Contenedor de pestañas personalizado */
+  .custom-tab-container {
+    flex-direction: column;
+  }
+
+  .custom-period-filter {
+    margin-top: 10px;
+  }
+}
+
+
