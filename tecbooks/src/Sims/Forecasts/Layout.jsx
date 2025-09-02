@@ -13,13 +13,14 @@ function Layout() {
 
   const fontStyle = {
     // fontFamily: 'Roboto, sans-serif',
-    fontFamily: 'Open Sans, sans-serif',
+    // fontFamily: 'Open Sans, sans-serif',
     // fontFamily: 'Lato, sans-serif',
     // fontFamily: 'Montserrat, sans-serif',
     // fontFamily: 'Poppins, sans-serif',
     // fontFamily: 'Inter, sans-serif',
     // fontFamily: 'Nunito, sans-serif',
-    // fontFamily: 'Raleway, sans-serif'
+    fontFamily: 'Raleway, sans-serif',
+    backgroundColor: 'white'
   }
 
   useBaseSalesData();
@@ -31,7 +32,7 @@ function Layout() {
       <GenericSubheader simName={"Sales Forecaster"} />
       <div className='w-screen flex'>
         <MethodsSidebar />
-        <div className='flex-1 bg-white h-screen min-h-[800]'>
+        <div className='flex-1 h-screen min-h-[800]'>
             <DataOptionsHeader />
             <div className='flex justify-around'>
               <div className='flex-6 flex-col gap-4'>

@@ -72,7 +72,7 @@ function DataOptionsHeader() {
     }, [])
 
   return (
-    <div className='flex justify-between mx-6 my-2 items-center'>
+    <div className='flex justify-between mx-6 my-2 items-center border-b-2'>
       <div>
         <div className='flex justify-between mx-6 my-2 items-center'>
             {isLoading ? (

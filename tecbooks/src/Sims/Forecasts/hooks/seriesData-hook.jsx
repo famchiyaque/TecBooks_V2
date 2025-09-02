@@ -14,10 +14,12 @@ export default function useSeriesData() {
     const effectiveFutureDate = useSelector((state) => state.forecaster.effectiveFutureDate);
     const effectiveInterval  = useSelector((state) => state.forecaster.effectiveInterval);
     const activeMethods  = useSelector((state) => state.forecaster.activeMethods);
+    // const seriesData = useSelector((state) => state.forecaster.seriesData);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        // console.log("In useSeriesData hook with salesData: ", salesData, " past date: ", effectivePastDate, " future date: ", effectiveFutureDate, " interval: ", effectiveInterval);
+        console.log("In useSeriesData hook with salesData: ", salesData, " past date: ", effectivePastDate, " future date: ", effectiveFutureDate, " interval: ", effectiveInterval);
+        console.log("and active methods: ", activeMethods);
         if (!salesData || !effectivePastDate || !effectiveFutureDate || !effectiveInterval) return;
         dispatch(setSeriesData(null));
         // console.log("calling getSeriesData with: ", salesData);

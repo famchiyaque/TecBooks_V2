@@ -3,6 +3,8 @@ import { Box, Checkbox, FormControlLabel, Typography } from '@mui/material';
 import { MODEL_OPTIONS } from '../configs/options-configs';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveMethods } from '../store';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 
 function MethodsSidebar() {
   // console.log("rendering methods sidebar");
@@ -58,7 +60,8 @@ function MethodsSidebar() {
       <Box sx={{ display: 'flex', height: '100vh' }}>
         
       {/* Sidebar */}
-      <Box
+      <Stack
+        spacing={2}
         sx={{
           width,
           // bgcolor: 'primary.main',
@@ -67,36 +70,20 @@ function MethodsSidebar() {
           userSelect: 'none',
           overflowY: 'auto',
           overflowX: 'hidden',
+          alignItems: 'left'
         }}
       >
-        {/* <Typography variant='h3' className='text-center'>Models</Typography> */}
         <h1 className='font-semibold text-3xl mb-3'>Models</h1>
         {MODEL_OPTIONS.map((option) => (
-          <FormControlLabel
-            key={option}
-            control={
-              <Checkbox
-                checked={activeMethods.includes(option)}
-                onChange={() => handleCheck(option)}
-                sx={{ padding: '5px 0', marginLeft: '15px' }} // 2rem space from label
-              />
-            }
-            label={option}
-            labelPlacement="start" // label on the left, checkbox on the right
-            sx={{
-              justifyContent: 'space-between',
-              m: 0,
-              width: '100%',
-              '.MuiFormControlLabel-label': {
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis',
-                // paddingRight: '25px', // keep gap from checkbox
-              },
-            }}
-          />
+          <Chip
+          key={option}
+          label={option}
+          color={activeMethods.includes(option) ? "primary" : "default"}
+          onClick={() => handleCheck(option)}
+          variant={activeMethods.includes(option) ? "filled" : "outlined"}
+        />
         ))}
-      </Box>
+      </Stack>
 
         {/* Resize handle */}
         <Box

@@ -19,7 +19,7 @@ function getNonNullRange(baseArray) {
 function simpleLinear(baseArray, interval) {
     const result = [...baseArray];
 
-    const { x, y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
+    const { x, y, firstNonNull, lastNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1) return result; // no data at all
 
     // linear regression coefficients
@@ -68,7 +68,7 @@ function doubleLinear(baseArray, interval) {
 }
 
 
-function simpleMoving(baseArray, interval, compound = 30) {
+function simpleMoving(baseArray, interval, compound = 3) {
     const result = [...baseArray];
 
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);

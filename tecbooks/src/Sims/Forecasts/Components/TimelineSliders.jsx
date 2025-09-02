@@ -78,9 +78,15 @@ export default function TimelineSliders() {
 
   if (!pastTimelineDates || !futureTimelineDates) return <div>Loading...</div>;
 
+  const pastLabel = pastMarks.find(m => m.value === pastValue)?.label;
+  const futureLabel = futureMarks.find(m => m.value === futureValue)?.label;
+
   return (
     <div className='flex items-start'>
+      <div>
         <h5 className='font-semibold text-xs'>Historical</h5>
+        <Typography variant="body2" color="text.secondary">&larr;{pastLabel}</Typography>
+      </div>
         <Box sx={{ width: '80%', height: 60, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           {/* Past Slider */}
           <Slider
@@ -97,7 +103,7 @@ export default function TimelineSliders() {
               return mark ? mark.label : '';
             }}
             sx={{
-              color: 'green',
+              color: 'orange',
               width: '45%',
               '& .MuiSlider-mark': {
                 width: 3,           // make it a thin vertical line
@@ -107,6 +113,27 @@ export default function TimelineSliders() {
               },
               '& .MuiSlider-markLabel': {
                 display: 'none',
+              },
+              '& .MuiSlider-thumb': {
+                width: 0,        // remove default thumb width
+                height: 0,       // remove default thumb height
+                bgcolor: 'transparent', // no background
+                border: 'none',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 0,
+                  height: 0,
+                  borderTop: '10px solid transparent',
+                  borderBottom: '10px solid transparent',
+                  borderRight: '15px solid orange', // arrow color
+                },
+                '&:hover, &.Mui-focusVisible': {
+                  boxShadow: 'none', // remove hover shadow
+                }
               }
             }}
           />
@@ -128,18 +155,42 @@ export default function TimelineSliders() {
               color: 'blue',
               width: '45%',
               '& .MuiSlider-mark': {
-                width: 3,           // make it a thin vertical line
-                height: 12,          // height of the dash
-                backgroundColor: 'currentColor', // same color as slider
+                width: 3,
+                height: 12,
+                backgroundColor: 'currentColor',
                 borderRadius: 1,
               },
               '& .MuiSlider-markLabel': {
                 display: 'none',
+              },
+              '& .MuiSlider-thumb': {
+                width: 0,        // remove default thumb width
+                height: 0,       // remove default thumb height
+                bgcolor: 'transparent', // no background
+                border: 'none',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 0,
+                  height: 0,
+                  borderTop: '10px solid transparent',
+                  borderBottom: '10px solid transparent',
+                  borderLeft: '15px solid blue', // arrow color
+                },
+                '&:hover, &.Mui-focusVisible': {
+                  boxShadow: 'none', // remove hover shadow
+                }
               }
             }}
           />
         </Box>
-        <h5 className='font-semibold text-xs'>Forecasted</h5>
+        <div>
+          <h5 className='font-semibold text-xs'>Forecast</h5>
+          <Typography variant="body2" color="text.secondary">{futureLabel}&rarr;</Typography>
+        </div>
     </div>
   );
 }
