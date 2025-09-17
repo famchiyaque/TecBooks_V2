@@ -1,8 +1,16 @@
 import React, { useEffect, useRef } from 'react'
 import Chart from 'chart.js/auto'
+import { useSelector } from 'react-redux'
 
-function Graph({ lifetime, projectType, order, initialInvestment, inflows, outflows }) {
+function Graph() {
   const canvasRef = useRef(null)
+
+  const project = useSelector((state) => state.projEval.project)
+  const lifetime = useSelector((state) => state.projEval.lifetime)
+  const inflows = useSelector((state) => state.projEval.inflows)
+  const outflows = useSelector((state) => state.projEval.outflows)
+  const initialInvestment = useSelector((state) => state.projEval.initialInvestment)
+  const order = useSelector((state) => state.projEval.order)
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext('2d')
@@ -54,8 +62,8 @@ function Graph({ lifetime, projectType, order, initialInvestment, inflows, outfl
       ]
     }
 
-    const graphTitle = projectType
-      ? projectType
+    const graphTitle = project
+      ? project
           .split(' ')
           .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '') // Guard for empty words
           .join(' ')
@@ -66,6 +74,7 @@ function Graph({ lifetime, projectType, order, initialInvestment, inflows, outfl
       data: data,
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: {
             position: 'top',
@@ -86,10 +95,10 @@ function Graph({ lifetime, projectType, order, initialInvestment, inflows, outfl
     const chart = new Chart(ctx, config)
 
     return () => chart.destroy()
-  }, [lifetime, projectType, inflows, outflows, initialInvestment, order])
+  }, [lifetime, project, inflows, outflows, initialInvestment, order])
 
   return (
-    <div style={{ width: "90%", margin: "0 auto", height: '100%' }}>
+    <div style={{ width: "90%", margin: "0 auto", minHeight: '60vh' }}>
       <canvas ref={canvasRef} ></canvas>
     </div>
   )

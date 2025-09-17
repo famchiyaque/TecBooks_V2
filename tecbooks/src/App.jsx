@@ -8,10 +8,11 @@ import MxRep from './MxRep/Main'
 import TECBooks from './TECBooks/TECBooks'
 import Survey from './Survey/Survey'
 import { createSurveyStore } from './Survey/store';
-import { createForecastStore } from './Sims/Forecasts/store';
 import TempUpload from './HomePage/TempUpload'
-import ProjEval from './Sims/Investments/Simulator';
+import ProjEval from './Sims/Investments/Layout';
+import { createProjEvalStore } from './Sims/Investments/store'
 import ForecastSim from '@/Sims/Forecasts/Layout';
+import { createForecastStore } from './Sims/Forecasts/store';
 // import ErrorPage from './Global Components/ErrorPage'
 import { Navigate } from 'react-router-dom'
 import { OrientationProvider } from './Global Components/PortraitContext';
@@ -24,6 +25,7 @@ function App() {
   console.log("app loaded")
   // const { auth } = useContext(AuthContext)
   const surveyStore = createSurveyStore()
+  const projEvalStore = createProjEvalStore()
   const forecasterStore = createForecastStore()
 
   return (
@@ -52,7 +54,12 @@ function App() {
 
               <Route path="/tecbooks/*" element={ <TECBooks /> } />
 
-            <Route path="/project-evaluation-simulator" element={<ProjEval />} />
+            <Route path="/project-evaluation-simulator" element={
+              <Provider store={projEvalStore}>
+                <ProjEval />
+              </Provider>
+              } 
+            />
 
             <Route path="/sales-forecaster" element={
               <Provider store={forecasterStore}>

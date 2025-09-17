@@ -2,11 +2,16 @@ import React from 'react'
 import Box from '@mui/material/Box'
 import Slider from '@mui/material/Slider'
 import { Typography } from '@mui/material'
+import { useSelector, useDispatch } from 'react-redux'
+import { setOrder } from '../../store'
 
-function Compound({ order, orderChange }) {
+function Compound() {
+  const dispatch = useDispatch()
+
+  const order = useSelector((state) => state.order)
 
   const handleChange = (_, newValue) => {
-    orderChange(newValue);
+    dispatch(setOrder(newValue))
   }
 
   return (

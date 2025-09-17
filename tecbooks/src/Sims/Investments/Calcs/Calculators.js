@@ -1,6 +1,12 @@
-function getBreakEven(lifetime, inflows, outflows, cashflows, initialInv) {
-    console.log(inflows)
-    console.log(outflows)
+export function getBreakEven(lifetime, inflows, outflows, cashflows, initialInv) {
+    // console.log("discountRate: ", discountRate)
+    console.log("IN GETBREAK EVEN")
+    console.log("lifetime: ", lifetime)
+    console.log("initialInv: ", initialInv)
+    console.log("inflows: ", inflows)
+    console.log("outflows: ", outflows)
+    console.log("cashflows: ", cashflows)
+
     if (cashflows[0] >= 0) {
         return ((outflows[0] + initialInv) / inflows[0]).toFixed(1)
     }
@@ -19,7 +25,7 @@ function getBreakEven(lifetime, inflows, outflows, cashflows, initialInv) {
     return null
 }
 
-function getROI(inflows, outflows, initialInv) {
+export function getROI(inflows, outflows, initialInv) {
     const benefits = inflows.reduce((prev, curr) => prev + curr, 0)
     const costs = outflows.reduce((prev, curr) => prev + curr, 0) + initialInv
     const roi = ((benefits - costs) / costs) * 100
@@ -27,7 +33,7 @@ function getROI(inflows, outflows, initialInv) {
     return result
 }
 
-function getNPV(lifetime, cashflows, discountRate) {
+export function getNPV(lifetime, cashflows, discountRate) {
     let npv = 0
     for (let i = 0; i < lifetime; i++) {
         npv += (cashflows[i])/(1 + (discountRate/100)) ** i
@@ -35,7 +41,7 @@ function getNPV(lifetime, cashflows, discountRate) {
     return npv.toFixed(2)
 } 
 
-function getIRR(lifetime, inflows, outflows, initialInv, precomputedNPV) {
+export function getIRR(lifetime, inflows, outflows, initialInv, precomputedNPV) {
     let lowRate = 0;
     let highRate = 100;
     let irr = 0;
@@ -88,25 +94,21 @@ function getIRR(lifetime, inflows, outflows, initialInv, precomputedNPV) {
 
 
 export function getResults(lifetime, initialInv, inflows, outflows, discountRate)  {
-    console.log("lifetime: ", lifetime)
-    console.log("initialInv: ", initialInv)
-    console.log("inflows: ", inflows)
-    console.log("outflows: ", outflows)
-    console.log("discountRate: ", discountRate)
-    const cashflows = inflows.map((inflow, index) => {
-        if (index == 0) return inflow - outflows[index] - initialInv
-        else return inflow - outflows[index]
-    })
-    console.log("cashflows: ", cashflows)
-    const breakEven = getBreakEven(lifetime, inflows, outflows, cashflows, initialInv)
+    // console.log("lifetime: ", lifetime)
+    // console.log("initialInv: ", initialInv)
+    // console.log("inflows: ", inflows)
+    // console.log("outflows: ", outflows)
+    // console.log("discountRate: ", discountRate)
+    
+    const breakEven = getBreakEven(lifetime, inflows, outflows, initialInv)
     const roi = getROI(inflows, outflows, initialInv)
     const npv = getNPV(lifetime, cashflows, discountRate)
     const irr = getIRR(lifetime, inflows, outflows, initialInv, npv)
 
-    console.log("breakEven: ", breakEven)
-    console.log("roi: ", roi)
-    console.log("npv: ", npv)
-    console.log("irr: ", irr)
+    // console.log("breakEven: ", breakEven)
+    // console.log("roi: ", roi)
+    // console.log("npv: ", npv)
+    // console.log("irr: ", irr)
 
     return [breakEven, roi, npv, irr]
 }

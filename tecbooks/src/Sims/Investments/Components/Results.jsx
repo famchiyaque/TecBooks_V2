@@ -1,12 +1,39 @@
-import React from 'react'
+import React, { use } from 'react'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import EditNoteIcon from '@mui/icons-material/EditNote'
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt'
+import { useSelector } from 'react-redux'
+import { getProjectInfo, getResults } from '../store'
 
-function Results({ breakEven, roi, irr, npv, discountRate, addHistory }) {
+function Results() {
+  const projectInfo = useSelector(getProjectInfo)
+  const results = useSelector(getResults)
+  const { breakEven, roi, npv, irr } = results
+
+  const addResultsToHistory = () => {
+    const storedHistory = sessionStorage.getItem("projEvalHistory");
+    let history = storedHistory ? JSON.parse(storedHistory) : [];
+  
+    if (history.length >= 15) {
+      // TODO add toast for displaying error messages
+      console.log("stored length was too much");
+      return;
+    }
+  
+    const newEntry = {
+      index: history.length + 1,
+      projectInfo,
+      results
+    };
+  
+    const newHistory = [...history, newEntry];
+    sessionStorage.setItem("projEvalHistory", JSON.stringify(newHistory));
+
+    window.dispatchEvent(new Event("historyUpdated"));
+  };
 
   return (
     <>
@@ -53,14 +80,14 @@ function Results({ breakEven, roi, irr, npv, discountRate, addHistory }) {
             </Paper>
           </div>
 
-        {(irr > (discountRate)) ? (
+        {(irr > (projectInfo.discountRate)) ? (
             <ThumbUpAltIcon style={{ height: '50px', width: '50px', color: 'green' }} />
           ) : (
             <ThumbDownAltIcon style={{ height: '50px', width: '50px', color: 'red' }} />
           )}
       </div>
 
-      <Button variant='outlined' size='medium' style={{ marginBottom: "2rem"}} onClick={addHistory}>
+      <Button variant='outlined' size='medium' onClick={addResultsToHistory}>
         Record Project&nbsp;
         <EditNoteIcon />
       </Button>
