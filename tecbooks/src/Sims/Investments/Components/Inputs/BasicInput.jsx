@@ -10,13 +10,21 @@ function BasicInput({ func, value, name }) {
                 func(newValue.trim());
                 break
             case 'Lifetime':
-                {
-                    const parsedInt = parseInt(newValue, 10);
-                    if (isNaN(parsedInt)) func(0)
-                    if (parsedInt >= 20) func(20)
-                    else func(parsedInt)
+                if (newValue === '') {
+                    func(''); // keep input empty temporarily
+                    break;
                 }
-                break
+            
+                const parsedInt = parseInt(newValue, 10);
+            
+                if (isNaN(parsedInt)) {
+                    func(0);
+                } else if (parsedInt >= 20) {
+                    func(20);
+                } else {
+                    func(parsedInt);
+                }
+                break;
             case 'Initial Investment':
                 {
                     const parsedInt = parseInt(newValue, 10);

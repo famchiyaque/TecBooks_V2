@@ -59,8 +59,8 @@ function Layout() {
         <GenericHeader pageName={"Simulators"} />
         <GenericSubheader simName={"Project Evaluation"} />
 
-        <div className='w-[100%] min-h-[105vh] mx-4 my-3 flex justify-around items-start gap-3'>
-          <div className='basis-[60%] flex flex-col gap-4 h-full'>
+        <div className='w-[100%] min-h-[105vh] mx-6 my-3 flex justify-around items-start gap-3'>
+          <div className='basis-[58%] flex flex-col gap-4 h-full'>
             <InputSection />
             <div className='graph-div'>
               <Order />

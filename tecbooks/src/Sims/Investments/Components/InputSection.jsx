@@ -21,7 +21,20 @@ function InputSection() {
    } = useSelector(getProjectInfo)
 
   const setProjectCallback = (val) => dispatch(setProject(val))
-  const setLifetimeCallback = (val) => dispatch(setLifetime(val))
+  const setLifetimeCallback = (val) => {
+    // ensure val is a number
+    const newLifetime = typeof val === 'string' && val === '' ? 0 : Number(val);
+  
+    dispatch(setLifetime(newLifetime));
+  
+    const resizeArray = (arr, length) => {
+      if (arr.length > length) return arr.slice(0, length); // truncate
+      else return [...arr, ...Array(length - arr.length).fill(0)]; // append zeros
+    };
+  
+    dispatch(setInflows(resizeArray(inflows, newLifetime)));
+    dispatch(setOutflows(resizeArray(outflows, newLifetime)));
+  };  
   const setInitialInvCallback = (val) => dispatch(setInitialInvestment(val))
   const setDiscountRateCallback = (val) => dispatch(setDiscountRate(val))
   const setInflowsCallback = (val) => dispatch(setInflows(val))
@@ -171,9 +184,9 @@ function InputSection() {
                 
         </div>
 
-        <div className='w-[98%] flex justify-start px-2'>
+        <div className='w-[98%] grid grid-cols-[21%_79%] px-2'>
 
-          <div className='basis-[21%] flex flex-col items-start pl-2 gap-3'>
+          <div className='flex flex-col items-start pl-2 gap-3'>
             <div className='flex justify-start'>
               <IconButton title='Copy All' sx={{ paddingBottom: '0' }} onClick={copyFlows}>
                 <CopyAllIcon sx={{ fontSize: '1.2rem' }} />
@@ -192,8 +205,9 @@ function InputSection() {
             <p>Project Outflows: </p>
           </div>
 
-          <div className="basis-[79%] min-w-0 flex flex-col mt-2 overflow-x-auto">
-            <div className='min-w-max max-w-[100%]'>
+          <div className="overflow-x-auto min-w-0 flex flex-col mt-2">
+            <div className='min-w-max'>
+
               <div className='flex'>
                 {Array.from({ length: lifetime }, (_, i) => {
                   const year = new Date().getFullYear() + i;
@@ -204,11 +218,13 @@ function InputSection() {
                   );
                 })}
                 </div>
+
                 <div className='w-[100%] flex flex-col'>
                   {tableInputs.map((input, idx) => (
                     <TableInput func={input.func} flows={input.value} name={input.name} />
                   ))}
                 </div>
+
             </div>  
           </div>
 
