@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import "./../../styles/statement.css"
+import "@/styles/statement.css"
 import { useExcel } from "../Comps/ExcelContext"
 // import { PDFDocument, StandardFonts, rgb } from "@react-pdf/renderer"; // already commented since Leo
 // import Card from "@mui/material/Card"

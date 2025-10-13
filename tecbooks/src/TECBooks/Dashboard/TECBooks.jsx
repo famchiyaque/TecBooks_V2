@@ -1,4 +1,4 @@
-import '../styles/general.css'
+import '@/styles/general.css'
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { ExcelProvider } from './Comps/ExcelContext'

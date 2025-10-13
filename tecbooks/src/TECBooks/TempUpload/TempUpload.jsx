@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material'
 import React, { useState } from 'react'
-import Dropzone from '../Global Components/Dropzone'
+import Dropzone from '@/Global Components/Dropzone'
 import { useNavigate } from 'react-router-dom'
 
 function TempUpload() {

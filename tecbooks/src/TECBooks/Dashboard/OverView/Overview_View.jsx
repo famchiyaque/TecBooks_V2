@@ -1,4 +1,4 @@
-import '../../styles/overview.css'
+import '@/styles/overview.css'
 import { React, useEffect, useState } from 'react'
 // import { useSimData } from '../SimDataContext'
 import Loader from '../Comps//Loader'

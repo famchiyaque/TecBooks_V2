@@ -1,5 +1,5 @@
 import React from "react";
-import "./../../styles/kpi.css";
+import "@/styles/kpi.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useSimData } from "../SimDataContext";
 import Gauge from "../Novus Components/Gauge";

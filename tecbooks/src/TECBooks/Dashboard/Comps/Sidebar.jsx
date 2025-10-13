@@ -6,7 +6,7 @@ import { RiBankFill } from "react-icons/ri";
 // import { BsBank } from "react-icons/bs";
 import { BiTrendingUp } from 'react-icons/bi'
 // import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
-import '../../styles/general.css'
+import '@/styles/general.css'
 
 function Sidebar({ activeSidebar, setActiveSidebar }) {
     // const [activeSidebar, setActiveSidebar] = useState(1)

@@ -1,5 +1,5 @@
 import React from "react"
-import '../../styles/production.css'
+import '@/styles/production.css'
 import { useExcel } from "../Comps/ExcelContext"
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'

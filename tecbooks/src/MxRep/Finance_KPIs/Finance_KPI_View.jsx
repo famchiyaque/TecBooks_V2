@@ -1,5 +1,5 @@
 import React from 'react'
-import '../../styles/financial_health.css'
+import '@/styles/financial_health.css'
 import { useOutletContext } from 'react-router-dom'
 import Sales from './Margins/Sales'
 import Operating from './Margins/Operating'

@@ -1,4 +1,4 @@
-import '../../styles/forecasts.css'
+import '@/styles/forecasts.css'
 import { React, useEffect, useState } from 'react'
 import { useExcel } from '../Comps/ExcelContext'
 import Typography from '@mui/material/Typography'

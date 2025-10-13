@@ -1,32 +1,16 @@
 import './App.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import React, { useContext } from 'react'
-import { Provider } from 'react-redux';
+import React from 'react'
 import RotateMessage from './Global Components/RotateMessage';
 import HomePage from './HomePage/HomePage'
 import MxRep from './MxRep/Main'
-import TECBooks from './TECBooks/TECBooks'
-import Survey from './Survey/Survey'
-import { createSurveyStore } from './Survey/store';
-import TempUpload from './HomePage/TempUpload'
-import ProjEval from './Sims/Investments/Layout';
-import { createProjEvalStore } from './Sims/Investments/store'
-import ForecastSim from '@/Sims/Forecasts/Layout';
-import { createForecastStore } from './Sims/Forecasts/store';
-// import ErrorPage from './Global Components/ErrorPage'
+import TECBooks from './TECBooks/Index'
+import Simulators from './Sims/Index'
 import { Navigate } from 'react-router-dom'
 import { OrientationProvider } from './Global Components/PortraitContext';
-// import { AuthContext } from './Components/AuthContext'
-// import ProtectedRoute from './Components/ProtectedRoute'
-// import simData from './Global Components/example_sim_data'
-// import { SimDataProvider } from './MxRep/SimDataContext'
 
 function App() {
   console.log("app loaded")
-  // const { auth } = useContext(AuthContext)
-  const surveyStore = createSurveyStore()
-  const projEvalStore = createProjEvalStore()
-  const forecasterStore = createForecastStore()
 
   return (
     <OrientationProvider>
@@ -37,36 +21,11 @@ function App() {
             <Route path="/" element={ <Navigate to="/home" /> } />
             <Route path="/home" element={ <HomePage /> } />
 
-            <Route path="/survey" element={
-              <Provider store={surveyStore}>
-                <Survey />
-              </Provider>
-              } 
-            />
-            <Route path="/template-upload" element={ <TempUpload />} />
+            <Route path="/mxrep/*" element={ <MxRep /> } />
 
-            <Route path="/mxrep-dashboard/*" element={ 
-                // <SimDataProvider>
-                  <MxRep />
-                // </SimDataProvider>
-              } 
-            />
+            <Route path="/tecbooks/*" element={ <TECBooks /> } />
 
-              <Route path="/tecbooks/*" element={ <TECBooks /> } />
-
-            <Route path="/project-evaluation-simulator" element={
-              <Provider store={projEvalStore}>
-                <ProjEval />
-              </Provider>
-              } 
-            />
-
-            <Route path="/sales-forecaster" element={
-              <Provider store={forecasterStore}>
-                <ForecastSim />
-              </Provider>
-              }
-            />
+            <Route path ="/sims/*" element={ <Simulators /> } />
 
             {/* <Route path="/error" element={ <ErrorPage /> } /> */}
 

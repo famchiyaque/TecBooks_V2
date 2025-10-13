@@ -7,11 +7,11 @@ function Page1() {
     const navigate = useNavigate()
 
     const goToSurvey = () => {
-        navigate("/survey")
+        navigate("/tecbooks/survey")
     }
 
     const goToTemplateUpload = () => {
-        navigate("/template-upload")
+        navigate("/tecbooks/template-upload")
     }
 
     const getTemplate = () => {

@@ -14,14 +14,14 @@ function SimsPage() {
               title={"Project Evaluation"}
               img_path={"landing-proj-eval.png"}
               desc={"Create, save, and compare the financial returns of your potential projects and investment opportunities."}
-              sim_route={"/project-evaluation-simulator"}
+              sim_route={"/sims/project-evaluation"}
               style={{ boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px' }}
             />
             <SimCard
               title={"Sales Forecaster"}
               img_path={"forecasts-sim.png"}
               desc={"Make and compare sales forecasts with various different models using your own data or built-in methods."}
-              sim_route={"/sales-forecaster"}
+              sim_route={"/sims/forecasting"}
               style={{ boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px' }}
             />
           </div>
