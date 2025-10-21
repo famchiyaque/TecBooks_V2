@@ -32,19 +32,17 @@ function DashboardRouter() {
     // const simUserInfo = {"name": simData.userName, "teamName": simData.teamName, "ranking": simData.placement}
 
     return (
-        // <SimDataProvider>
-            <Routes>
-                <Route path="/" element={<MainLayout />}>
-                    <Route index element={<Navigate to="overview" />} />
-                    <Route path="overview" element={<Overview_View />} />
-                    <Route path="production-line" element={<Productivity_View />} />
-                    <Route path="financial-health" element={<FinanceKPIs_View />} />
-                    <Route path="statements" element={<Financial_Statement_View />} />
-                    <Route path="forecasts" element={<Forecasts_View />} />
-                    <Route path="investments" element={<Investments_View />} />
-                </Route>
-            </Routes>
-        // </SimDataProvider>
+        <Routes>
+            <Route path="/" element={<MainLayout />}>
+                <Route index element={<Navigate to="overview" />} />
+                <Route path="overview" element={<Overview_View />} />
+                <Route path="production-line" element={<Productivity_View />} />
+                <Route path="financial-health" element={<FinanceKPIs_View />} />
+                <Route path="statements" element={<Financial_Statement_View />} />
+                <Route path="forecasts" element={<Forecasts_View />} />
+                <Route path="investments" element={<Investments_View />} />
+            </Route>
+        </Routes>
     )
 }
 

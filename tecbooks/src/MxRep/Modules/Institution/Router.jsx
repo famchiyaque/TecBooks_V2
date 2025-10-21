@@ -50,11 +50,9 @@ function InstitutionRouter() {
 
       <Route path="dashboard/*" 
         element={ 
-          // <DashboardLayout>
             <SimDataProvider>
               <DashboardRouter />
             </SimDataProvider>
-          // {/* </DashboardLayout> */}
         } 
       />
       
