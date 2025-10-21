@@ -1,8 +1,14 @@
 import { Typography } from '@mui/material'
 import React from 'react'
 import EastIcon from '@mui/icons-material/East'
+import { useNavigate } from 'react-router-dom'
 
 function Page2() {
+  const navigate = useNavigate()
+
+  const goToMxRep = () => {
+    navigate('/mxrep')
+  }
 
   return (
     <div className='page-container page-1' id="mxrep-page">
@@ -42,6 +48,14 @@ function Page2() {
                 your business with TECBook's effecieny metrics, bottleneck chart, 
                 statistical forecasts, and more.
               </Typography>
+              <button className='learn-more'>
+                <a className='a-btn' onClick={goToMxRep} target='_blank'
+                style={{ paddingTop: '0.5rem' }}
+                >
+                  Go to MxRep
+                </a>
+                <EastIcon className='landing-learn-btn' sx={{ fill: 'black' }} />
+              </button>
             </div>
           </div>
           <div className='mxrep-bottom'>

@@ -7,15 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/ui/form'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { signInSchema } from '@/MxRep/Schemas/form.schemas';
 
 function SignIn() {
-  const schema = z.object({
-    email: z.string(),
-    password: z.string()
-  })
-
   const form = useForm({
-    resolver: zodResolver(schema)
+    resolver: zodResolver(signInSchema)
   })
 
   const onSubmit = (data) => {
@@ -32,13 +28,13 @@ function SignIn() {
       </CardHeader>
 
       <CardContent>
-        <Form {...form} className="text-left">
+        <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="text-left">
+                <FormItem>
                   <FormLabel>Email</FormLabel>
                   <Input placeholder="email" {...field} />
                   <FormMessage />
@@ -51,7 +47,7 @@ function SignIn() {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem className="text-left">
+                <FormItem>
                   <FormLabel>Password</FormLabel>
                   <Input type="password" placeholder="password" {...field} />
                   <FormMessage />

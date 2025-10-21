@@ -26,7 +26,7 @@ function Layout() {
             <GenericSubheader simName={getSubpage()} />
 
             <div className='w-full h-screen text-center'>
-              <div className='w-[50%] min-h-[calc(100vh-140px)] m-auto flex flex-col justify-center items-center'>
+              <div className='w-[50%] min-h-[calc(100vh-100px)] m-auto flex flex-col justify-center items-center'>
                 <Outlet />
               </div>
             </div>    

@@ -18,9 +18,9 @@ function AuthRouter() {
         {/* How do I wrap this in authcontext form just as an extra thing? no redirect of course */}
         <Route path="sign-in" element={ <SignInForm /> } />
 
-        <Route path="forgot-password" element={ <ResetPasswordForm /> } />
+        <Route path="forgot-password" element={ <ForgotPasswordForm /> } />
 
-        <Route path="reset-password" element={ <ForgotPasswordForm /> } />
+        <Route path="reset-password" element={ <ResetPasswordForm /> } />
       </Route>
       
     </Routes>
