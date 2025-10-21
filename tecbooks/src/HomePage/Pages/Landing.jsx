@@ -23,6 +23,17 @@ function Landing() {
         }, 100);
     }
 
+    const scrollMxRep = () => {
+        navigate('/home')
+
+        setTimeout(() => {
+            const element = document.getElementById('mxrep-page')
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' })
+            }
+        }, 100)
+    }
+
     return (
         <div className='landing'>
             <Header />
@@ -37,10 +48,10 @@ function Landing() {
                     our available educational simulators, and more with TECBooks.
                 </Typography>
                 <div className='landing-btn-group' style={{ flexBasis: '20%' }}>
-                    <button className='landing-btn' onClick={scrollTecbooks}>Get Your TECBooks</button>
+                    <button className='landing-btn' onClick={scrollTecbooks}>Make Your TECBooks</button>
                     {/* <button className='learn-more' onClick={goToDashboard}> */}
-                    <button className='learn-more' onClick={scrollTecbooks}>
-                        Learn More
+                    <button className='learn-more' onClick={scrollMxRep}>
+                        Go to MxRep
                         <EastIcon className='landing-learn-btn' sx={{ height: '100%' }} />  
                     </button>
                 </div>

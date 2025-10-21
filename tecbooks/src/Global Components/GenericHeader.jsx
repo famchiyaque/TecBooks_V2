@@ -1,6 +1,5 @@
 import React from "react"
-// import '../../styles/production.css'
-import '../styles/production.css'
+import '@/styles/production.css'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
