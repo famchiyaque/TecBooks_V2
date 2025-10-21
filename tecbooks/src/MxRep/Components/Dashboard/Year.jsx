@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
-import { useSimData } from '../Context/SimDataContext'
+import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 import { useNavigate } from 'react-router-dom'
 import Loader from '@/Global Components/Loader'
 

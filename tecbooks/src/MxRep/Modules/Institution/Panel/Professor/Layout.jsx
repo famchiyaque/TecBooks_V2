@@ -34,15 +34,23 @@ function Layout() {
                 sidebarVisible={sidebarVisible}
                 setSidebarVisible={setSidebarVisible}
                 activeSidebar={activeSidebar}
+                period={null}
+                setPeriod={null}
+                year={null}
+                setYear={null}
             />
 
             <div>  
                 <div className={`sidebar-state ${sidebarVisible ? '' : 'sidebar-hidden'}`}>
-                    <Sidebar activeSidebar={activeSidebar} setActiveSidebar={setActiveSidebar} />
+                    <Sidebar 
+                        sidebarConfig={sidebarConfig}
+                        activeSidebar={activeSidebar} 
+                        setActiveSidebar={setActiveSidebar}
+                    />
                 </div>
 
                 <div className={`${sidebarVisible ? 'view' : 'view-no-sidebar'}`}>
-                    <Outlet context={{ period, year }} />
+                    <Outlet />
                 </div>
             </div>    
         </>

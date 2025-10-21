@@ -6,6 +6,8 @@ import { iconMap } from './IconsMap'
 function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
     const navigate = useNavigate()
 
+    console.log("Sidebar config in dynamic sidebar: ", sidebarConfig)
+
     // const [activeSidebar, setActiveSidebar] = useState(1)
     const [sidebarFixed, setSidebarFixed] = useState(false)
 
@@ -40,6 +42,7 @@ function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
                         setActiveSidebar(page.route)
                         navigate(page.route)
                     }}
+                    key={idx}
                 >
                     {iconMap[page.iconCode]}
                     <span>{page.title}</span>

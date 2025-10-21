@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
     const exampleAuthContext = {
         email: "jimmy@john.com",
         name: "Jimothan John",
-        type: "student",
+        userType: "student",
         status: false,
         institution: "Hogwarts",
         slug: "hogwarts",
