@@ -10,13 +10,14 @@ import Financial_Statement_View from '@/MxRep/Views/Dashboard/Financial_Statemen
 import Forecasts_View from '@/MxRep/Views/Dashboard/Forecasts/Forecasts_View'
 import Investments_View from '@/MxRep/Views/Dashboard/Investments/Investments_View'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import { SimDataProvider, useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 
 function DashboardRouter() {
-    console.log("rendering Main")
+    console.log("rendering dashboard router")
     // const { sim } = useSimData()
 
-    // const { simData, isLoading, error } = useSimData()
+    const { simData, isLoading, error } = useSimData()
+    // const ""
 
     // const [activeView, setActiveView] = useState(1)
     // const [activeSidebar, setActiveSidebar] = useState(1)
@@ -31,7 +32,7 @@ function DashboardRouter() {
     // const simUserInfo = {"name": simData.userName, "teamName": simData.teamName, "ranking": simData.placement}
 
     return (
-        <SimDataProvider>
+        // <SimDataProvider>
             <Routes>
                 <Route path="/" element={<MainLayout />}>
                     <Route index element={<Navigate to="overview" />} />
@@ -43,7 +44,7 @@ function DashboardRouter() {
                     <Route path="investments" element={<Investments_View />} />
                 </Route>
             </Routes>
-        </SimDataProvider>
+        // </SimDataProvider>
     )
 }
 

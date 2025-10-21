@@ -6,8 +6,9 @@ import AdminPanelRouter from './Panel/Admin/Router'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import Loader from '@/Global Components/Loader'
 import { useNavigate } from 'react-router-dom'
-import DashboardLayout from './Dashboard/Layout'
+// import DashboardLayout from './Dashboard/Layout'
 import DashboardRouter from './Dashboard/Router'
+import { SimDataProvider } from '@/MxRep/utils/contexts/SimDataContext'
 
 function InstitutionRouter() {
     const navigate = useNavigate()
@@ -38,6 +39,7 @@ function InstitutionRouter() {
    
     if (isLoading) return <Loader />
 
+    console.log("Getting to router now ...")
   return (
     <Routes>
       <Route path="/" element={ <Navigate to={`${getUserPanelRoute}`} /> } />
@@ -48,9 +50,11 @@ function InstitutionRouter() {
 
       <Route path="dashboard/*" 
         element={ 
-          <DashboardLayout>
-            <DashboardRouter />
-          </DashboardLayout>
+          // <DashboardLayout>
+            <SimDataProvider>
+              <DashboardRouter />
+            </SimDataProvider>
+          // {/* </DashboardLayout> */}
         } 
       />
       

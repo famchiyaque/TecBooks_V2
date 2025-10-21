@@ -13,6 +13,7 @@ export const SimDataProvider = ({ children }) => {
   const [error, setError] = useState(false)
 
   const token = simToken
+  console.log("Token in sim data: ", token)
 
   const navigate = useNavigate()
 

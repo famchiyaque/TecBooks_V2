@@ -14,6 +14,14 @@ function Header() {
   const { simData, isLoading, error } = useSimData()
   const navigate = useNavigate()
 
+  try {
+    const { simData, isLoading, error } = useSimData()
+    console.log("Context working:", { simData, isLoading, error })
+  } catch (e) {
+    console.error("Context not available:", e.message)
+    return <div>Error: SimData context not available</div>
+  }
+
   // const toggleSidebar = () => {
   //   setSidebarVisible(!sidebarVisible)
   // }
