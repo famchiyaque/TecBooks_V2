@@ -1,9 +1,9 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import AuthRouter from './Modules/Auth/Router'
-import RegisterRouter from './Modules/Register/Router'
-import InstitutionRouter from './Modules/(Institution)/Router'
-import { AuthProvider } from './Context/AuthContext'
+import RegisterRouter from './Modules/Registry/Router'
+import InstitutionRouter from './Modules/Institution/Router'
+import { AuthProvider } from './utils/contexts/AuthContext'
 
 function MxRepRouter() {
    
@@ -11,7 +11,7 @@ function MxRepRouter() {
     <Routes>
       <Route index element={ <Navigate to="auth" replace /> } />
 
-      <Route path="register/*" element={ <RegisterRouter /> } />
+      <Route path="registry/*" element={ <RegisterRouter /> } />
 
       <Route path="auth/*" element={  <AuthRouter /> } />
 

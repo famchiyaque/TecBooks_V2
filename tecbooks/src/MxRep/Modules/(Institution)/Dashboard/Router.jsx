@@ -10,7 +10,7 @@ import Financial_Statement_View from './Sections/Financial_Statement/Finance_Sta
 import Forecasts_View from './Sections/Forecasts/Forecasts_View'
 import Investments_View from './Sections/Investments/Investments_View'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import { SimDataProvider, useSimData } from './Context/SimDataContext'
+import { SimDataProvider, useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 
 function DashboardRouter() {
     console.log("rendering Main")

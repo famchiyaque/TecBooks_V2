@@ -1,32 +1,52 @@
-import { useNavigate } from "react-router-dom"
-import { Menu, MenuItem } from '@mui/material'
+import { React, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import '@/styles/general.css'
+import { iconMap } from './IconsMap'
 
-function AuthSidebar({ open, anchorEl, onClose }) {
+function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
     const navigate = useNavigate()
-  
-    const handleMenuClick = (path) => {
-      navigate(path)
-      onClose()
-    }
-  
+
+    // const [activeSidebar, setActiveSidebar] = useState(1)
+    const [sidebarFixed, setSidebarFixed] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const elevenVH = window.innerHeight * 0.11
+
+            if (window.scrollY > elevenVH) setSidebarFixed(true)
+            else setSidebarFixed(false)
+        }
+
+        window.addEventListener('scroll', handleScroll)
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll)
+        }
+
+    }, [])
+
     return (
-      <Menu
-        id="basic-menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={onClose}
-        slotProps={{
-          list: {
-            'aria-labelledby': 'basic-button',
-          },
-        }}
-      >
-        <MenuItem onClick={() => handleMenuClick("/mxrep/auth/sign-in")}>Sign In</MenuItem>
-        <MenuItem onClick={() => handleMenuClick("/mxrep/register")}>Register</MenuItem>
-        <MenuItem onClick={() => handleMenuClick("/mxrep/my-panel")}>My Panel</MenuItem>
-        <MenuItem onClick={() => handleMenuClick("/logout")}>Logout</MenuItem>
-      </Menu>
+        <nav className={`sidebar ${sidebarFixed ? 'sidebar-fixed': ''}`}>
+            <div className="sidebar-title">
+                <div className="title-icon">
+                    {iconMap[sidebarConfig.title.iconCode]}
+                </div>
+            </div>
+
+            {sidebarConfig.pages.map((idx, page) => (
+                <div
+                    className={`sidebar-entry ${activeSidebar === page.route ? 'active' : ''}`}
+                    onClick={() => {
+                        setActiveSidebar(page.route)
+                        navigate(page.route)
+                    }}
+                >
+                    {iconMap[page.iconCode]}
+                    <span>{page.title}</span>
+                </div>
+            ))}
+        </nav>
     )
 }
 
-export default AuthSidebar
+export default Sidebar

@@ -1,11 +1,11 @@
 import React from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom'
-import { useAuth } from '../../Context/AuthContext'
+import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import AuthLayout from './Layout'
 import { useNavigate } from 'react-router-dom'
-import SignInForm from './Forms/SignIn'
-import ResetPasswordForm from './Forms/ResetPassword'
-import ForgotPasswordForm from './Forms/ForgotPassword'
+import SignInForm from '@/MxRep/Forms/Auth/SignIn'
+import ResetPasswordForm from '@/MxRep/Forms/Auth/ResetPassword'
+import ForgotPasswordForm from '@/MxRep/Forms/Auth/ForgotPassword'
 
 function AuthRouter() {
 
