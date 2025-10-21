@@ -29,7 +29,7 @@ function Layout() {
   return (
     <div style={fontStyle}>
       <GenericHeader pageName={"Simulator"} />
-      <GenericSubheader simName={"Sales Forecaster"} />
+      <GenericSubheader subheader={"Sales Forecaster"} />
       <div className='w-screen flex'>
         <MethodsSidebar />
         <div className='flex-1 h-screen min-h-[800]'>

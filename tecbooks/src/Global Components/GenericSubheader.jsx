@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
 import { Typography } from "@mui/material"
 
-function GenericSubheader({ simName }) {
+function GenericSubheader({ subheader, onOpenSidebar }) {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -19,13 +19,13 @@ function GenericSubheader({ simName }) {
                     color="inherit"
                     aria-label="menu"
                     sx={{ mr: 2 }}
+                    onClick={onOpenSidebar}
                     >
                     <MenuIcon />
                 </IconButton>
-
             </div>
 
-              <Typography variant="body2">{simName}</Typography>
+              <Typography variant="body2">{subheader}</Typography>
 
         </Toolbar>
       </AppBar>

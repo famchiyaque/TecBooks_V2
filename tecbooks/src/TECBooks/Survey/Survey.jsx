@@ -44,7 +44,7 @@ function Survey() {
     <div className='survey-page'>
       {/* {pages[currPage]} */}
       <GenericHeader pageName={"Business Accounting"} />
-      <GenericSubheader simName={"Questionnaire"} />
+      <GenericSubheader subheader={"Questionnaire"} />
       <div style={progressBarFixed ? { position: 'fixed', top: 0, width: '100%', zIndex: 1000 } : {}}>
         <Progress />
       </div>

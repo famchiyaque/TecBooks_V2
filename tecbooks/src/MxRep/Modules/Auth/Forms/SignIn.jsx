@@ -55,6 +55,15 @@ function SignIn() {
               )}
             />
 
+            <div className="text-right mb-4">
+              <a 
+                href="/mxrep/auth/forgot-password" 
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot Password?
+              </a>
+            </div>
+
             <Button type="submit" className="w-full">Sign In</Button>
           </form>
         </Form>
