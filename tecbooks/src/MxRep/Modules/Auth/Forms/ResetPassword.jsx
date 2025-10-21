@@ -9,7 +9,7 @@ import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { useParams } from 'react-router-dom'
 import Loader from '@/Global Components/Loader'
-import { resetPasswordSchema } from '@/MxRep/Schemas/form.schemas';
+import { newPasswordSchema } from '@/MxRep/Schemas/form.schemas';
 
 function ResetPassword() {
   const [isLoading, setIsLoading] = useState(true)
@@ -35,7 +35,7 @@ function ResetPassword() {
   }, [])
 
   const form = useForm({
-    resolver: zodResolver(resetPasswordSchema)
+    resolver: zodResolver(newPasswordSchema)
   })
 
   const onSubmit = (data) => {

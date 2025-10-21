@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import GenericHeader from '@/Global Components/GenericHeader'
 import GenericSubheader from "@/Global Components/GenericSubheader"
-import React from 'react'
+import React, { useState } from 'react'
 import Sidebar from '@/MxRep/Components/Sidebar'
 // import SubHeader from './SubHeader'
 // import Loader from './Loader'
@@ -34,7 +34,12 @@ function Layout() {
                 />
 
                 <div className='w-full h-screen text-center'>
-                    <Outlet />
+                    {/* <div>
+
+                    </div> */}
+                    <div className='w-full min-h-[calc(100vh-100px)] m-auto flex justify-around items-center'>
+                        <Outlet />
+                    </div>
                 </div> 
             </div>   
         </>
