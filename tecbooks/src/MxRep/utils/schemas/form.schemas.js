@@ -65,10 +65,10 @@ export const registerInstitution = z.object({
     city: z.string(),
     phoneNumber: z.number(),
     contactEmail: z.email(),
-    userType: z.enum(["professor", "admin"]),
+    role: z.enum(["professor", "admin"]),
     email: z.email(),
     firstNames: z.string(),
     lastNames: z.string(),
-    // may not be necessary depending on userType
+    // may not be necessary depending on role
     department: z.string()
 })

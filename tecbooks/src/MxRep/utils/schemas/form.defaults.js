@@ -38,7 +38,7 @@ export const defaultRegisterInstitution = {
     city: "",
     phoneNumber: null,
     contactEmail: "",
-    userType: "admin",
+    role: "admin",
     email: "",
     firstNames: "",
     lastNames: "",

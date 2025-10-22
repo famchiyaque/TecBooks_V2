@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import React from 'react'
 import RotateMessage from './Global Components/RotateMessage';
 import HomePage from './HomePage/HomePage'
-import MxRepRouter from './MxRep/Router'
+import MxRepRouter from './MxRep/Routing/Router'
 import TECBooks from './TECBooks/Index'
 import Simulators from './Sims/Index'
 import { Navigate } from 'react-router-dom'

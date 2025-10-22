@@ -2,18 +2,13 @@ export const sidebarConfig = {
     title: {
         iconCode: 11,
         titleMain: "MxRep",
-        titleSub: "Professor Panel"
+        titleSub: "Student Panel"
     },
     pages: [
         {
-            route: 'manage-games',
+            route: 'my-games',
             title: 'My Games',
             iconCode: 7
-        },
-        {
-            route: 'manage-classes',
-            title: 'Classes and Groups',
-            iconCode: 8
         },
         {
             route: 'inbox',
@@ -26,5 +21,5 @@ export const sidebarConfig = {
             iconCode: 10
         }
     ],
-    defaultRoute: 'manage-games'
+    defaultRoute: 'my-games'
 }

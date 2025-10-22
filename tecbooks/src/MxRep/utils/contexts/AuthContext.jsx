@@ -57,10 +57,12 @@ export const AuthProvider = ({ children }) => {
     }, [])
 
     const exampleAuthContext = {
+        userId: "use123",
         email: "jimmy@john.com",
-        name: "Jimothan John",
-        userType: "student",
-        status: false,
+        firstNames: "Jimothan the",
+        lastNames: "Second John",
+        role: "student",
+        aStatus: false,
         institution: "Hogwarts",
         slug: "hogwarts",
         expiry: 100000000000

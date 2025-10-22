@@ -21,9 +21,9 @@ function AuthSidebar({ open, anchorEl, onClose }) {
           },
         }}
       >
-        <MenuItem onClick={() => handleMenuClick("/mxrep/auth/sign-in")}>Sign In</MenuItem>
+        <MenuItem onClick={() => handleMenuClick("/mxrep/auth")}>Sign In</MenuItem>
         <MenuItem onClick={() => handleMenuClick("/mxrep/register")}>Register</MenuItem>
-        <MenuItem onClick={() => handleMenuClick("/mxrep/my-panel")}>My Panel</MenuItem>
+        <MenuItem onClick={() => handleMenuClick("/mxrep/professor-panel")}>My Panel</MenuItem>
         <MenuItem onClick={() => handleMenuClick("/logout")}>Logout</MenuItem>
       </Menu>
     )

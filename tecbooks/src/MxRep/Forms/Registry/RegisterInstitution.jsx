@@ -123,7 +123,7 @@ function RegisterProfessor() {
 
             <FormField
               control=""
-              name="userType"
+              name="role"
               // maybe radio group, select, idk, but they have to indicate whether
               //they'd like to be registered as an admin (default) or professor
               render={({ field }) => (
@@ -171,7 +171,7 @@ function RegisterProfessor() {
               )}
             />
 
-            {/* only if they chose professor in the userType form */}
+            {/* only if they chose professor in the role form */}
             <FormField 
                 control={form.control}
                 name="department"

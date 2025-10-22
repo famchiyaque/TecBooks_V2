@@ -1,9 +1,9 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import AuthRouter from './Modules/Auth/Router'
-import RegisterRouter from './Modules/Registry/Router'
-import InstitutionRouter from './Modules/Institution/Router'
-import { AuthProvider } from './utils/contexts/AuthContext'
+import AuthRouter from './Auth/Router'
+import RegisterRouter from './Registry/Router'
+import InstitutionRouter from './Institution/Router'
+import { AuthProvider } from '../utils/contexts/AuthContext'
 
 function MxRepRouter() {
    

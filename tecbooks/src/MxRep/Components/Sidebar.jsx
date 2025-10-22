@@ -2,11 +2,14 @@ import { React, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/general.css'
 import { iconMap } from './IconsMap'
+import '@/styles/general.css'
 
 function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
     const navigate = useNavigate()
 
+    console.log("active sidebar passed: ", activeSidebar)
     console.log("Sidebar config in dynamic sidebar: ", sidebarConfig)
+    console.log("")
 
     // const [activeSidebar, setActiveSidebar] = useState(1)
     const [sidebarFixed, setSidebarFixed] = useState(false)
@@ -33,9 +36,13 @@ function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
                 <div className="title-icon">
                     {iconMap[sidebarConfig.title.iconCode]}
                 </div>
+                <div className="title-content">
+                    <div className="title-main">{sidebarConfig.title.titleMain}</div>
+                    <div className="title-sub">{sidebarConfig.title.titleSub}</div>
+                </div>
             </div>
 
-            {sidebarConfig.pages.map((idx, page) => (
+            {sidebarConfig.pages.map((page, idx) => (
                 <div
                     className={`sidebar-entry ${activeSidebar === page.route ? 'active' : ''}`}
                     onClick={() => {

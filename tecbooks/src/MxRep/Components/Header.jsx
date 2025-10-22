@@ -46,7 +46,7 @@ function Header() {
           {isDashboard ? (
             <Typography variant="subtitle1">Username | TeamName | GameId </Typography>
           ) : (
-            <Typography variant="subtitle1">{exampleAuthContext.userType} | {exampleAuthContext.name}</Typography>
+            <Typography variant="subtitle1">{exampleAuthContext.role} | {exampleAuthContext.name}</Typography>
           )}
           {/* {isLoading || !simData ? (
             <Typography variant="subtitle1" gutterBottom> ... | ... | ... </Typography>
