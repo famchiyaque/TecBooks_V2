@@ -44,7 +44,7 @@ function StartRegistry() {
           <Paper
             key={card.title}
             elevation={6}
-            onClick={() => navigate(`/mxrep/register/${card.route}`)}
+            onClick={() => navigate(`/mxrep/registry/${card.route}`)}
             className={`cursor-pointer flex flex-col items-center p-6 rounded-xl transition-all duration-300 ${card.bg} ${card.hover} hover:shadow-xl w-80`}
           >
             {card.icon}

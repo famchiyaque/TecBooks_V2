@@ -1,13 +1,13 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import { useAuth } from '../../utils/contexts/AuthContext'
+import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import RegistryLayout from './Layout'
 import StartRegistry from './StartRegistry'
-import StudentRegistry from '../../Forms/Registry/RegisterStudent'
-import FinalizeStudentForm from '../../Forms/Registry/FinalizeStudent'
-import ProfessorRegistry from '../../Forms/Registry/RegisterProfessor'
-import FinalizeProfessorForm from '../../Forms/Registry/FinalizeProfessor'
-import InstitutionRegistry from '../../Forms/Registry/RegisterInstitution'
+import StudentRegistry from '@/MxRep/Forms/Registry/RegisterStudent'
+import FinalizeStudentForm from '@/MxRep/Forms/Registry/FinalizeStudent'
+import ProfessorRegistry from '@/MxRep/Forms/Registry/RegisterProfessor'
+import FinalizeProfessorForm from '@/MxRep/Forms/Registry/FinalizeProfessor'
+import InstitutionRegistry from '@/MxRep/Forms/Registry/RegisterInstitution'
 
 function RegistryRouter() {
 

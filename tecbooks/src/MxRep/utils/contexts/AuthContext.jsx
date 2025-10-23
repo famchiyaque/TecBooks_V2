@@ -20,10 +20,6 @@ export const AuthProvider = ({ children }) => {
 
     const navigate = useNavigate()
 
-    const verifyToken = () => {
-      
-    }
-
     const processToken = () => {
 
     }
@@ -42,7 +38,8 @@ export const AuthProvider = ({ children }) => {
     //     if (!response) navigate('/mxrep/sign-in?error=no-response')
 
     //     const verifiedToken = JSON.parse(response)
-    //     setAuthData(response)
+          //const payload = verifiedToken.payload
+    //     setAuthData(payload)
     //   } catch (e) {
     //     console.error("Error validating auth token: ", e)
     //     navigate('/mxrep/sign-in?error=expired-token')
