@@ -12,7 +12,7 @@ const institutionSchema = z.object({
 
 // FORM-SPECIFIC SCHEMAS
 
-export const signInSchema = z.object({
+export const loginSchema = z.object({
     email: z.email(),
     password: z.string()
 })

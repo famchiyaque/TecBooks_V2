@@ -1,7 +1,9 @@
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 export const authService = {
-    async signIn(credentials) {
-      const response = await fetch('http://localhost:3000/tecbooks/mxrep/login', {
+    async login(credentials) {
+      const response = await fetch(`${API_BASE_URL}/mxrep/login`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -17,16 +19,34 @@ export const authService = {
       return data
     },
   
-    async handleSignInResponse(data) {
+    async handleLoginResponse(data) {
       // Extract JWT and role from response
       const jwt = data.token // Adjust based on your API response structure
+      const user = data.user
       const role = data.user?.role // Adjust based on your API response structure
       
       if (jwt) {
         localStorage.setItem("tecbooks-jwt", jwt)
+        localStorage.setItem("tecbooks-user", user)
         return { success: true, role }
       }
       
       throw new Error('No token received')
-    }
-  }
+    },
+
+    async refreshToken(token, user) {
+        const response = await fetch(`${API_BASE_URL}/mxrep/refresh-token`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ user }),
+        })
+    
+        if (!response.ok) throw new Error("Failed to refresh session")
+    
+        const data = await response.json()
+        return data
+    },
+}

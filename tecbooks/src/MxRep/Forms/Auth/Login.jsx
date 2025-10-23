@@ -6,22 +6,22 @@ import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/ui/form'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import FormAlert from '@/MxRep/Components/FormAlert'
-import { signInSchema } from '@/MxRep/utils/schemas/form.schemas'
+import { loginSchema } from '@/MxRep/utils/schemas/form.schemas'
 import Loader from '@/Global Components/Loader'
-import { useSignIn } from '@/MxRep/utils/hooks/auth.hooks'
+import { useLogin } from '@/MxRep/utils/hooks/auth.hooks'
 
-function SignIn() {
-  const { signIn, isLoading, error } = useSignIn()
-  const loadingMessage = "Signing in to your account..."
+function Login() {
+  const { login, isLoading, error } = useLogin()
+  const loadingMessage = "Logging in to your account..."
   const errorMessage = "Make sure your credentials are correct and try again"
 
   const form = useForm({
-    resolver: zodResolver(signInSchema)
+    resolver: zodResolver(loginSchema)
   })
 
   const onSubmit = async (data) => {
     console.log("Submitting login email/password: ", data)
-    await signIn(data)
+    await login(data)
   }
 
   return (
@@ -87,4 +87,4 @@ function SignIn() {
   )
 }
 
-export default SignIn
+export default Login

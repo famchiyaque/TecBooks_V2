@@ -6,7 +6,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert"
 
-export function AlertDemo({ title, message }) {
+function AlertDemo({ title, message }) {
   return (
     <div className="grid w-full max-w-xl items-start gap-4">
       {/* <Alert>
@@ -38,3 +38,5 @@ export function AlertDemo({ title, message }) {
     </div>
   )
 }
+
+export default AlertDemo

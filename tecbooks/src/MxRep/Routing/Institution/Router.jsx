@@ -20,11 +20,11 @@ function InstitutionRouter() {
       console.log("Slug pulled from params is: ", slug)
       console.log("Example auth slug is: ", exampleAuthContext.slug)
 
-      if (slug != exampleAuthContext.slug) navigate('/mxrep/auth/sign-in?error=wrong-slug')
+      if (slug != exampleAuthContext.slug) navigate('/mxrep/auth/login?error=wrong-slug')
     }, [])
 
     useEffect(() => {
-      if (!authData && !exampleAuthContext) navigate('/mxrep/sign-in?error=missing-data')
+      if (!authData && !exampleAuthContext) navigate('/mxrep/login?error=missing-data')
     }, [authData, exampleAuthContext, navigate])
 
     const getUserPanelRoute = () => {
@@ -34,7 +34,7 @@ function InstitutionRouter() {
             case "admin" : return "admin-panel"
         }
 
-        navigate('/mxrep/sign-in?error=user-type')
+        navigate('/mxrep/login?error=user-type')
     }
    
     if (isLoading) return <Loader />

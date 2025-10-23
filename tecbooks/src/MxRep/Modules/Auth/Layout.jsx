@@ -25,7 +25,7 @@ function Layout() {
     const pathSuffix = splitPath[splitPath.length - 1]
 
     switch (pathSuffix) {
-      case "sign-in": setSubPage("Sign In")
+      case "login": setSubPage("Login")
       case "forgot-password": setSubPage("Forgot Password")
       case "reset-password": setSubPage("Reset Password")
       default: setSubPage("Auth")

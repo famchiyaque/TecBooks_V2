@@ -16,7 +16,7 @@ function StudentPanelRouter() {
 
     useEffect(() => {
       // Is this correct? the slug isn't really a param, more of a route
-        if (slug != exampleAuthContext.slug) navigate('/mxrep/auth/sign-in?error=wrong-slug')
+        if (slug != exampleAuthContext.slug) navigate('/mxrep/auth/login?error=wrong-slug')
     }, [])
 
     // const getUserPanelRoute = () => {
@@ -26,10 +26,10 @@ function StudentPanelRouter() {
     //         case "admin" : return "admin-panel"
     //     }
 
-    //     navigate('/mxrep/sign-in?error=user-type')
+    //     navigate('/mxrep/login?error=user-type')
     // }
    
-    if (!authData && !exampleAuthContext) navigate('/mxrep/sign-in?error=missing-data')
+    if (!authData && !exampleAuthContext) navigate('/mxrep/login?error=missing-data')
     if (isLoading) return <Loader />
 
   return (

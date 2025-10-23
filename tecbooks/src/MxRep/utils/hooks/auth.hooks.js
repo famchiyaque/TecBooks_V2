@@ -9,21 +9,21 @@ const getRedirectPath = (role) => {
       professor: '/mxrep/professor-panel',
       admin: '/mxrep/admin-panel'
     }
-    return routes[role] || '/mxrep/auth/sign-in'
+    return routes[role] || '/mxrep/auth/login?error=no-role'
 }
 
-export const useSignIn = () => {
+export const useLogin = () => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const signIn = async (credentials) => {
+  const login = async (credentials) => {
     setIsLoading(true)
     setError("")
     
     try {
-      const response = await authService.signIn(credentials)
-      const result = await authService.handleSignInResponse(response)
+      const response = await authService.login(credentials)
+      const result = await authService.handleLoginResponse(response)
 
       // Navigate based on role
       const redirectPath = getRedirectPath(result.role)
@@ -39,7 +39,7 @@ export const useSignIn = () => {
   }
 
   return {
-    signIn,
+    login,
     isLoading,
     error,
     setError
