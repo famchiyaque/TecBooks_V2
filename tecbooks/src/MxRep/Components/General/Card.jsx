@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import Divider from '@mui/material/Divider'
 
-function Card({ professor }) {
+function MxRepCard({ professor }) {
   return (
     <Card>
         <CardHeader className='text-left'>
@@ -20,4 +20,4 @@ function Card({ professor }) {
   )
 }
 
-export default Card
+export default MxRepCard

@@ -1,6 +1,5 @@
-// src/MxRep/hooks/useSignIn.js
 import { useState } from 'react'
-import { adminService } from '@/MxRep/utils/services/admmin.service'
+import { adminService } from '@/MxRep/utils/services/admin.service'
 
 export const useGetInstitutionProfessors = () => {
     const [professorsIsLoading, setProfessorsIsLoading] = useState(false)

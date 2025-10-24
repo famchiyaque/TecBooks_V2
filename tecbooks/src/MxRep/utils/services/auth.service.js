@@ -9,7 +9,7 @@ export const authService = {
           email: "jimmy@john.com",
           firstNames: "Jimmy John",
           lastNames: "The Second",
-          role: "student",
+          role: "admin",
           aStatus: false,
           institution: {
             id: "institution123",

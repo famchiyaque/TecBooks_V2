@@ -9,17 +9,22 @@ import { IoSettingsSharp } from "react-icons/io5"
 import Card from '@/MxRep/Components/General/Card'
 import Loader from '@/Global Components/Loader'
 import InviteProfessor from '@/MxRep/Components/Panels/Admin/Modals/InviteProfessor'
-import ProfessorMore from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
+import ProfessorDetails from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
 
 function ManageProfessors() {
-    const { user } = useAuth()
+    const { user, isLoading } = useAuth()
     const { professors, professorsIsLoading, error, getInstitutionProfessors } = useGetInstitutionProfessors()
 
     const [inviteModalOpen, setInviteModalOpen] = useState(false)
     const [selectedProfessor, setSelectedProfessor] = useState(null)
     const [professorModalOpen, setProfessorModalOpen] = useState(false)
 
+    if (isLoading) return <Loader message={"Loading up..."} />
+
+    if (!user) return <div>Not authenticated</div>
+
     useEffect(() => {
+        console.log("User in manage professors page: ", user)
         if (user.institution?.institutionId) {
             getInstitutionProfessors(user.institution?.institutionId)
         }
@@ -84,11 +89,13 @@ function ManageProfessors() {
             onClose={handleCloseInviteModal}
         />
 
-        <ProfessorMore 
-            open={professorModalOpen}
-            onClose={handleCloseProfessorModal}
-            professor={selectedProfessor}
-        />
+        {selectedProfessor && (
+            <ProfessorDetails 
+                open={professorModalOpen}
+                onClose={handleCloseProfessorModal}
+                professor={selectedProfessor}
+            />
+        )}
     </div>
   )
 }
