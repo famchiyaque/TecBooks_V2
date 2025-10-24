@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom'
 import GenericHeader from '@/Global Components/GenericHeader'
 import GenericSubheader from "@/Global Components/GenericSubheader"
 import React, { useState } from 'react'
-import Sidebar from '@/MxRep/Components/DropdownSidebar'
+import Sidebar from '@/MxRep/Components/General/DropdownSidebar'
 // import SubHeader from './SubHeader'
 // import Loader from './Loader'
 

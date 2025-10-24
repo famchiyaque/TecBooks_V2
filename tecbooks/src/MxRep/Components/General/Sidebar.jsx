@@ -1,7 +1,7 @@
 import { React, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/general.css'
-import { iconMap } from './IconsMap'
+import { iconMap } from './General/IconsMap'
 import '@/styles/general.css'
 
 function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {

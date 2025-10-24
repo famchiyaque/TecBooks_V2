@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import Header from '@/MxRep/Components/Header'
+import Header from '@/MxRep/Components/General/Header'
 import Sidebar from '@/MxRep/Components/Sidebar'
 import React, { useState, useEffect } from 'react'
 import SubHeader from '@/MxRep/Components/SubHeader'
