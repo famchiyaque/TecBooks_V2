@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from '@/MxRep/Components/General/Header'
-import Sidebar from '@/MxRep/Components/Sidebar'
+import Sidebar from '@/MxRep/Components/General/Sidebar'
 import React, { useState, useEffect } from 'react'
-import SubHeader from '@/MxRep/Components/SubHeader'
+import SubHeader from '@/MxRep/Components/General/SubHeader'
 import { sidebarConfig } from '@/MxRep/utils/configs/professor.sidebar'
 import { useNavigate } from 'react-router-dom'
 

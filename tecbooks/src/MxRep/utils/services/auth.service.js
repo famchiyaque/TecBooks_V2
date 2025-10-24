@@ -3,27 +3,45 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export const authService = {
     async login(credentials) {
-      const response = await fetch(`${API_BASE_URL}/mxrep/login`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
+      return {
+        user: {
+          id: "user123",
+          email: "jimmy@john.com",
+          firstNames: "Jimmy John",
+          lastNames: "The Second",
+          role: "student",
+          aStatus: false,
+          institution: {
+            id: "institution123",
+            name: "Hogwarts",
+            slug: "hogwarts"
+          },
+          expiry: Date.now() / 1000 + 600
         },
-        body: JSON.stringify(credentials) // Fixed: body should be JSON string
-      })
-  
-      if (!response.ok) {
-        throw new Error(`Login failed: ${response.status} ${response.statusText}`)
+        token: "token123456"
       }
+
+      // const response = await fetch(`${API_BASE_URL}/mxrep/login`, {
+      //   method: "POST",
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(credentials) // Fixed: body should be JSON string
+      // })
   
-      const data = await response.json()
-      return data
+      // if (!response.ok) {
+      //   throw new Error(`Login failed: ${response.status} ${response.statusText}`)
+      // }
+  
+      // const data = await response.json()
+      // return data
     },
   
     async handleLoginResponse(data) {
       // Extract JWT and role from response
-      const jwt = data.token // Adjust based on your API response structure
+      const jwt = data.token
       const user = data.user
-      const role = data.user?.role // Adjust based on your API response structure
+      const role = data.user?.role
       
       if (jwt) {
         localStorage.setItem("tecbooks-jwt", jwt)

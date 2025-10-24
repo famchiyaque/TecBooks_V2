@@ -18,12 +18,15 @@ export const useLogin = () => {
   const [error, setError] = useState("")
 
   const login = async (credentials) => {
+    console.log("[LOGIN HOOK] credentials: ", credentials)
     setIsLoading(true)
     setError("")
     
     try {
       const response = await authService.login(credentials)
+      console.log("response: ", response)
       const result = await authService.handleLoginResponse(response)
+      console.log("result: ", result)
 
       // Navigate based on role
       const redirectPath = getRedirectPath(result.role)

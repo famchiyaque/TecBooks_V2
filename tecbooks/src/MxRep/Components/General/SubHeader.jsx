@@ -5,9 +5,9 @@ import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
-import Period from './Dashboard/Period'
-import Year from './Dashboard/Year'
-import { iconMap } from '@/MxRep/Components/General/IconsMap'
+import Period from '../Dashboard/Period'
+import Year from '../Dashboard/Year'
+import { iconMap } from "./IconsMap"
 
 function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar, period, year, setPeriod, setYear }) {
   const toggleSidebar = () => {

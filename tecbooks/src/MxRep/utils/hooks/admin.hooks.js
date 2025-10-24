@@ -3,12 +3,12 @@ import { useState } from 'react'
 import { adminService } from '@/MxRep/utils/services/admmin.service'
 
 export const useGetInstitutionProfessors = () => {
-    const [professorsIsLoading, setIsLoading] = useState(false)
+    const [professorsIsLoading, setProfessorsIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [professors, setProfessors] = useState([])
 
     const getInstitutionProfessors = async (institutionId) => {
-        setIsLoading(true)
+        setProfessorsIsLoading(true)
         setError(null)
 
         try {
@@ -19,7 +19,7 @@ export const useGetInstitutionProfessors = () => {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
-            setIsLoading(false)
+            setProfessorsIsLoading(false)
         }
     }
 
@@ -28,6 +28,36 @@ export const useGetInstitutionProfessors = () => {
         professorsIsLoading,
         error,
         professors,
+        setError
+    }
+}
+
+export const useGetInbox = () => {
+    const [inboxIsLoading, setInboxIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [inbox, setInbox] = useState([])
+
+    const getInbox = async (institutionId) => {
+        setInboxIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await adminService.getInstitutionProfessors(institutionId)
+
+            setInbox(response.data)
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setInboxIsLoading(false)
+        }
+    }
+
+    return {
+        getInbox,
+        inboxIsLoading,
+        error,
+        inbox,
         setError
     }
 }

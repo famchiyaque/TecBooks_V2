@@ -67,7 +67,7 @@ function Login() {
                   )}
                 />
 
-                <div className="text-right mb-4">
+                <div className="text-right mb-2">
                   <a 
                     href="/mxrep/auth/forgot-password" 
                     className="text-sm text-primary hover:underline"
@@ -76,7 +76,7 @@ function Login() {
                   </a>
                 </div>
 
-                <Button type="submit" className="w-full">Sign In</Button>
+                <Button type="submit" className="w-full">Login</Button>
               </form>
             </Form>
           </CardContent>

@@ -10,27 +10,17 @@ import Profile from '@/MxRep/Views/Panel/Student/Profile'
 
 
 function StudentPanelRouter() {
-    const navigate = useNavigate()
-    const { authData, exampleAuthContext, isLoading } = useAuth()
-    const { slug } = useParams()
+    // const navigate = useNavigate()
+    // const { user } = useAuth()
+    // const { slug } = useParams()
 
-    useEffect(() => {
-      // Is this correct? the slug isn't really a param, more of a route
-        if (slug != exampleAuthContext.slug) navigate('/mxrep/auth/login?error=wrong-slug')
-    }, [])
-
-    // const getUserPanelRoute = () => {
-    //     switch (exampleAuthContext.type) {
-    //         case "student" : return "student-panel"
-    //         case "professor" : return "professor-panel"
-    //         case "admin" : return "admin-panel"
-    //     }
-
-    //     navigate('/mxrep/login?error=user-type')
-    // }
-   
-    if (!authData && !exampleAuthContext) navigate('/mxrep/login?error=missing-data')
-    if (isLoading) return <Loader />
+    // useEffect(() => {
+    //   if (!user || !slug || !user.institution.slug) navigate('/mxrep/logout')
+    //   console.log("Slug found in params of student panel: ", slug)
+    //   console.log
+    //   // Is this correct? the slug isn't really a param, more of a route
+    //     if (slug != user.institution.slug) navigate('/mxrep/auth/logout')
+    // }, [])
 
   return (
     <Routes>

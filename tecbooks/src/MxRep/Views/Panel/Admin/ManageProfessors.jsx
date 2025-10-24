@@ -8,12 +8,16 @@ import { CiFilter } from "react-icons/ci"
 import { IoSettingsSharp } from "react-icons/io5"
 import Card from '@/MxRep/Components/General/Card'
 import Loader from '@/Global Components/Loader'
+import InviteProfessor from '@/MxRep/Components/Panels/Admin/Modals/InviteProfessor'
+import ProfessorMore from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
 
 function ManageProfessors() {
     const { user, exampleAuthContext } = useAuth()
     const { professors, professorsIsLoading, error, getInstitutionProfessors } = useGetInstitutionProfessors()
 
     const [inviteModalOpen, setInviteModalOpen] = useState(false)
+    const [selectedProfessor, setSelectedProfessor] = useState(null)
+    const [professorModalOpen, setProfessorModalOpen] = useState(false)
 
     useEffect(() => {
         if (exampleAuthContext?.institutionId) {
@@ -23,6 +27,15 @@ function ManageProfessors() {
 
     const handleOpenInviteModal = () => setInviteModalOpen(true)
     const handleCloseInviteModal = () => setInviteModalOpen(false)
+
+    const handleOpenProfessorModal = (professor) => {
+        setSelectedProfessor(professor)
+        setProfessorModalOpen(true)
+    } 
+    const handleCloseProfessorModal = () => {
+        setSelectedProfessor(null)
+        setProfessorModalOpen(false)
+    }
 
   return (
     <div className='w-full mx-6'>
@@ -53,7 +66,11 @@ function ManageProfessors() {
 
             {professors && professors.length > 0 ? (
                 professors.map((professor, idx) => (
-                    <Card key={professor.id || idx} professor={professor} />
+                    <Card 
+                        key={professor.id || idx} 
+                        professor={professor}
+                        onClick={() => handleOpenProfessorModal(professor)}
+                    />
                 ))
             ) : (
                 !professorsIsLoading && (
@@ -65,6 +82,12 @@ function ManageProfessors() {
         <InviteProfessor 
             open={inviteModalOpen}
             onClose={handleCloseInviteModal}
+        />
+
+        <ProfessorMore 
+            open={professorModalOpen}
+            onClose={handleCloseProfessorModal}
+            professor={selectedProfessor}
         />
     </div>
   )
