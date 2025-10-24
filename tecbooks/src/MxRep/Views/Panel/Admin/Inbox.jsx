@@ -12,7 +12,7 @@ import InviteProfessor from '@/MxRep/Components/Panels/Admin/Modals/InviteProfes
 import ProfessorMore from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
 
 function Inbox() {
-    const { user, exampleAuthContext } = useAuth()
+    const { user } = useAuth()
     const { inbox, inboxIsLoading, error, getInbox } = useGetInbox()
 
     const [inviteModalOpen, setInviteModalOpen] = useState(false)
@@ -20,10 +20,10 @@ function Inbox() {
     const [eventModalOpen, setEventModalOpen] = useState(false)
 
     useEffect(() => {
-        if (exampleAuthContext?.institutionId) {
-            getInbox(exampleAuthContext.institutionId)
+        if (user.institution?.institutionId) {
+            getInbox(user.institution?.institutionId)
         }
-    }, [getInbox, exampleAuthContext])
+    }, [getInbox, user])
 
     const handleOpenInviteModal = () => setInviteModalOpen(true)
     const handleCloseInviteModal = () => setInviteModalOpen(false)

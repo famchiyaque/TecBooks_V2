@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Loader from '@/Global Components/Loader'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 
@@ -6,7 +6,9 @@ function Logout() {
     console.log("[LOGUT COMP]")
     const { logout } = useAuth()
 
-    logout()
+    useEffect(() => {
+        logout()
+    }, [logout])
 
     return (
         <div className='w-full h-screen m-auto'>

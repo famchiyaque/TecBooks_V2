@@ -56,8 +56,12 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
+      console.log("User object in verify: ", user)
+
       // check that session hasn't expired
       const now = Date.now() / 1000
+      console.log("user expiration: ", user.expiration)
+      console.log("now: ", now)
       if (user.expiration && user.expiration < now) {
         const result = await refreshSession()
         if (!result.success) logout(result.message)
@@ -72,27 +76,19 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('tecbooks-user')
       localStorage.removeItem('tecbooks-token')
       console.log("navigating to login")
-      navigate(`/mxrep/auth/login${reason ? `?error=${reason}` : ""}`);
+      window.location.href = `/mxrep/auth/login${reason ? `?error=${reason}` : ""}`
+      // navigate(`/mxrep/auth/login${reason ? `?error=${reason}` : ""}`);
     }
 
     useEffect(() => {
-      let isMounted = true
-      ;(async () => {
-        if (isPublicRoute()) return
+      if (isPublicRoute()) return;
+      if (!user || !token) initiateSession();
+    }, [location.pathname]);
 
-        setIsLoading(true)
-        setStatus(false)
-    
-        if (!user || !token) initiateSession()
-        await verifyCurrentSession()
-    
-        if (isMounted) {
-          setStatus(true)
-          setIsLoading(false)
-        }
-      })()
-      return () => { isMounted = false }
-    }, [location.pathname])    
+    useEffect(() => {
+      if (isPublicRoute()) return;
+      if (user && token) verifyCurrentSession();
+    }, [user, token, location.pathname]);   
     
     return (
       <AuthContext.Provider value={{ user, token, status, isLoading, logout }}>

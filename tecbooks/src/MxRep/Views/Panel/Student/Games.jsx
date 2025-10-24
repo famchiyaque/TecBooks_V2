@@ -2,7 +2,7 @@ import React from 'react'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 
 function Games() {
-  const { authData, exampleAuthContext } = useAuth()
+  const { user } = useAuth()
 
   return (
     <div>Games</div>

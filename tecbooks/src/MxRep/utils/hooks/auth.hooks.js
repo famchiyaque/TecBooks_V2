@@ -3,15 +3,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '@/MxRep/utils/services/auth.service'
 
-const getRedirectPath = (role) => {
-    const routes = {
-      student: '/mxrep/student-panel',
-      professor: '/mxrep/professor-panel',
-      admin: '/mxrep/admin-panel'
-    }
-    return routes[role] || '/mxrep/auth/login?error=no-role'
-}
-
 export const useLogin = () => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
@@ -28,9 +19,7 @@ export const useLogin = () => {
       const result = await authService.handleLoginResponse(response)
       console.log("result: ", result)
 
-      // Navigate based on role
-      const redirectPath = getRedirectPath(result.role)
-      navigate(redirectPath)
+      navigate(`/mxrep/${result.slug}/${result.role}-panel`)
       
       return { success: true }
     } catch (err) {

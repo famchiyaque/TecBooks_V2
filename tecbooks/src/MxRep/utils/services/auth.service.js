@@ -16,7 +16,7 @@ export const authService = {
             name: "Hogwarts",
             slug: "hogwarts"
           },
-          expiry: Date.now() / 1000 + 600
+          expiration: Date.now() / 1000 + 600
         },
         token: "token123456"
       }
@@ -42,11 +42,12 @@ export const authService = {
       const jwt = data.token
       const user = data.user
       const role = data.user?.role
+      const slug = data.user?.institution?.slug
       
       if (jwt) {
-        localStorage.setItem("tecbooks-jwt", jwt)
-        localStorage.setItem("tecbooks-user", user)
-        return { success: true, role }
+        localStorage.setItem("tecbooks-token", jwt)
+        localStorage.setItem("tecbooks-user", JSON.stringify(user))
+        return { success: true, role, slug }
       }
       
       throw new Error('No token received')

@@ -12,7 +12,7 @@ import InviteProfessor from '@/MxRep/Components/Panels/Admin/Modals/InviteProfes
 import ProfessorMore from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
 
 function ManageProfessors() {
-    const { user, exampleAuthContext } = useAuth()
+    const { user } = useAuth()
     const { professors, professorsIsLoading, error, getInstitutionProfessors } = useGetInstitutionProfessors()
 
     const [inviteModalOpen, setInviteModalOpen] = useState(false)
@@ -20,10 +20,10 @@ function ManageProfessors() {
     const [professorModalOpen, setProfessorModalOpen] = useState(false)
 
     useEffect(() => {
-        if (exampleAuthContext?.institutionId) {
-            getInstitutionProfessors(exampleAuthContext.institutionId)
+        if (user.institution?.institutionId) {
+            getInstitutionProfessors(user.institution?.institutionId)
         }
-    }, [getInstitutionProfessors, exampleAuthContext])
+    }, [getInstitutionProfessors, user])
 
     const handleOpenInviteModal = () => setInviteModalOpen(true)
     const handleCloseInviteModal = () => setInviteModalOpen(false)

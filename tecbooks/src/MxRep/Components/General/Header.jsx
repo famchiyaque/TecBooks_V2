@@ -14,7 +14,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 function Header() {
     const location = useLocation()
 
-    const { exampleAuthContext, authData, isLoading } = useAuth()
+    const { user, isLoading } = useAuth()
     const [isDashboard, setIsDashboard] = useState(false)
 
     // I want this header to be for both the dashboard and the user panels, 
@@ -46,7 +46,7 @@ function Header() {
           {isDashboard ? (
             <Typography variant="subtitle1">Username | TeamName | GameId </Typography>
           ) : (
-            <Typography variant="subtitle1">{exampleAuthContext.role} | {exampleAuthContext.name}</Typography>
+            <Typography variant="subtitle1">{user?.role} | {user?.firstNames}</Typography>
           )}
           {/* {isLoading || !simData ? (
             <Typography variant="subtitle1" gutterBottom> ... | ... | ... </Typography>

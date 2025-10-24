@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import '@/styles/general.css'
 import { iconMap } from './IconsMap'
 import '@/styles/general.css'
+import { Button } from '@/components/ui/button'
 
 function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
     const navigate = useNavigate()
@@ -55,6 +56,12 @@ function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
                     <span>{page.title}</span>
                 </div>
             ))}
+
+            <div className='mt-auto'>
+                <Button onClick={() => navigate("/mxrep/logout")}>
+                    Logout
+                </Button>
+            </div>
         </nav>
     )
 }
