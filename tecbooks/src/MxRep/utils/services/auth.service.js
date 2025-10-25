@@ -1,26 +1,54 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
+// utils/mockToken.js
+export function generateMockToken(userId = "user123", email = "jimmy@john.com", role = "admin") {
+  const header = {
+    alg: "HS256",
+    typ: "JWT"
+  }
+
+  const payload = {
+    userId,
+    email,
+    role,
+    exp: Math.floor(Date.now() / 1000) + 600 // 1 hour from now
+  }
+
+  // helper to Base64URL-encode an object
+  const encode = (obj) =>
+    btoa(JSON.stringify(obj))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "")
+
+  const encodedHeader = encode(header)
+  const encodedPayload = encode(payload)
+  const signature = "mockSignature12345"
+
+  return `${encodedHeader}.${encodedPayload}.${signature}`
+}
+
+const mockUser = {
+  id: "user123",
+  email: "jimmy@john.com",
+  firstNames: "Jimmy John",
+  lastNames: "The Second",
+  role: "admin",
+  aStatus: false,
+  institution: {
+    id: "institution123",
+    name: "Hogwarts",
+    slug: "hogwarts"
+  }
+}
+
+
 export const authService = {
     async login(credentials) {
       return {
-        user: {
-          id: "user123",
-          email: "jimmy@john.com",
-          firstNames: "Jimmy John",
-          lastNames: "The Second",
-          role: "admin",
-          aStatus: false,
-          institution: {
-            id: "institution123",
-            name: "Hogwarts",
-            slug: "hogwarts"
-          },
-          expiration: Date.now() / 1000 + 600
-        },
-        token : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
-        "eyJ1c2VySWQiOiJ1c2VyMTIzIiwiZW1haWwiOiJqaW1teUBqb2huLmNvbSIsInJvbGUiOiJzdHVkZW50IiwiZXhwIjoxNzQwMDI3MDAwfQ." +
-        "dummySignature12345"
+        user: mockUser,
+        token : generateMockToken()
       }
 
       // const response = await fetch(`${API_BASE_URL}/mxrep/login`, {

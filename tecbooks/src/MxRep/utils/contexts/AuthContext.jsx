@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUserData] = useState(null)
     const [token, setToken] = useState(null)
     const [decodedToken, setDecodedToken] = useState(null)
+    const [status, setStatus] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
 
     const publicRoutes = ['/mxrep/auth', '/mxrep/registry', '/mxrep/logout']
@@ -84,36 +85,38 @@ export const AuthProvider = ({ children }) => {
       setStatus(false)
       localStorage.removeItem('tecbooks-user')
       localStorage.removeItem('tecbooks-token')
-      navigate('/mxrep/auth/login')
       // window.location.href = `/mxrep/auth/login${reason ? `?error=${reason}` : ""}`
+      navigate(`/mxrep/auth/login${reason ? `?error=${reason}` : ""}`);
     }
 
     useEffect(() => {
+      setIsLoading(true)
       if (isPublicRoute()) {
         setIsLoading(false)
         return
       }
-      setIsLoading(true)
-      if (!user || !token) {
-        initiateSession()
-      } else {
-        setIsLoading(false)
-      }
+
+      if (!user || !token) initiateSession()
+      setIsLoading(false)
     }, [location.pathname])
 
     useEffect(() => {
-      if (isPublicRoute()) return
-      if (!user || !token) {
-        logout("No session detected")
+      setIsLoading(true)
+      if (isPublicRoute()) {
+        setIsLoading(false)
         return
       }
-      (async () => {
-        await verifyCurrentSession();
-      })();
-    }, [user, token, location.pathname]) 
+      // if (!user || !token) return
+
+      const verify = async () => {
+        await verifyCurrentSession()
+      }
+      verify()
+      setIsLoading(false)
+    }, [user, token, location.pathname]);   
     
     return (
-      <AuthContext.Provider value={{ user, token, isLoading, logout }}>
+      <AuthContext.Provider value={{ user, token, status, isLoading, logout }}>
         {children}
       </AuthContext.Provider>
     );
