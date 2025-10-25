@@ -7,48 +7,66 @@ import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import DashboardRouter from './Dashboard/Router'
 import { SimDataProvider } from '@/MxRep/utils/contexts/SimDataContext'
+import Loader from '@/Global Components/Loader'
 
 function InstitutionRouter() {
     const navigate = useNavigate()
-    const { user, isLoading } = useAuth()
+    const { user, isLoading, isInitialized } = useAuth()
     const { slug } = useParams()
 
     useEffect(() => {
-      if (isLoading) return
-      console.log("User: ", user)
+      // Wait for auth to be initialized before doing validation
+      if (!isInitialized || isLoading) {
+        console.log("[INSTITUTION ROUTER] Waiting for auth initialization...")
+        return
+      }
+
+      console.log("[INSTITUTION ROUTER] Auth initialized, validating user:", user)
 
       if (!user || !user.institution) {
         console.log("No user or institution data - redirecting to logout")
         navigate("/mxrep/logout")
         return
       }
+      
       const userSlug = user.institution.slug
 
-      console.log("INSIDE INSITUTION ROUTER USEEFFECT")
-      console.log("Slug pulled from params is: ", slug)
-      console.log("User slug is: ", userSlug)
+      console.log("Slug from params:", slug)
+      console.log("User slug:", userSlug)
 
       if (!slug || !userSlug || slug !== userSlug) {
         console.log("Slug mismatch - redirecting to logout")
         navigate('/mxrep/logout')
       }
-    }, [user, isLoading, slug, navigate])
+    }, [user, isLoading, isInitialized, slug, navigate])
 
     const getUserPanelRoute = () => {
+        if (!user) return null
+        
         switch (user.role) {
             case "student" : return "student-panel"
             case "professor" : return "professor-panel"
             case "admin" : return "admin-panel"
+            default:
+              navigate('/mxrep/logout')
+              return null
         }
+    }
 
-        navigate('/mxrep/logout')
+    // Show loader while authentication is being established
+    if (!isInitialized || isLoading) {
+      return <Loader message="Initializing session..." />
+    }
+
+    // If no user after initialization, don't render routes (redirect will happen in useEffect)
+    if (!user) {
+      return <Loader message="Authenticating..." />
     }
    
-    console.log("Getting to router now ...")
   return (
     <Routes>
-      <Route path="/" element={ <Navigate to={`${getUserPanelRoute}`} /> } />
-      <Route path="my-panel" element={ <Navigate to={`${getUserPanelRoute}`} /> } />
+      <Route path="/" element={ <Navigate to={`${getUserPanelRoute()}`} /> } />
+      <Route path="my-panel" element={ <Navigate to={`${getUserPanelRoute()}`} /> } />
 
       <Route path="student-panel/*" element={ <StudentPanelRouter /> } />
       <Route path="professor-panel/*" element={ <ProfessorPanelRouter /> } />

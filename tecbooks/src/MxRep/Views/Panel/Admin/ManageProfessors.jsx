@@ -12,23 +12,35 @@ import InviteProfessor from '@/MxRep/Components/Panels/Admin/Modals/InviteProfes
 import ProfessorDetails from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
 
 function ManageProfessors() {
-    const { user, isLoading } = useAuth()
+    const { user, isLoading, isInitialized } = useAuth()
     const { professors, professorsIsLoading, error, getInstitutionProfessors } = useGetInstitutionProfessors()
 
     const [inviteModalOpen, setInviteModalOpen] = useState(false)
     const [selectedProfessor, setSelectedProfessor] = useState(null)
     const [professorModalOpen, setProfessorModalOpen] = useState(false)
 
-    if (isLoading) return <Loader message={"Loading up..."} />
-
-    if (!user) return <div>Not authenticated</div>
-
     useEffect(() => {
+        // Only fetch professors once auth is initialized and user is available
+        if (!isInitialized || isLoading || !user) {
+            console.log("Waiting for auth initialization...")
+            return
+        }
+
         console.log("User in manage professors page: ", user)
         if (user.institution?.institutionId) {
             getInstitutionProfessors(user.institution?.institutionId)
         }
-    }, [getInstitutionProfessors, user])
+    }, [isInitialized, isLoading, user, getInstitutionProfessors])
+
+    // Show loader while auth is initializing
+    if (!isInitialized || isLoading) {
+        return <Loader message={"Loading session..."} />
+    }
+
+    // After initialization, if no user, show error
+    if (!user) {
+        return <div>Not authenticated</div>
+    }
 
     const handleOpenInviteModal = () => setInviteModalOpen(true)
     const handleCloseInviteModal = () => setInviteModalOpen(false)
