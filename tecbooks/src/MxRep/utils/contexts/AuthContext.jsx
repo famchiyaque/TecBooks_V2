@@ -1,18 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { authService } from '@/MxRep/utils/services/auth.service'
+import { decodeToken } from "./utils"
 
 const AuthContext = createContext()
 
 export const useAuth = () => useContext(AuthContext)
 
 export const AuthProvider = ({ children }) => {
-    const navigate = useNavigate()
     const location = useLocation()
+    const navigate = useNavigate()
 
     const [user, setUserData] = useState(null)
     const [token, setToken] = useState(null)
-    const [status, setStatus] = useState(false)
+    const [decodedToken, setDecodedToken] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
 
     const publicRoutes = ['/mxrep/auth', '/mxrep/registry', '/mxrep/logout']
@@ -32,8 +33,15 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
+      const decoded = decodeToken(storedToken)
+      if (!decoded) {
+        logout("Invalid token")
+        return
+      }
+
       setUserData(JSON.parse(storedUser))
       setToken(storedToken)
+      setDecodedToken(decoded)
     }
 
     const refreshSession = async () => {
@@ -56,13 +64,13 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
-      console.log("User object in verify: ", user)
+      if (!decodedToken) {
+        logout("Invalid token")
+        return
+      }
 
-      // check that session hasn't expired
       const now = Date.now() / 1000
-      console.log("user expiration: ", user.expiration)
-      console.log("now: ", now)
-      if (user.expiration && user.expiration < now) {
+      if (decodedToken.exp && decodedToken.exp < now) {
         const result = await refreshSession()
         if (!result.success) logout(result.message)
       }
@@ -72,26 +80,40 @@ export const AuthProvider = ({ children }) => {
       console.log("[LOGOUT FUNC]")
       setUserData(null)
       setToken(null)
+      setDecodedToken(null)
       setStatus(false)
       localStorage.removeItem('tecbooks-user')
       localStorage.removeItem('tecbooks-token')
-      console.log("navigating to login")
-      window.location.href = `/mxrep/auth/login${reason ? `?error=${reason}` : ""}`
-      // navigate(`/mxrep/auth/login${reason ? `?error=${reason}` : ""}`);
+      navigate('/mxrep/auth/login')
+      // window.location.href = `/mxrep/auth/login${reason ? `?error=${reason}` : ""}`
     }
 
     useEffect(() => {
-      if (isPublicRoute()) return;
-      if (!user || !token) initiateSession();
-    }, [location.pathname]);
+      if (isPublicRoute()) {
+        setIsLoading(false)
+        return
+      }
+      setIsLoading(true)
+      if (!user || !token) {
+        initiateSession()
+      } else {
+        setIsLoading(false)
+      }
+    }, [location.pathname])
 
     useEffect(() => {
-      if (isPublicRoute()) return;
-      if (user && token) verifyCurrentSession();
-    }, [user, token, location.pathname]);   
+      if (isPublicRoute()) return
+      if (!user || !token) {
+        logout("No session detected")
+        return
+      }
+      (async () => {
+        await verifyCurrentSession();
+      })();
+    }, [user, token, location.pathname]) 
     
     return (
-      <AuthContext.Provider value={{ user, token, status, isLoading, logout }}>
+      <AuthContext.Provider value={{ user, token, isLoading, logout }}>
         {children}
       </AuthContext.Provider>
     );

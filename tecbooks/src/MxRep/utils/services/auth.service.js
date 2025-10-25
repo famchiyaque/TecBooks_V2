@@ -18,7 +18,9 @@ export const authService = {
           },
           expiration: Date.now() / 1000 + 600
         },
-        token: "token123456"
+        token : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+        "eyJ1c2VySWQiOiJ1c2VyMTIzIiwiZW1haWwiOiJqaW1teUBqb2huLmNvbSIsInJvbGUiOiJzdHVkZW50IiwiZXhwIjoxNzQwMDI3MDAwfQ." +
+        "dummySignature12345"
       }
 
       // const response = await fetch(`${API_BASE_URL}/mxrep/login`, {
