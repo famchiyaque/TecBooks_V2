@@ -12,7 +12,7 @@ export const useGetInstitutionProfessors = () => {
 
         try {
             const response = await adminService.getInstitutionProfessors(institutionId)
-
+            console.log("Response from getInstitutionProfessors: ", response)
             setProfessors(response.data)
         } catch (err) {
             setError(err.message)

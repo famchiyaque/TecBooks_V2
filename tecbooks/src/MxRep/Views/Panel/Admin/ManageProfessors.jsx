@@ -6,18 +6,17 @@ import { useGetInstitutionProfessors } from '@/MxRep/utils/hooks/admin.hooks'
 import { Button } from '@/components/ui/button'
 import { CiFilter } from "react-icons/ci"
 import { IoSettingsSharp } from "react-icons/io5"
-import Card from '@/MxRep/Components/General/Card'
+import CardProfessor from '@/MxRep/Components/Panels/Admin/CardProfessor'
 import Loader from '@/Global Components/Loader'
-import InviteProfessor from '@/MxRep/Components/Panels/Admin/Modals/InviteProfessor'
-import ProfessorDetails from '@/MxRep/Components/Panels/Admin/Modals/ProfessorDetails'
+import { useNavigate } from 'react-router-dom'
 
 function ManageProfessors() {
+    const navigate = useNavigate()
+
     const { user, isLoading, isInitialized } = useAuth()
     const { professors, professorsIsLoading, error, getInstitutionProfessors } = useGetInstitutionProfessors()
 
-    const [inviteModalOpen, setInviteModalOpen] = useState(false)
-    const [selectedProfessor, setSelectedProfessor] = useState(null)
-    const [professorModalOpen, setProfessorModalOpen] = useState(false)
+    // const [selectedProfessor, setSelectedProfessor] = useState(null)
 
     useEffect(() => {
         // Only fetch professors once auth is initialized and user is available
@@ -28,9 +27,15 @@ function ManageProfessors() {
 
         console.log("User in manage professors page: ", user)
         if (user.institution?.institutionId) {
+            console.log("Calling getInstitutionProfs from useEffect")
             getInstitutionProfessors(user.institution?.institutionId)
         }
     }, [isInitialized, isLoading, user, getInstitutionProfessors])
+
+    const navigateToInviteProfessor = () => {
+        const slug = user.institution?.slug
+        navigate(`/mxrep/${slug}/admin-panel/invite-professor`)
+    }
 
     // Show loader while auth is initializing
     if (!isInitialized || isLoading) {
@@ -42,18 +47,6 @@ function ManageProfessors() {
         return <div>Not authenticated</div>
     }
 
-    const handleOpenInviteModal = () => setInviteModalOpen(true)
-    const handleCloseInviteModal = () => setInviteModalOpen(false)
-
-    const handleOpenProfessorModal = (professor) => {
-        setSelectedProfessor(professor)
-        setProfessorModalOpen(true)
-    } 
-    const handleCloseProfessorModal = () => {
-        setSelectedProfessor(null)
-        setProfessorModalOpen(false)
-    }
-
   return (
     <div className='w-full mx-6'>
         {/* Title */}
@@ -63,7 +56,7 @@ function ManageProfessors() {
             </Typography>
             <div className='flex items-center gap-3'>
                 <CiFilter />
-                <Button onClick={handleOpenInviteModal}>
+                <Button onClick={navigateToInviteProfessor}>
                     New Invite
                 </Button>
                 <IoSettingsSharp />
@@ -83,7 +76,7 @@ function ManageProfessors() {
 
             {professors && professors.length > 0 ? (
                 professors.map((professor, idx) => (
-                    <Card 
+                    <CardProfessor 
                         key={professor.id || idx} 
                         professor={professor}
                         onClick={() => handleOpenProfessorModal(professor)}
@@ -95,19 +88,6 @@ function ManageProfessors() {
                 )
             )}
         </div>
-
-        <InviteProfessor 
-            open={inviteModalOpen}
-            onClose={handleCloseInviteModal}
-        />
-
-        {selectedProfessor && (
-            <ProfessorDetails 
-                open={professorModalOpen}
-                onClose={handleCloseProfessorModal}
-                professor={selectedProfessor}
-            />
-        )}
     </div>
   )
 }

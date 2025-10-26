@@ -84,18 +84,22 @@ export const authService = {
     },
 
     async refreshToken(token, user) {
-        const response = await fetch(`${API_BASE_URL}/mxrep/refresh-token`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ user }),
-        })
+      return {
+        user: mockUser,
+        token : generateMockToken()
+      }
+        // const response = await fetch(`${API_BASE_URL}/mxrep/refresh-token`, {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //     Authorization: `Bearer ${token}`,
+        //   },
+        //   body: JSON.stringify({ user }),
+        // })
     
-        if (!response.ok) throw new Error("Failed to refresh session")
+        // if (!response.ok) throw new Error("Failed to refresh session")
     
-        const data = await response.json()
-        return data
+        // const data = await response.json()
+        // return data
     },
 }

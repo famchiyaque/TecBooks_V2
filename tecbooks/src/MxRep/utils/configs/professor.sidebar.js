@@ -11,8 +11,13 @@ export const sidebarConfig = {
             iconCode: 7
         },
         {
+            route: 'manage-groups',
+            title: 'Groups',
+            iconCode: 8
+        },
+        {
             route: 'manage-classes',
-            title: 'Classes and Groups',
+            title: 'Classes',
             iconCode: 8
         },
         {

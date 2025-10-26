@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
     const [decodedToken, setDecodedToken] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [isInitialized, setIsInitialized] = useState(false)
+    const [isAdmin, setIsAdmin] = useState(false)
     
     // Ref to prevent multiple simultaneous initializations
     const isInitializing = useRef(false)
@@ -36,6 +37,16 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('tecbooks-token')
       navigate(`/mxrep/auth/login${reason ? `?error=${encodeURIComponent(reason)}` : ""}`)
     }, [navigate])
+
+    const getIsAdmin = useCallback(() => {
+      console.log("[IS ADMIN METHOD] ")
+      if (!user || !token) {
+        console.log("No valid session")
+        return false
+      }
+      const userIsAdmin = user.role == 'admin' || (user.role == "professor" && user.aStatus == true)
+      setIsAdmin(userIsAdmin)
+    }, [token, user])
 
     const initiateSession = useCallback(() => {
       console.log('[INITIATING SESSION]')
