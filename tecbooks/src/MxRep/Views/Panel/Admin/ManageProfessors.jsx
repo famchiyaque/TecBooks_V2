@@ -127,13 +127,14 @@ function ManageProfessors() {
                                 Showing {professors.length} professor{professors.length !== 1 ? 's' : ''}
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="flex flex-wrap gap-6">
                             {professors.map((professor) => (
-                                <CardProfessor 
-                                    key={professor.id} 
-                                    professor={professor}
-                                    onClick={() => handleProfessorClick(professor)}
-                                />
+                                <div key={professor.id} className="flex-1 min-w-[300px] max-w-[400px]">
+                                    <CardProfessor 
+                                        professor={professor}
+                                        onClick={() => handleProfessorClick(professor)}
+                                    />
+                                </div>
                             ))}
                         </div>
                     </>
