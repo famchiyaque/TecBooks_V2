@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import StatusBadge from '@/MxRep/Components/Common/StatusBadge'
+import StatusBadge from '@/MxRep/Components/Panels/Common/StatusBadge'
 import Loader from '@/Global Components/Loader'
 import { 
   ArrowLeft, 

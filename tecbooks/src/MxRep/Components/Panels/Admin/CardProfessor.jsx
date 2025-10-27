@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import StatusBadge from '@/MxRep/Components/Common/StatusBadge'
+import StatusBadge from '@/MxRep/Components/Panels/Common/StatusBadge'
 import { User, BookOpen, Users, Gamepad2 } from 'lucide-react'
 
 function CardProfessor({ professor, onClick }) {
