@@ -19,8 +19,10 @@ function AdminPanelRouter() {
       return
     }
 
-    console.log("[AUTH ROUTER] user: ", user)
-    if (!isAdmin) logout("Does not have admin privileges")
+    console.log("[ADMIN ROUTER] user: ", user)
+    if (!isAdmin()) {
+      logout("Does not have admin privileges")
+    }
   }, [isInitialized, isLoading, user, isAdmin, logout])
 
 
