@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage, FormControl } from '@/components/ui/form'
 import { Card, CardContent } from '@/components/ui/card'
-import { Mail, User, Briefcase, X } from 'lucide-react'
+import { Mail, User, Briefcase, X, Send } from 'lucide-react'
 
 // Schema for invite form (simpler than registration)
 const inviteProfessorSchema = z.object({
@@ -16,7 +16,7 @@ const inviteProfessorSchema = z.object({
   department: z.string().min(1, 'Department is required')
 })
 
-function InviteProfessor({ institutionName, onClear, onCancel }) {
+function InviteProfessor({ institutionName, onSendInvite }) {
   const form = useForm({
     resolver: zodResolver(inviteProfessorSchema),
     defaultValues: {
@@ -34,15 +34,27 @@ function InviteProfessor({ institutionName, onClear, onCancel }) {
       lastNames: '',
       department: ''
     })
-    if (onClear) onClear()
   }
+
+  const handleSubmit = (data) => {
+    if (onSendInvite) {
+      onSendInvite(data)
+    }
+  }
+
+  // Check if form is valid and has values
+  const isFormValid = form.formState.isValid && 
+    form.watch('email') && 
+    form.watch('firstNames') && 
+    form.watch('lastNames') && 
+    form.watch('department')
 
   return (
     <Card className="border-slate-200">
       <CardContent className="pt-6">
         <Form {...form}>
-          <form className="space-y-6">
-            {/* Institution (Read-only) */}
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Institution (Read-only) - Full Width */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <Briefcase className="h-4 w-4" />
@@ -58,90 +70,93 @@ function InviteProfessor({ institutionName, onClear, onCancel }) {
               </p>
             </div>
 
-            {/* Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email Address
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="professor@institution.edu" 
-                      type="email"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Two Column Layout for Form Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* First Names */}
+              <FormField
+                control={form.control}
+                name="firstNames"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      First Name(s)
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter first name(s)" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* First Names */}
-            <FormField
-              control={form.control}
-              name="firstNames"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    First Name(s)
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter first name(s)" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Last Names */}
+              <FormField
+                control={form.control}
+                name="lastNames"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Last Name(s)
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter last name(s)" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Last Names */}
-            <FormField
-              control={form.control}
-              name="lastNames"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Last Name(s)
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter last name(s)" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Email */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email Address
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="professor@institution.edu" 
+                        type="email"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Department */}
-            <FormField
-              control={form.control}
-              name="department"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    Department
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="e.g., Computer Science, Mathematics" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Department */}
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      Department
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., Computer Science" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
@@ -153,6 +168,14 @@ function InviteProfessor({ institutionName, onClear, onCancel }) {
               >
                 <X className="h-4 w-4" />
                 Clear
+              </Button>
+              <Button 
+                type="submit"
+                disabled={!isFormValid}
+                className="flex-1 gap-2"
+              >
+                <Send className="h-4 w-4" />
+                Send Invite
               </Button>
             </div>
           </form>
