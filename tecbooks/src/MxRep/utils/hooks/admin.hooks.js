@@ -203,3 +203,52 @@ export const useGetStudent = () => {
         setError
     }
 }
+
+export const useGetAdminProfile = () => {
+    const [profileIsLoading, setProfileIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [profile, setProfile] = useState(null)
+
+    const getAdminProfile = useCallback(async (userId) => {
+        setProfileIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await adminService.getAdminProfile(userId)
+            console.log("Response from getAdminProfile: ", response)
+            setProfile(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setProfileIsLoading(false)
+        }
+    }, [])
+
+    const updateAdminProfile = useCallback(async (userId, profileData) => {
+        setProfileIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await adminService.updateAdminProfile(userId, profileData)
+            setProfile(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setProfileIsLoading(false)
+        }
+    }, [])
+
+    return {
+        getAdminProfile,
+        updateAdminProfile,
+        profileIsLoading,
+        error,
+        profile,
+        setProfile,
+        setError
+    }
+}

@@ -264,5 +264,88 @@ export const adminService = {
 
         // const data = await response.json()
         // return data
+    },
+
+    async getAdminProfile(userId) {
+        // Mock data - combines admin user data and institution data
+        return {
+            success: true,
+            data: {
+                // Admin user data
+                user: {
+                    id: userId,
+                    email: "admin@hogwarts.edu",
+                    firstNames: "Albus",
+                    lastNames: "Dumbledore",
+                    role: "admin"
+                },
+                // Institution data
+                institution: {
+                    institutionId: "inst123",
+                    name: "Hogwarts",
+                    domain: "hogwarts.edu",
+                    slug: "hogwarts",
+                    country: "United Kingdom",
+                    city: "Scottish Highlands",
+                    phoneNumber: "+44 1234 567890",
+                    contactEmail: "contact@hogwarts.edu"
+                }
+            }
+        }
+        // const suffix = `get-admin-profile?userId=${userId}`
+        // const response = await fetch(`${API_BASE_URL}/mxrep/admin-panel/${suffix}`, {
+        //     method: "GET",
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     }
+        // })
+
+        // if (!response.ok) {
+        //     throw new Error(`Failed to get admin profile: ${response.status} ${response.statusText}`)
+        // }
+
+        // const data = await response.json()
+        // return data
+    },
+
+    async updateAdminProfile(userId, profileData) {
+        // Mock response
+        return {
+            success: true,
+            data: {
+                user: {
+                    id: userId,
+                    email: profileData.email,
+                    firstNames: profileData.firstNames,
+                    lastNames: profileData.lastNames,
+                    role: "admin"
+                },
+                institution: {
+                    institutionId: profileData.institutionId,
+                    name: profileData.institutionName,
+                    domain: profileData.domain,
+                    slug: profileData.slug,
+                    country: profileData.country,
+                    city: profileData.city,
+                    phoneNumber: profileData.phoneNumber,
+                    contactEmail: profileData.contactEmail
+                }
+            }
+        }
+        // const suffix = `update-admin-profile`
+        // const response = await fetch(`${API_BASE_URL}/mxrep/admin-panel/${suffix}`, {
+        //     method: "PUT",
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ userId, ...profileData })
+        // })
+
+        // if (!response.ok) {
+        //     throw new Error(`Failed to update admin profile: ${response.status} ${response.statusText}`)
+        // }
+
+        // const data = await response.json()
+        // return data
     }
 }
