@@ -8,7 +8,7 @@ import {
 
 function AlertDemo({ title, message }) {
   return (
-    <div className="grid w-full max-w-xl items-start gap-4">
+    <div className="grid w-[80%] mx-auto max-w-xl items-start gap-4">
       {/* <Alert>
         <CheckCircle2Icon />
         <AlertTitle>Success! Your changes have been saved</AlertTitle>
@@ -22,10 +22,10 @@ function AlertDemo({ title, message }) {
           This Alert has a title and an icon. No description.
         </AlertTitle>
       </Alert> */}
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="text-left">
         <AlertCircleIcon />
-        <AlertTitle>{title}</AlertTitle>
-        <AlertDescription>
+        <AlertTitle className="pl-4">{title}</AlertTitle>
+        <AlertDescription className="pl-4">
             {message}
           {/* <p>Please verify your billing information and try again.</p>
           <ul className="list-inside list-disc text-sm">

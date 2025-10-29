@@ -159,6 +159,185 @@ export const professorService = {
 
         // const data = await response.json()
         // return data
+    },
+
+    async getProfessorClasses(professorId) {
+        return {
+            success: true,
+            data: [
+                {
+                    id: "class001",
+                    name: "Network Security",
+                    code: "CS-401",
+                    createdAt: "2024-01-10T10:00:00Z",
+                    numGroups: 4,
+                    description: "Advanced network security concepts and practices"
+                },
+                {
+                    id: "class002",
+                    name: "Web Application Security",
+                    code: "CS-402",
+                    createdAt: "2024-01-15T14:00:00Z",
+                    numGroups: 3,
+                    description: "Security vulnerabilities in web applications"
+                },
+                {
+                    id: "class003",
+                    name: "Cryptography",
+                    code: "CS-403",
+                    createdAt: "2023-08-20T09:00:00Z",
+                    numGroups: 2,
+                    description: "Mathematical foundations of cryptography"
+                }
+            ]
+        }
+    },
+
+    async getClass(classId) {
+        const classes = {
+            "class001": {
+                id: "class001",
+                name: "Network Security",
+                code: "CS-401",
+                createdAt: "2024-01-10T10:00:00Z",
+                numGroups: 4,
+                description: "Advanced network security concepts and practices"
+            }
+        }
+
+        return {
+            success: true,
+            data: classes[classId] || null
+        }
+    },
+
+    async createClass(classData) {
+        return {
+            success: true,
+            data: {
+                id: "class" + Date.now(),
+                ...classData,
+                createdAt: new Date().toISOString(),
+                numGroups: 0
+            }
+        }
+    },
+
+    async updateClass(classId, classData) {
+        return {
+            success: true,
+            data: {
+                id: classId,
+                ...classData
+            }
+        }
+    },
+
+    async getProfessorGroups(professorId) {
+        return {
+            success: true,
+            data: [
+                {
+                    id: "group001",
+                    groupCode: "NS-G1",
+                    className: "Network Security",
+                    classId: "class001",
+                    semester: "Feb-Jun-2025",
+                    subperiod: "1-2",
+                    status: "current",
+                    numStudents: 28,
+                    createdAt: "2025-02-01T10:00:00Z"
+                },
+                {
+                    id: "group002",
+                    groupCode: "NS-G2",
+                    className: "Network Security",
+                    classId: "class001",
+                    semester: "Feb-Jun-2025",
+                    subperiod: "2-3",
+                    status: "current",
+                    numStudents: 25,
+                    createdAt: "2025-02-01T10:00:00Z"
+                },
+                {
+                    id: "group003",
+                    groupCode: "WAS-G1",
+                    className: "Web Application Security",
+                    classId: "class002",
+                    semester: "Feb-Jun-2025",
+                    subperiod: "1",
+                    status: "current",
+                    numStudents: 30,
+                    createdAt: "2025-02-01T10:00:00Z"
+                },
+                {
+                    id: "group004",
+                    groupCode: "NS-G1",
+                    className: "Network Security",
+                    classId: "class001",
+                    semester: "Aug-Dec-2024",
+                    subperiod: "1-2",
+                    status: "past",
+                    numStudents: 32,
+                    createdAt: "2024-08-01T10:00:00Z"
+                },
+                {
+                    id: "group005",
+                    groupCode: "CRYPT-G1",
+                    className: "Cryptography",
+                    classId: "class003",
+                    semester: "Aug-Dec-2024",
+                    subperiod: "2",
+                    status: "past",
+                    numStudents: 24,
+                    createdAt: "2024-08-01T10:00:00Z"
+                }
+            ]
+        }
+    },
+
+    async getGroup(groupId) {
+        const groups = {
+            "group001": {
+                id: "group001",
+                groupCode: "NS-G1",
+                className: "Network Security",
+                classId: "class001",
+                semester: "Feb-Jun-2025",
+                subperiod: "1-2",
+                status: "current",
+                numStudents: 28,
+                createdAt: "2025-02-01T10:00:00Z"
+            }
+        }
+
+        return {
+            success: true,
+            data: groups[groupId] || null
+        }
+    },
+
+    async createGroup(groupData) {
+        return {
+            success: true,
+            data: {
+                id: "group" + Date.now(),
+                ...groupData,
+                createdAt: new Date().toISOString(),
+                numStudents: 0,
+                status: "current"
+            }
+        }
+    },
+
+    async updateGroup(groupId, groupData) {
+        return {
+            success: true,
+            data: {
+                id: groupId,
+                ...groupData
+            }
+        }
     }
 }
 
