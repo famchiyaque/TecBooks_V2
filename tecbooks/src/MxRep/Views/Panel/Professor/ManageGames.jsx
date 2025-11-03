@@ -128,6 +128,7 @@ function ManageGames() {
                   <CardGame 
                     game={game}
                     onClick={() => handleGameClick(game)}
+                    isProfessor={true}
                   />
                 </div>
               ))}

@@ -17,8 +17,7 @@ export const professorService = {
                     endDate: "2024-03-15T23:59:59Z",
                     numTeams: 8,
                     numStudents: 32,
-                    maxScore: 1000,
-                    avgScore: 745.5
+                    numRuns: 12
                 },
                 {
                     id: "game002",
@@ -30,8 +29,7 @@ export const professorService = {
                     endDate: "2024-03-20T23:59:59Z",
                     numTeams: 6,
                     numStudents: 24,
-                    maxScore: 800,
-                    avgScore: 612.3
+                    numRuns: 8
                 },
                 {
                     id: "game003",
@@ -43,8 +41,7 @@ export const professorService = {
                     endDate: "2024-01-15T23:59:59Z",
                     numTeams: 10,
                     numStudents: 40,
-                    maxScore: 1200,
-                    avgScore: 892.7
+                    numRuns: 15
                 },
                 {
                     id: "game004",
@@ -56,8 +53,7 @@ export const professorService = {
                     endDate: "2024-04-01T23:59:59Z",
                     numTeams: 5,
                     numStudents: 20,
-                    maxScore: 900,
-                    avgScore: 523.1
+                    numRuns: 6
                 },
                 {
                     id: "game005",
@@ -69,8 +65,7 @@ export const professorService = {
                     endDate: "2023-12-20T23:59:59Z",
                     numTeams: 7,
                     numStudents: 28,
-                    maxScore: 1000,
-                    avgScore: 781.4
+                    numRuns: 10
                 }
             ]
         }
@@ -98,18 +93,55 @@ export const professorService = {
                 name: "Network Security Challenge",
                 description: "A comprehensive network security simulation covering firewall configuration, intrusion detection, and incident response",
                 status: "active",
+                code: "NS-2025-001",
+                groupId: "group001",
+                groupName: "Spring 2025 - Group A",
+                classId: "class001",
+                className: "Network Security Fundamentals",
                 createdAt: "2024-01-15T10:00:00Z",
                 startDate: "2024-02-01T00:00:00Z",
                 endDate: "2024-03-15T23:59:59Z",
                 numTeams: 8,
                 numStudents: 32,
-                maxScore: 1000,
-                avgScore: 745.5,
-                configurations: {
-                    difficulty: "intermediate",
-                    timeLimit: 120,
-                    allowHints: true,
-                    teamSize: 4
+                numRuns: 12,
+                configuration: {
+                    premises: {
+                        name: "Factory A",
+                        area: 5000,
+                        rentCost: 5000,
+                        powerCapacity: 1000,
+                        inflationRate: 0.03,
+                        lendingRate: 0.05
+                    },
+                    orderConfig: {
+                        productType: "Widgets",
+                        initialOrders: 1000,
+                        demandRate: {
+                            "Month 1": 0.15,
+                            "Month 2": 0.18,
+                            "Month 3": 0.20,
+                            "Month 4": 0.17,
+                            "Month 5": 0.15,
+                            "Month 6": 0.15
+                        }
+                    },
+                    machinery: [
+                        { name: "Assembly Line Machine A" },
+                        { name: "Quality Control Scanner B" },
+                        { name: "Packaging Unit C" }
+                    ],
+                    boms: [
+                        { productName: "Standard Widget", materialCost: 10 },
+                        { productName: "Premium Widget", materialCost: 15 }
+                    ],
+                    employees: [
+                        { name: "John Doe", jobTitle: "Production Manager", salary: 5000 },
+                        { name: "Jane Smith", jobTitle: "Quality Inspector", salary: 3500 }
+                    ],
+                    expenses: [
+                        { name: "Utilities", cost: 500 },
+                        { name: "Marketing", cost: 1000 }
+                    ]
                 }
             }
         }
