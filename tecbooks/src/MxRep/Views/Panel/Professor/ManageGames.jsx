@@ -124,10 +124,11 @@ function ManageGames() {
             </div>
             <div className="flex flex-wrap gap-6">
               {games.map((game) => (
-                <div key={game.id} className="flex-1 min-w-[320px] max-w-[420px]">
+                <div key={game.id} className="w-[calc(33.333%-16px)] min-w-[300px]">
                   <CardGame 
                     game={game}
                     onClick={() => handleGameClick(game)}
+                    isProfessor={true}
                   />
                 </div>
               ))}

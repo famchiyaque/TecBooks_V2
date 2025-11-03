@@ -3,7 +3,7 @@
   transform: translateX(0);
   position: absolute;
   left: 0;
-  width: 280px;
+  width: 17.5rem;
 }
 
 .sidebar-hidden {
@@ -118,7 +118,7 @@
     position: absolute;
     top: 11vh;
     left: 0;
-    width: 150px
+    width: 9.5rem;
   }
   .view {
     width: 100vw;
@@ -148,13 +148,14 @@
 
 .view {
   /* width: 87vw; */
-  width: calc(100vw - 280px);
+  width: calc(100vw - 17.5rem);
   /* height: 300px; */
   transition: margin-left 0.3s ease;
-  margin-left: 280px;
+  margin-left: 17.5rem;
   /* padding: 2rem; */
   /* height: 92vh; */
-  min-height: 89vh;
+  height: calc(100vh - 11vh);
+  overflow-y: auto;
   display: inline-block;
   font-family: 'Roboto', sans-serif;
 }
@@ -164,6 +165,8 @@
   display: inline-block;
   margin-left: 0;
   transition: margin-left 0.3s ease;
+  height: calc(100vh - 11vh);
+  overflow-y: auto;
 }
 
 .view-child {

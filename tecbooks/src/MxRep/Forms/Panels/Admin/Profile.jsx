@@ -95,27 +95,27 @@ function Profile({ profileData, onSave, isSaving }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           {/* Admin User Information Card */}
           <Card className="border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <User className="h-5 w-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                <User className="h-4 w-4" />
                 Admin Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* First Names */}
                 <FormField
                   control={form.control}
                   name="firstNames"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <User className="h-3.5 w-3.5" />
                         First Name(s)
                       </FormLabel>
                       <FormControl>
@@ -132,8 +132,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="lastNames"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <User className="h-3.5 w-3.5" />
                         Last Name(s)
                       </FormLabel>
                       <FormControl>
@@ -150,8 +150,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="email"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Mail className="h-3.5 w-3.5" />
                         Email Address
                       </FormLabel>
                       <FormControl>
@@ -167,22 +167,22 @@ function Profile({ profileData, onSave, isSaving }) {
 
           {/* Institution Information Card */}
           <Card className="border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
                 Institution Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Institution Name */}
                 <FormField
                   control={form.control}
                   name="institutionName"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Building2 className="h-3.5 w-3.5" />
                         Institution Name
                       </FormLabel>
                       <FormControl>
@@ -199,8 +199,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="domain"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Globe className="h-3.5 w-3.5" />
                         Domain
                       </FormLabel>
                       <FormControl>
@@ -217,8 +217,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="slug"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Hash className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Hash className="h-3.5 w-3.5" />
                         Slug
                       </FormLabel>
                       <FormControl>
@@ -235,8 +235,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Globe className="h-3.5 w-3.5" />
                         Country
                       </FormLabel>
                       <FormControl>
@@ -253,8 +253,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-3.5 w-3.5" />
                         City
                       </FormLabel>
                       <FormControl>
@@ -271,8 +271,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Phone className="h-3.5 w-3.5" />
                         Phone Number
                       </FormLabel>
                       <FormControl>
@@ -289,8 +289,8 @@ function Profile({ profileData, onSave, isSaving }) {
                   name="contactEmail"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
+                      <FormLabel className="flex items-center gap-2 text-sm">
+                        <Mail className="h-3.5 w-3.5" />
                         Contact Email
                       </FormLabel>
                       <FormControl>
@@ -305,7 +305,7 @@ function Profile({ profileData, onSave, isSaving }) {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button 
               type="button"
               variant="outline" 
