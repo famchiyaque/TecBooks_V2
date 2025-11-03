@@ -305,3 +305,52 @@ export const useCreateGroup = () => {
     }
 }
 
+export const useGetProfessorProfile = () => {
+    const [profileIsLoading, setProfileIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [profile, setProfile] = useState(null)
+
+    const getProfessorProfile = useCallback(async (userId) => {
+        setProfileIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.getProfessorProfile(userId)
+            console.log("Response from getProfessorProfile: ", response)
+            setProfile(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setProfileIsLoading(false)
+        }
+    }, [])
+
+    const updateProfessorProfile = useCallback(async (userId, profileData) => {
+        setProfileIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.updateProfessorProfile(userId, profileData)
+            setProfile(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setProfileIsLoading(false)
+        }
+    }, [])
+
+    return {
+        getProfessorProfile,
+        updateProfessorProfile,
+        profileIsLoading,
+        error,
+        profile,
+        setProfile,
+        setError
+    }
+}
+

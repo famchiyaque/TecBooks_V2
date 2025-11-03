@@ -338,6 +338,62 @@ export const professorService = {
                 ...groupData
             }
         }
+    },
+
+    async getProfessorProfile(userId) {
+        // Mock data - combines professor user data and institution data
+        return {
+            success: true,
+            data: {
+                // Professor user data
+                user: {
+                    id: userId,
+                    email: "professor@hogwarts.edu",
+                    firstNames: "Severus",
+                    lastNames: "Snape",
+                    role: "professor",
+                    department: "Potions"
+                },
+                // Institution data
+                institution: {
+                    institutionId: "inst123",
+                    name: "Hogwarts",
+                    domain: "hogwarts.edu",
+                    slug: "hogwarts",
+                    country: "United Kingdom",
+                    city: "Scottish Highlands",
+                    phoneNumber: "+44 1234 567890",
+                    contactEmail: "contact@hogwarts.edu"
+                }
+            }
+        }
+    },
+
+    async updateProfessorProfile(userId, profileData) {
+        // Mock response
+        return {
+            success: true,
+            data: {
+                user: {
+                    id: userId,
+                    email: profileData.email,
+                    firstNames: profileData.firstNames,
+                    lastNames: profileData.lastNames,
+                    role: "professor",
+                    department: profileData.department || ""
+                },
+                institution: {
+                    institutionId: profileData.institutionId,
+                    name: profileData.institutionName,
+                    domain: profileData.domain,
+                    slug: profileData.slug,
+                    country: profileData.country,
+                    city: profileData.city,
+                    phoneNumber: profileData.phoneNumber,
+                    contactEmail: profileData.contactEmail
+                }
+            }
+        }
     }
 }
 

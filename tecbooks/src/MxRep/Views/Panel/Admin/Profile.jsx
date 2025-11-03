@@ -76,13 +76,13 @@ function Profile() {
   }
 
   return (
-    <div className='w-full px-6 py-8'>
+    <div className='w-full px-6 py-4 h-[calc(100vh-4rem)] overflow-y-auto'>
       {/* Header Section */}
-      <div className="mb-8">
+      <div className="mb-4">
         <div className="flex items-start justify-between mb-2">
           <div className='text-left'>
-            <h1 className="text-3xl font-bold text-slate-900">Profile Settings</h1>
-            <p className="text-slate-600 mt-1">
+            <h1 className="text-2xl font-bold text-slate-900">Profile Settings</h1>
+            <p className="text-slate-600 text-sm mt-0.5">
               Manage your account and institution information
             </p>
           </div>
@@ -92,17 +92,18 @@ function Profile() {
               variant="outline"
               onClick={handleCancel}
               className="gap-2"
+              size="sm"
             >
               <X className="h-4 w-4" />
               Cancel
             </Button>
           </div>
         </div>
-        <div className="h-px bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 mt-6" />
+        <div className="h-px bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 mt-4" />
       </div>
 
       {/* Form Section */}
-      <div className='max-w-5xl mx-auto'>
+      <div className='max-w-5xl mx-auto pb-8'>
         <ProfileForm 
           profileData={profile}
           onSave={handleSave}

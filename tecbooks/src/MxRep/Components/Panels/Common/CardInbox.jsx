@@ -5,14 +5,19 @@ import { ChevronDown, ChevronUp, Clock, UserPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 
-function CardInbox({ notification }) {
+function CardInbox({ notification, onReview }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
 
   const handleReview = () => {
-    const slug = user?.institution?.slug
-    navigate(`/mxrep/${slug}/admin-panel/approve-professor/${notification.id}`)
+    if (onReview) {
+      onReview(notification)
+    } else {
+      // Default behavior for admin panel
+      const slug = user?.institution?.slug
+      navigate(`/mxrep/${slug}/admin-panel/approve-professor/${notification.id}`)
+    }
   }
 
   const formatDate = (dateString) => {
@@ -41,10 +46,12 @@ function CardInbox({ notification }) {
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Clock className="h-3.5 w-3.5" />
               <span>{formatDate(notification.date)}</span>
-              {notification.professorName && (
+              {(notification.professorName || notification.studentName) && (
                 <>
                   <span>•</span>
-                  <span className="font-medium text-slate-700">{notification.professorName}</span>
+                  <span className="font-medium text-slate-700">
+                    {notification.professorName || notification.studentName}
+                  </span>
                 </>
               )}
             </div>
