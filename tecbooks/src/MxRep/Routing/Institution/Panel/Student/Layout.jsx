@@ -1,10 +1,11 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import Header from '@/MxRep/Components/General/Header'
+import SharedHeader from '@/MxRep/Components/General/SharedHeader'
+import SharedSubheader from '@/MxRep/Components/General/SharedSubheader'
 import Sidebar from '@/MxRep/Components/General/Sidebar'
 import React, { useState, useEffect } from 'react'
-import SubHeader from '@/MxRep/Components/General/SubHeader'
 import { sidebarConfig } from '@/MxRep/utils/configs/student.sidebar'
 import { useNavigate } from 'react-router-dom'
+import { iconMap } from '@/MxRep/Components/General/IconsMap'
 
 function Layout() {
     const navigate = useNavigate()
@@ -17,26 +18,29 @@ function Layout() {
         const splitPath = location.pathname.split('/')
         const pathSuffix = splitPath[splitPath.length - 1]
 
-        if (sidebarConfig.pages.map((idx, val) => val.route === pathSuffix )) {
+        const matchingPage = sidebarConfig.pages.find(page => page.route === pathSuffix)
+        if (matchingPage) {
             setActiveSidebar(pathSuffix)
-            // navigate(pathSuffix)
         } else {
             setActiveSidebar(sidebarConfig.defaultRoute)
             navigate(sidebarConfig.defaultRoute)
         }
-    }, [location]);
+    }, [location, navigate]);
+
+    // Find the icon for the active sidebar from sidebarConfig
+    const getActiveIcon = () => {
+        const activePage = sidebarConfig.pages.find(page => page.route === activeSidebar)
+        return activePage?.iconCode ? iconMap[activePage.iconCode] : null
+    }
 
     return (
         <>
-            <Header />
-            <SubHeader 
+            <SharedHeader />
+            <SharedSubheader 
+                showSidebarToggle={true}
+                onSidebarToggle={setSidebarVisible}
                 sidebarVisible={sidebarVisible}
-                setSidebarVisible={setSidebarVisible}
-                activeSidebar={activeSidebar}
-                period={null}
-                setPeriod={null}
-                year={null}
-                setYear={null}
+                activeSidebarIcon={getActiveIcon()}
             />
 
             <div>  

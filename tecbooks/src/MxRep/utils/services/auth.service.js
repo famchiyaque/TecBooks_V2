@@ -34,10 +34,14 @@ const mockUser = {
   email: "jimmy@john.com",
   firstNames: "Jimmy John",
   lastNames: "The Second",
-  role: "super-admin",
+  role: "student",
   aStatus: false,
   // Super-admin doesn't have an institution
-  institution: null
+  institution: {
+    id: "institution123",
+    name: "Hogwarts",
+    slug: "hogwarts"
+  }
 }
 
 
