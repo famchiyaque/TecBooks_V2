@@ -3,7 +3,7 @@ import SharedHeader from '@/MxRep/Components/General/SharedHeader'
 import SharedSubheader from '@/MxRep/Components/General/SharedSubheader'
 import Sidebar from '@/MxRep/Components/General/Sidebar'
 import React, { useState, useEffect } from 'react'
-import { sidebarConfig } from '@/MxRep/utils/configs/admin.sidebar'
+import { sidebarConfig } from '@/MxRep/utils/configs/superadmin.sidebar'
 import { useNavigate } from 'react-router-dom'
 import { iconMap } from '@/MxRep/Components/General/IconsMap'
 
@@ -21,9 +21,11 @@ function Layout() {
         const matchingPage = sidebarConfig.pages.find(page => page.route === pathSuffix)
         if (matchingPage) {
             setActiveSidebar(pathSuffix)
-        } else {
+        } else if (pathSuffix === 'super-admin-panel' || pathSuffix === '') {
             setActiveSidebar(sidebarConfig.defaultRoute)
-            navigate(sidebarConfig.defaultRoute)
+            if (location.pathname.endsWith('/super-admin-panel') || location.pathname.endsWith('/super-admin-panel/')) {
+                navigate(sidebarConfig.defaultRoute, { replace: true })
+            }
         }
     }, [location, navigate]);
 
@@ -41,6 +43,17 @@ function Layout() {
                 onSidebarToggle={setSidebarVisible}
                 sidebarVisible={sidebarVisible}
                 activeSidebarIcon={getActiveIcon()}
+    // return (
+    //     <>
+    //         <Header />
+    //         <SubHeader 
+    //             sidebarVisible={sidebarVisible}
+    //             setSidebarVisible={setSidebarVisible}
+    //             activeSidebar={activeSidebar}
+    //             period={null}
+    //             setPeriod={null}
+    //             year={null}
+    //             setYear={null}
             />
 
             <div>  
@@ -61,3 +74,4 @@ function Layout() {
 }
 
 export default Layout
+

@@ -34,8 +34,9 @@ const mockUser = {
   email: "jimmy@john.com",
   firstNames: "Jimmy John",
   lastNames: "The Second",
-  role: "admin",
+  role: "student",
   aStatus: false,
+  // Super-admin doesn't have an institution
   institution: {
     id: "institution123",
     name: "Hogwarts",
@@ -73,11 +74,12 @@ export const authService = {
       const user = data.user
       const role = data.user?.role
       const slug = data.user?.institution?.slug
+      const isSuperAdmin = role === 'super-admin'
       
       if (jwt) {
         localStorage.setItem("tecbooks-token", jwt)
         localStorage.setItem("tecbooks-user", JSON.stringify(user))
-        return { success: true, role, slug }
+        return { success: true, role, slug, isSuperAdmin }
       }
       
       throw new Error('No token received')

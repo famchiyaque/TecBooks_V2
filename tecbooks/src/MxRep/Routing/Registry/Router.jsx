@@ -1,6 +1,5 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import RegistryLayout from './Layout'
 import StartRegistry from './StartRegistry'
 import StudentRegistry from '@/MxRep/Forms/Registry/RegisterStudent'

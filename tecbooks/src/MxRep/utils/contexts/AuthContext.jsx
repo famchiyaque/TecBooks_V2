@@ -39,12 +39,17 @@ export const AuthProvider = ({ children }) => {
 
     const isProfessor = useCallback(() => {
       if (!user) return false
-      return user.role === 'professor' || user.role === 'admin'
+      return user.role === 'professor'
     }, [user])
 
     const isStudent = useCallback(() => {
       if (!user) return false
       return user.role === 'student'
+    }, [user])
+
+    const isSuperAdmin = useCallback(() => {
+      if (!user) return false
+      return user.role === 'super-admin'
     }, [user])
 
     const checkRoleBasedAccess = useCallback(() => {
@@ -71,10 +76,15 @@ export const AuthProvider = ({ children }) => {
           console.log('[ROLE CHECK FAILED] Admin panel access denied for role:', user.role)
           return false
         }
+      } else if (pathname.includes('/super-admin-panel')) {
+        if (!isSuperAdmin()) {
+          console.log('[ROLE CHECK FAILED] Super-admin panel access denied for role:', user.role)
+          return false
+        }
       }
 
       return true
-    }, [user, location.pathname, isPublicRoute, isStudent, isProfessor, isAdmin])
+    }, [user, location.pathname, isPublicRoute, isStudent, isProfessor, isAdmin, isSuperAdmin])
 
     const logout = useCallback((reason) => {
       console.log("[LOGOUT]", reason || "User logged out")
@@ -112,26 +122,26 @@ export const AuthProvider = ({ children }) => {
       return true
     }, [logout])
 
-    const refreshSession = useCallback(async () => {
-      console.log('[REFRESHING SESSION]')
-      try {
-        const data = await authService.refreshToken(token, user)
-        console.log('[SESSION REFRESHED]')
-        setUserData(data.user)
-        setToken(data.token)
-        const decoded = decodeToken(data.token)
-        setDecodedToken(decoded)
+    // const refreshSession = useCallback(async () => {
+    //   console.log('[REFRESHING SESSION]')
+    //   try {
+    //     const data = await authService.refreshToken(token, user)
+    //     console.log('[SESSION REFRESHED]')
+    //     setUserData(data.user)
+    //     setToken(data.token)
+    //     const decoded = decodeToken(data.token)
+    //     setDecodedToken(decoded)
         
-        // Update localStorage
-        localStorage.setItem('tecbooks-user', JSON.stringify(data.user))
-        localStorage.setItem('tecbooks-token', data.token)
+    //     // Update localStorage
+    //     localStorage.setItem('tecbooks-user', JSON.stringify(data.user))
+    //     localStorage.setItem('tecbooks-token', data.token)
         
-        return { success: true }
-      } catch (e) {
-        console.error('[REFRESH FAILED]', e.message)
-        return { success: false, message: e.message }
-      }
-    }, [token, user])
+    //     return { success: true }
+    //   } catch (e) {
+    //     console.error('[REFRESH FAILED]', e.message)
+    //     return { success: false, message: e.message }
+    //   }
+    // }, [token, user])
 
     const verifyCurrentSession = useCallback(async () => {
       console.log('[VERIFYING SESSION]')
@@ -148,17 +158,18 @@ export const AuthProvider = ({ children }) => {
 
       const now = Date.now() / 1000
       if (decodedToken.exp && decodedToken.exp < now) {
-        console.log('[TOKEN EXPIRED] Attempting refresh')
-        const result = await refreshSession()
-        if (!result.success) {
-          logout(result.message)
-          return false
-        }
+        console.log('[TOKEN EXPIRED] logging out')
+        logout("Session expired")
+        // const result = await refreshSession()
+        // if (!result.success) {
+        //   logout(result.message)
+        //   return false
+        // }
       }
       
       console.log('[SESSION VERIFIED]')
       return true
-    }, [user, token, decodedToken, refreshSession, logout])
+    }, [user, token, decodedToken, logout])
 
     // Main effect: handles initialization and verification
     useEffect(() => {
@@ -212,7 +223,7 @@ export const AuthProvider = ({ children }) => {
             logout("Session validation failed")
             return
           }
-
+          
           // Check role-based access after session is verified
           console.log('[CHECKING ROLE ACCESS]')
           const hasAccess = checkRoleBasedAccess()
@@ -220,13 +231,22 @@ export const AuthProvider = ({ children }) => {
           if (!hasAccess) {
             console.log('[ACCESS DENIED] Redirecting to appropriate panel')
             // Redirect to user's appropriate panel based on their role
-            const userPanelRoute = user.role === 'student' ? 'student-panel' 
-                                 : user.role === 'professor' ? 'professor-panel'
-                                 : user.role === 'admin' ? 'admin-panel'
-                                 : null
+            let redirectPath = null
             
-            if (userPanelRoute && user.institution?.slug) {
-              navigate(`/mxrep/${user.institution.slug}/${userPanelRoute}`)
+            if (user.role === 'super-admin') {
+              redirectPath = '/mxrep/super-admin-panel'
+            } else if (user.institution?.slug) {
+              const userPanelRoute = user.role === 'student' ? 'student-panel' 
+                                   : user.role === 'professor' ? 'professor-panel'
+                                   : user.role === 'admin' ? 'admin-panel'
+                                   : null
+              if (userPanelRoute) {
+                redirectPath = `/mxrep/${user.institution.slug}/${userPanelRoute}`
+              }
+            }
+            
+            if (redirectPath) {
+              navigate(redirectPath)
             } else {
               logout("Invalid role or missing institution data")
               return
@@ -261,7 +281,8 @@ export const AuthProvider = ({ children }) => {
         hasRole,
         isAdmin,
         isProfessor,
-        isStudent
+        isStudent,
+        isSuperAdmin
       }}>
         {children}
       </AuthContext.Provider>

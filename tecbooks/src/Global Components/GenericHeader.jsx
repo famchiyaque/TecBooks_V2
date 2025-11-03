@@ -11,7 +11,7 @@ function GenericHeader({ pageName }) {
 
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box>
       <AppBar position="static" style={{ backgroundColor: "#03045e", height: "6vh" }}>
         <Toolbar style={{ justifyContent: "space-between", minHeight: "6vh" }}>
             <Typography variant="h6" component="div" sx={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>

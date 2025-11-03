@@ -9,7 +9,7 @@ import { Typography } from "@mui/material"
 function GenericSubheader({ subheader, onOpenSidebar }) {
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box>
       <AppBar position="static" style={{ backgroundColor: "#0077b6", height: "5vh", boxShadow: "none", color: 'white' }}>
         <Toolbar style={{ justifyContent: "space-between", minHeight: "5vh" }}>
             <div className="header-icon-flex">
