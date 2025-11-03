@@ -14,15 +14,10 @@ import { AlertCircle, CheckCircle, Building2, Mail, Phone, MapPin, User, Briefca
 import { cn } from '@/components/lib/utils'
 
 function RegisterInstitution() {
-<<<<<<< Updated upstream
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
-=======
-  const [isLoading, setIsLoading] = useState(false)
-  console.log("Trying to render institution register form")
->>>>>>> Stashed changes
 
   const form = useForm({
     resolver: zodResolver(registerInstitution),
@@ -394,8 +389,4 @@ function RegisterInstitution() {
   )
 }
 
-<<<<<<< Updated upstream
 export default RegisterInstitution
-=======
-export default RegisterInstitution
->>>>>>> Stashed changes

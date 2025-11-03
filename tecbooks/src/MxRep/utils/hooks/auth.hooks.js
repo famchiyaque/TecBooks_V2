@@ -24,11 +24,7 @@ export const useLogin = () => {
         navigate('/mxrep/super-admin-panel')
       } else if (result.slug) {
         // Regular users need slug
-<<<<<<< Updated upstream
-      navigate(`/mxrep/${result.slug}/${result.role}-panel`)
-=======
         navigate(`/mxrep/${result.slug}/${result.role}-panel`)
->>>>>>> Stashed changes
       } else {
         throw new Error('Missing institution slug or invalid role')
       }
