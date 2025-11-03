@@ -50,3 +50,65 @@ export const useGetStudentProfile = () => {
     }
 }
 
+export const useGetStudentGames = () => {
+    const [gamesIsLoading, setGamesIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [games, setGames] = useState([])
+
+    const getStudentGames = useCallback(async (studentId) => {
+        setGamesIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await studentService.getStudentGames(studentId)
+            console.log("Response from getStudentGames: ", response)
+            setGames(response.data)
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setGamesIsLoading(false)
+        }
+    }, [])
+
+    return {
+        getStudentGames,
+        gamesIsLoading,
+        error,
+        games,
+        setError
+    }
+}
+
+export const useGetStudentGame = () => {
+    const [gameIsLoading, setGameIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [game, setGame] = useState(null)
+
+    const getStudentGame = useCallback(async (gameId, studentId) => {
+        setGameIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await studentService.getStudentGame(gameId, studentId)
+            console.log("Response from getStudentGame: ", response)
+            setGame(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setGameIsLoading(false)
+        }
+    }, [])
+
+    return {
+        getStudentGame,
+        gameIsLoading,
+        error,
+        game,
+        setGame,
+        setError
+    }
+}
+
