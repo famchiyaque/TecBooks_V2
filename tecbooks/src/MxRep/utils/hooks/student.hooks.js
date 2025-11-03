@@ -112,3 +112,60 @@ export const useGetStudentGame = () => {
     }
 }
 
+export const useGetGroupStudents = () => {
+    const [studentsIsLoading, setStudentsIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [students, setStudents] = useState([])
+
+    const getGroupStudents = useCallback(async (groupId, gameId, currentStudentId) => {
+        setStudentsIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await studentService.getGroupStudents(groupId, gameId, currentStudentId)
+            setStudents(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setStudentsIsLoading(false)
+        }
+    }, [])
+
+    return {
+        getGroupStudents,
+        studentsIsLoading,
+        error,
+        students,
+        setError
+    }
+}
+
+export const useInviteStudent = () => {
+    const [isInviting, setIsInviting] = useState(false)
+    const [error, setError] = useState(null)
+
+    const inviteStudent = useCallback(async (teamId, studentId) => {
+        setIsInviting(true)
+        setError(null)
+
+        try {
+            const response = await studentService.inviteStudentToTeam(teamId, studentId)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsInviting(false)
+        }
+    }, [])
+
+    return {
+        inviteStudent,
+        isInviting,
+        error,
+        setError
+    }
+}
+

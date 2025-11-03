@@ -30,6 +30,13 @@ function MyGames() {
     navigate(`/mxrep/${slug}/student-panel/my-games/${game.id}`)
   }
 
+  const handleDashboardClick = (game) => {
+    const slug = user.institution?.slug
+    if (game.run && game.run.id) {
+      navigate(`/mxrep/${slug}/dashboard/${game.id}/${game.run.id}`)
+    }
+  }
+
   const handleJoinGame = async (code) => {
     setIsJoining(true)
     console.log("Joining game with code:", code)
@@ -139,6 +146,7 @@ function MyGames() {
                   <CardGame 
                     game={game}
                     onClick={() => handleGameClick(game)}
+                    onDashboardClick={handleDashboardClick}
                   />
                 </div>
               ))}

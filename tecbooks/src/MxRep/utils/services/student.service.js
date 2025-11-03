@@ -78,7 +78,11 @@ const studentService = {
                     numTeams: 5,
                     numStudents: 20,
                     maxScore: 1000,
-                    avgScore: 750.5
+                    avgScore: 750.5,
+                    run: {
+                        id: "run001",
+                        status: "in-progress"
+                    }
                 },
                 {
                     id: "game002",
@@ -113,6 +117,46 @@ const studentService = {
                 professorId: "prof001",
                 configurationId: "config001",
                 createdAt: "2025-01-15T10:00:00Z",
+                // Game configuration
+                configuration: {
+                    premises: {
+                        name: "Factory A",
+                        area: 5000,
+                        rentCost: 5000,
+                        powerCapacity: 1000,
+                        inflationRate: 0.03,
+                        lendingRate: 0.05
+                    },
+                    orderConfig: {
+                        productType: "Widgets",
+                        initialOrders: 1000,
+                        demandRate: {
+                            "Month 1": 0.15,
+                            "Month 2": 0.18,
+                            "Month 3": 0.20,
+                            "Month 4": 0.17,
+                            "Month 5": 0.15,
+                            "Month 6": 0.15
+                        }
+                    },
+                    machinery: [
+                        { name: "Assembly Line Machine A" },
+                        { name: "Quality Control Scanner B" },
+                        { name: "Packaging Unit C" }
+                    ],
+                    boms: [
+                        { productName: "Standard Widget", materialCost: 10 },
+                        { productName: "Premium Widget", materialCost: 15 }
+                    ],
+                    employees: [
+                        { name: "John Doe", jobTitle: "Production Manager", salary: 5000 },
+                        { name: "Jane Smith", jobTitle: "Quality Inspector", salary: 3500 }
+                    ],
+                    expenses: [
+                        { name: "Utilities", cost: 500 },
+                        { name: "Marketing", cost: 1000 }
+                    ]
+                },
                 // Student's team in this game
                 team: {
                     id: "team001",
@@ -183,6 +227,72 @@ const studentService = {
             success: true,
             data: games[gameId] || null
         }
+    },
+
+    async getGroupStudents(groupId, gameId, currentStudentId) {
+        // Mock data - returns students in the group with their team status
+        // Note: In real implementation, this would filter out the current student
+        const allStudents = [
+            {
+                id: "student004",
+                firstNames: "Neville",
+                lastNames: "Longbottom",
+                email: "neville.longbottom@hogwarts.edu",
+                status: "available"
+            },
+            {
+                id: "student005",
+                firstNames: "Luna",
+                lastNames: "Lovegood",
+                email: "luna.lovegood@hogwarts.edu",
+                status: "available"
+            },
+            {
+                id: "student006",
+                firstNames: "Ginny",
+                lastNames: "Weasley",
+                email: "ginny.weasley@hogwarts.edu",
+                status: "in-team"
+            },
+            {
+                id: "student007",
+                firstNames: "Dean",
+                lastNames: "Thomas",
+                email: "dean.thomas@hogwarts.edu",
+                status: "available"
+            },
+            {
+                id: "student008",
+                firstNames: "Seamus",
+                lastNames: "Finnigan",
+                email: "seamus.finnigan@hogwarts.edu",
+                status: "in-team"
+            }
+        ]
+        
+        // Filter out current student
+        const filteredStudents = allStudents.filter(s => s.id !== currentStudentId)
+        
+        return {
+            success: true,
+            data: filteredStudents
+        }
+    },
+
+    async inviteStudentToTeam(teamId, studentId) {
+        // Mock API call
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    success: true,
+                    data: {
+                        teamId,
+                        studentId,
+                        message: "Invitation sent successfully"
+                    }
+                })
+            }, 1000)
+        })
     }
 }
 
