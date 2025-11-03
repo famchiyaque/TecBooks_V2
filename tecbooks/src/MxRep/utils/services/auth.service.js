@@ -34,7 +34,7 @@ const mockUser = {
   email: "jimmy@john.com",
   firstNames: "Jimmy John",
   lastNames: "The Second",
-  role: "professor",
+  role: "student",
   aStatus: false,
   institution: {
     id: "institution123",
