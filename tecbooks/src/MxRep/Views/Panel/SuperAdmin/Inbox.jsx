@@ -5,9 +5,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import CardInbox from '@/MxRep/Components/Panels/Common/CardInbox'
 import Loader from '@/Global Components/Loader'
 import { Filter, Settings, AlertCircle, Inbox as InboxIcon } from 'lucide-react'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 function Inbox() {
-  const { user, isLoading, isInitialized } = useAuth()
+  const { user, token, isLoading, isInitialized } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [notificationsLoading, setNotificationsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -17,23 +18,32 @@ function Inbox() {
       return
     }
 
-    // TODO: Fetch notifications from backend
-    // For now, using mock data
-    const mockNotifications = [
-      {
-        id: 'inst-req-001',
-        title: 'Institution Registration Request',
-        date: new Date().toISOString(),
-        institutionName: 'New University',
-        email: 'contact@newuniversity.edu',
-        content: 'A new institution has requested to register. Please review their application.',
-        type: 'institution_registration'
-      }
-    ]
+    async function fetchInbox() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/mxrep/super-admin-panel/get-inbox`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
 
-    setNotifications(mockNotifications)
-    setNotificationsLoading(false)
-  }, [isInitialized, isLoading, user])
+        if (!response.ok) throw new Error("Error fetching inbox for super-admin")
+
+        const data = await response.json()
+        console.log("Inbox returned, ", data)
+        setNotifications(data)
+      } catch (e) {
+        console.error("Error fetching super admin inbox:", e)
+        setError("Failed to super admin inbox")
+      } finally {
+        setNotificationsLoading(false)
+      }
+    }
+
+    setNotificationsLoading(true)
+    fetchInbox()
+  }, [isInitialized, isLoading, user, token])
 
   if (!isInitialized || isLoading) {
     return <Loader message="Loading session..." />

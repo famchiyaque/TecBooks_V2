@@ -1,4 +1,3 @@
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 // utils/mockToken.js
@@ -34,38 +33,38 @@ const mockUser = {
   email: "jimmy@john.com",
   firstNames: "Jimmy John",
   lastNames: "The Second",
-  role: "student",
+  role: "super-admin",
   aStatus: false,
   // Super-admin doesn't have an institution
-  institution: {
-    id: "institution123",
-    name: "Hogwarts",
-    slug: "hogwarts"
-  }
+  // institution: {
+  //   id: "institution123",
+  //   name: "Hogwarts",
+  //   slug: "hogwarts"
+  // }
 }
 
 
 export const authService = {
     async login(credentials) {
-      return {
-        user: mockUser,
-        token : generateMockToken()
-      }
-
-      // const response = await fetch(`${API_BASE_URL}/mxrep/login`, {
-      //   method: "POST",
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(credentials) // Fixed: body should be JSON string
-      // })
-  
-      // if (!response.ok) {
-      //   throw new Error(`Login failed: ${response.status} ${response.statusText}`)
+      // return {
+      //   user: mockUser,
+      //   token : generateMockToken()
       // }
+
+      const response = await fetch(`${API_BASE_URL}/mxrep/auth/login`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials) // Fixed: body should be JSON string
+      })
   
-      // const data = await response.json()
-      // return data
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.status} ${response.error}`)
+      }
+  
+      const data = await response.json()
+      return data
     },
   
     async handleLoginResponse(data) {

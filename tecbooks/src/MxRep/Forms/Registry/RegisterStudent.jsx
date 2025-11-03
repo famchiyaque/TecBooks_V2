@@ -12,6 +12,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 function RegisterStudent() {
   const [institutions, setInstitutions] = useState([])
@@ -31,7 +32,7 @@ function RegisterStudent() {
   useEffect(() => {
     async function fetchInstitutions() {
       try {
-        const response = await fetch('http://localhost:3000/tecbooks/mxrep/register/get-institutions', {
+        const response = await fetch(`${API_BASE_URL}/mxrep/register/get-institutions`, {
           method: "GET",
         })
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate } from 'react-router-dom'
+// import { useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage, FormDescription, FormControl } from '@/components/ui/form'
@@ -12,12 +12,14 @@ import { defaultRegisterInstitution } from '@/MxRep/utils/schemas/form.defaults'
 import Loader from '@/Global Components/Loader'
 import { AlertCircle, CheckCircle, Building2, Mail, Phone, MapPin, User, Briefcase } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
+import { useRegisterInstitution } from '@/MxRep/utils/hooks/register.hooks'
 
 function RegisterInstitution() {
-  const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-  const [submitError, setSubmitError] = useState(null)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
+  // const navigate = useNavigate()
+  const { registerInstitutionRequest, isLoading, submitError, submitSuccess } = useRegisterInstitution()
+  // const [isLoading, setIsLoading] = useState(false)
+  // const [submitError, setSubmitError] = useState(null)
+  // const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(registerInstitution),
@@ -28,41 +30,24 @@ function RegisterInstitution() {
 
   const onSubmit = async (data) => {
     console.log("Submitting institution request ", data)
-    setIsLoading(true)
-    setSubmitError(null)
-    setSubmitSuccess(false)
+    // setIsLoading(true)
+    // setSubmitError(null)
+    // setSubmitSuccess(false)
 
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-      const response = await fetch(`${API_BASE_URL}/mxrep/register/institution/request`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Failed to submit institution request: ${response.status} ${response.statusText}`)
-      }
+    await registerInstitutionRequest(data)
 
-      const result = await response.json()
-      console.log("Institution request submitted successfully:", result)
+    if (submitSuccess) form.reset()
+
+    // try {      
+    //   setSubmitSuccess(true)
+    //   form.reset()
       
-      setSubmitSuccess(true)
-      form.reset()
-      
-      // Redirect after 3 seconds
-      setTimeout(() => {
-        navigate('/mxrep/auth/login')
-      }, 3000)
-    } catch (err) {
-      console.error("Error submitting institution request:", err)
-      setSubmitError(err.message || 'Failed to submit institution request. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
+    // } catch (err) {
+    //   console.error("Error submitting institution request:", err)
+    //   setSubmitError(err.message || 'Failed to submit institution request. Please try again.')
+    // } finally {
+    //   setIsLoading(false)
+    // }
   }
 
   if (isLoading) {
