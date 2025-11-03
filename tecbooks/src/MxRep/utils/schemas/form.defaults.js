@@ -33,7 +33,7 @@ export const defaultFinalizeProfessor = {
 }
 
 export const defaultRegisterInstitution = {
-    institution: { name: "", domain: "", id: ""},
+    institution: { name: "", slug: "", domain: "", id: ""},
     country: "",
     city: "",
     phoneNumber: "",
