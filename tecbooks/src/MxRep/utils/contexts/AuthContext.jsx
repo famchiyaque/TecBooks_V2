@@ -47,6 +47,11 @@ export const AuthProvider = ({ children }) => {
       return user.role === 'student'
     }, [user])
 
+    const isSuperAdmin = useCallback(() => {
+      if (!user) return false
+      return user.role === 'super-admin'
+    }, [user])
+
     const checkRoleBasedAccess = useCallback(() => {
       // Only check role-based access for authenticated routes
       if (!user || isPublicRoute()) {
@@ -71,10 +76,15 @@ export const AuthProvider = ({ children }) => {
           console.log('[ROLE CHECK FAILED] Admin panel access denied for role:', user.role)
           return false
         }
+      } else if (pathname.includes('/super-admin-panel')) {
+        if (!isSuperAdmin()) {
+          console.log('[ROLE CHECK FAILED] Super-admin panel access denied for role:', user.role)
+          return false
+        }
       }
 
       return true
-    }, [user, location.pathname, isPublicRoute, isStudent, isProfessor, isAdmin])
+    }, [user, location.pathname, isPublicRoute, isStudent, isProfessor, isAdmin, isSuperAdmin])
 
     const logout = useCallback((reason) => {
       console.log("[LOGOUT]", reason || "User logged out")
@@ -220,13 +230,22 @@ export const AuthProvider = ({ children }) => {
           if (!hasAccess) {
             console.log('[ACCESS DENIED] Redirecting to appropriate panel')
             // Redirect to user's appropriate panel based on their role
-            const userPanelRoute = user.role === 'student' ? 'student-panel' 
-                                 : user.role === 'professor' ? 'professor-panel'
-                                 : user.role === 'admin' ? 'admin-panel'
-                                 : null
+            let redirectPath = null
             
-            if (userPanelRoute && user.institution?.slug) {
-              navigate(`/mxrep/${user.institution.slug}/${userPanelRoute}`)
+            if (user.role === 'super-admin') {
+              redirectPath = '/mxrep/super-admin-panel'
+            } else if (user.institution?.slug) {
+              const userPanelRoute = user.role === 'student' ? 'student-panel' 
+                                   : user.role === 'professor' ? 'professor-panel'
+                                   : user.role === 'admin' ? 'admin-panel'
+                                   : null
+              if (userPanelRoute) {
+                redirectPath = `/mxrep/${user.institution.slug}/${userPanelRoute}`
+              }
+            }
+            
+            if (redirectPath) {
+              navigate(redirectPath)
             } else {
               logout("Invalid role or missing institution data")
               return
@@ -261,7 +280,8 @@ export const AuthProvider = ({ children }) => {
         hasRole,
         isAdmin,
         isProfessor,
-        isStudent
+        isStudent,
+        isSuperAdmin
       }}>
         {children}
       </AuthContext.Provider>

@@ -23,6 +23,13 @@ function InstitutionRouter() {
 
       console.log("[INSTITUTION ROUTER] Auth initialized, validating user:", user)
 
+      // Super-admin doesn't need institution validation
+      if (user?.role === 'super-admin') {
+        console.log("Super-admin detected - redirecting to super-admin panel")
+        navigate("/mxrep/super-admin-panel")
+        return
+      }
+
       if (!user || !user.institution) {
         console.log("No user or institution data - redirecting to logout")
         navigate("/mxrep/logout")

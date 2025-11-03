@@ -4,6 +4,7 @@
   position: absolute;
   left: 0;
   width: 17.5rem;
+  min-width: 160px;
 }
 
 .sidebar-hidden {
