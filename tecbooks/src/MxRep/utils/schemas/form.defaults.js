@@ -36,7 +36,7 @@ export const defaultRegisterInstitution = {
     institution: { name: "", domain: "", id: ""},
     country: "",
     city: "",
-    phoneNumber: null,
+    phoneNumber: "",
     contactEmail: "",
     role: "admin",
     email: "",

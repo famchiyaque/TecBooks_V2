@@ -207,38 +207,38 @@ function Game() {
             <CardContent className="pt-0 space-y-2">
               <div className="text-sm text-slate-500 mb-2">Team Name: <span className="text-slate-900 font-medium">{game.team.name}</span></div>
               <div className="space-y-1">
-                {game.team.members && game.team.members.map((member) => (
+                  {game.team.members && game.team.members.map((member) => (
                   <div key={member.id} className="text-sm text-left">
                     <span className="text-slate-900">{member.firstNames} {member.lastNames}</span>
                     <span className="text-slate-500 ml-2">({member.email})</span>
-                  </div>
-                ))}
+                    </div>
+                  ))}
               </div>
             </CardContent>
           </Card>
         )}
 
         {/* Run Section - Minimal */}
-        <Card className="border-slate-200">
+          <Card className="border-slate-200">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <PlayCircle className="h-4 w-4" />
-              Your Team's Run
-            </CardTitle>
-          </CardHeader>
+                Your Team's Run
+              </CardTitle>
+            </CardHeader>
           <CardContent className="pt-0">
             {game.run ? (
               <div className="text-sm">
                 <span className="text-slate-600">Status: </span>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(game.run.status)}`}>
-                  {game.run.status}
-                </span>
+                    {game.run.status}
+                  </span>
               </div>
             ) : (
               <div className="text-sm text-slate-500">No run started yet</div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
 
         {/* Game Configuration Section */}
         <Card className="border-slate-200">
@@ -264,7 +264,7 @@ function Game() {
                   {game.status}
                 </span>
               </div>
-            </div>
+              </div>
 
             {/* Premises Section */}
             {game.configuration?.premises && (
@@ -305,7 +305,7 @@ function Game() {
                         </div>
                       )}
                       {game.configuration.premises.lendingRate !== undefined && (
-                        <div>
+              <div>
                           <span className="text-slate-500">Lending Rate: </span>
                           <span className="text-slate-900">{(game.configuration.premises.lendingRate * 100).toFixed(2)}%</span>
                         </div>
@@ -342,7 +342,7 @@ function Game() {
                       Initial Orders: <span className="text-slate-900 font-medium">{game.configuration.orderConfig.initialOrders}</span>
                     </div>
                     {game.configuration.orderConfig.demandRate && (
-                      <div>
+              <div>
                         <p className="text-sm text-slate-500 mb-2">Monthly Demand Rate:</p>
                         <div className="space-y-1">
                           {Object.entries(game.configuration.orderConfig.demandRate).map(([month, rate]) => (
@@ -462,7 +462,7 @@ function Game() {
                   onClick={() => toggleSection('expenses')}
                   className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
                 >
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <Receipt className="h-4 w-4 text-slate-600" />
                     <span className="font-medium text-slate-900">Expenses ({game.configuration.expenses.length})</span>
                   </div>
@@ -481,7 +481,7 @@ function Game() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                </div>
                 )}
               </div>
             )}

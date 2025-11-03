@@ -222,7 +222,7 @@ export const AuthProvider = ({ children }) => {
             logout("Session validation failed")
             return
           }
-
+          
           // Check role-based access after session is verified
           console.log('[CHECKING ROLE ACCESS]')
           const hasAccess = checkRoleBasedAccess()

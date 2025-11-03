@@ -20,7 +20,7 @@ function Layout() {
 
     return (
         <>
-            <div>
+            <div className='flex flex-col min-h-screen'>
                 <GenericHeader pageName={"Registry"} />
                 <GenericSubheader 
                     subheader={""}
@@ -33,11 +33,8 @@ function Layout() {
                     onClose={handleCloseSidebar}
                 />
 
-                <div className='w-full h-screen text-center'>
-                    {/* <div>
-
-                    </div> */}
-                    <div className='w-full min-h-[calc(100vh-100px)] m-auto flex justify-around items-center'>
+                <div className='flex-1 overflow-y-auto py-8'>
+                    <div className='w-full flex justify-center items-start'>
                         <Outlet />
                     </div>
                 </div> 
