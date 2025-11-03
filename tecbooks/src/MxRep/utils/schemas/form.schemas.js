@@ -6,6 +6,7 @@ const passwordSchema = z.string()
 
 const institutionSchema = z.object({
     name: z.string(),
+    slug: z.string().optional(),
     domain: z.string(),
     id: z.string()
 })

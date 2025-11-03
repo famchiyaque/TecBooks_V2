@@ -127,22 +127,41 @@ function RegisterInstitution() {
                   )}
                 />
 
-                <FormField 
-                  control={form.control}
-                  name="institution.domain"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Domain</FormLabel>
-                      <FormControl>
-                        <Input placeholder="example.com" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Your institution's email domain (e.g., example.com)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField 
+                    control={form.control}
+                    name="institution.slug"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Slug</FormLabel>
+                        <FormControl>
+                          <Input placeholder="institution-slug" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          URL-friendly identifier for your institution
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField 
+                    control={form.control}
+                    name="institution.domain"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Domain</FormLabel>
+                        <FormControl>
+                          <Input placeholder="example.com" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Your institution's email domain (e.g., example.com)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField 
