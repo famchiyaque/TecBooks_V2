@@ -47,6 +47,35 @@ export const AuthProvider = ({ children }) => {
       return user.role === 'student'
     }, [user])
 
+    const checkRoleBasedAccess = useCallback(() => {
+      // Only check role-based access for authenticated routes
+      if (!user || isPublicRoute()) {
+        return true
+      }
+
+      const pathname = location.pathname
+      
+      // Check if accessing a panel route (handle both with and without trailing slash)
+      if (pathname.includes('/student-panel')) {
+        if (!isStudent()) {
+          console.log('[ROLE CHECK FAILED] Student panel access denied for role:', user.role)
+          return false
+        }
+      } else if (pathname.includes('/professor-panel')) {
+        if (!isProfessor()) {
+          console.log('[ROLE CHECK FAILED] Professor panel access denied for role:', user.role)
+          return false
+        }
+      } else if (pathname.includes('/admin-panel')) {
+        if (!isAdmin()) {
+          console.log('[ROLE CHECK FAILED] Admin panel access denied for role:', user.role)
+          return false
+        }
+      }
+
+      return true
+    }, [user, location.pathname, isPublicRoute, isStudent, isProfessor, isAdmin])
+
     const logout = useCallback((reason) => {
       console.log("[LOGOUT]", reason || "User logged out")
       setUserData(null)
@@ -176,16 +205,38 @@ export const AuthProvider = ({ children }) => {
           console.log('[SESSION EXISTS] Verifying...')
           const isValid = await verifyCurrentSession()
           
-          if (isValid) {
-            console.log('[AUTH COMPLETE] Session is valid')
-          } else {
+          if (!isValid) {
             console.log('[AUTH FAILED] Session validation failed')
             // Verification failed but didn't logout (edge case)
             // This shouldn't normally happen, but handle it gracefully
             logout("Session validation failed")
             return
           }
+
+          // Check role-based access after session is verified
+          console.log('[CHECKING ROLE ACCESS]')
+          const hasAccess = checkRoleBasedAccess()
           
+          if (!hasAccess) {
+            console.log('[ACCESS DENIED] Redirecting to appropriate panel')
+            // Redirect to user's appropriate panel based on their role
+            const userPanelRoute = user.role === 'student' ? 'student-panel' 
+                                 : user.role === 'professor' ? 'professor-panel'
+                                 : user.role === 'admin' ? 'admin-panel'
+                                 : null
+            
+            if (userPanelRoute && user.institution?.slug) {
+              navigate(`/mxrep/${user.institution.slug}/${userPanelRoute}`)
+            } else {
+              logout("Invalid role or missing institution data")
+              return
+            }
+            setIsLoading(false)
+            setIsInitialized(true)
+            return
+          }
+          
+          console.log('[AUTH COMPLETE] Session is valid and access granted')
           setIsLoading(false)
           setIsInitialized(true)
         } catch (error) {
@@ -198,7 +249,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       initializeAuth()
-    }, [location.pathname, user, token, isPublicRoute, initiateSession, verifyCurrentSession])
+    }, [location.pathname, user, token, isPublicRoute, initiateSession, verifyCurrentSession, checkRoleBasedAccess, navigate])
     
     return (
       <AuthContext.Provider value={{ 
