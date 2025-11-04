@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import CardInbox from '@/MxRep/Components/Panels/Common/CardInbox'
+import CardInstitutionRequest from '@/MxRep/Components/Panels/SuperAdmin/CardInstitutionRequest'
 import Loader from '@/Global Components/Loader'
 import { Filter, Settings, AlertCircle, Inbox as InboxIcon } from 'lucide-react'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -122,7 +122,7 @@ function Inbox() {
             </div>
             <div className="space-y-3">
               {notifications.map((notification) => (
-                <CardInbox 
+                <CardInstitutionRequest 
                   key={notification.id} 
                   notification={notification}
                 />
