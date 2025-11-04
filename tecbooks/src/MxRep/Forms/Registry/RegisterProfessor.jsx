@@ -4,67 +4,107 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/ui/form'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { registerProfessorSchema } from '@/MxRep/utils/schemas/form.schemas'
 import { defaultRegisterProfessor } from '@/MxRep/utils/schemas/form.defaults'
 import Loader from '@/Global Components/Loader'
+import { AlertCircle, CheckCircle } from 'lucide-react'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 function RegisterProfessor() {
   const [institutions, setInstitutions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(registerProfessorSchema),
     defaultValues: defaultRegisterProfessor
   })
 
-  const onSubmit = (data) => {
-    // make call to backend at /register/professor/request
-    // should return 200 Ok and success message,
-    // 'wait' for approval message
-    console.log("Submitting email to backend for verification email ", data)
+  const onSubmit = async (data) => {
+    console.log("Submitting professor registration: ", data)
+    setIsSubmitting(true)
+    setSubmitError(null)
+    setSubmitSuccess(false)
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/mxrep/register/professor/request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true"
+        },
+        body: JSON.stringify({
+          institution: data.institution,
+          email: data.email,
+          firstNames: data.firstNames,
+          lastNames: data.lastNames,
+          department: data.department
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to submit registration request")
+      }
+
+      const result = await response.json()
+      
+      if (result.success) {
+        setSubmitSuccess(true)
+        form.reset()
+      } else {
+        throw new Error(result.message || "Failed to submit registration request")
+      }
+    } catch (err) {
+      console.error("Error submitting professor registration:", err)
+      setSubmitError(err.message || "Failed to submit registration request. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   useEffect(() => {
     async function fetchInstitutions() {
       try {
-        // make call to /utility/get-institutions to fetch
-        // all registered institutions
-        const response = fetch('/api/utility/get-institutions', {
+        const response = await fetch(`${API_BASE_URL}/mxrep/register/get-institutions`, {
           method: "GET",
+          headers: {
+            "ngrok-skip-browser-warning": "true"
+          }
         })
+
         if (!response.ok) throw new Error("Error fetching institutions")
-        const data = response.json()
-          setInstitutions(data)
-  
+
+        const data = await response.json()
+        console.log("Institutions data: ", data)
+        setInstitutions(data.data || data)
+
       } catch (e) {
-        console.error("Error fetching registered institutions or there were none: ", e)
+        console.error("Error fetching registered institutions:", e)
         setError("Failed to fetch institutions")
       } finally {
         setIsLoading(false)
       }
     }
-    setInstitutions([
-      { name: "Hogwarts", domain: "hogwarts.com" },
-      { name: "Hufflepuff", domain: "huffle.puff" },
-      { name: "Slytherin", domain: "snake.io" },
-      { name: "Ravenclaw", domain: "raven.claw" },
-      { name: "Gryffindor", domain: "gryffin.xyz" },
-    ])
-    setIsLoading(false)
-    // fetchInstitutions()
+
+    fetchInstitutions()
   }, [])
 
-  if (isLoading) return <Loader />
+  if (isLoading) return <Loader message="Loading institutions..." />
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader> {/* Added text-left here */}
+      <CardHeader>
         <CardTitle className="text-2xl">Professor Registry</CardTitle>
         <CardDescription>
           Choose the institution you belong to as well as the rest of the required information in order to
@@ -73,9 +113,32 @@ function RegisterProfessor() {
       </CardHeader>
     
       <CardContent>
+        {submitSuccess && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>Verification email sent successfully!</strong> Please check your inbox and follow the instructions to complete your registration.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {submitError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-          <FormField
+            <FormField
               control={form.control}
               name="institution"
               render={({ field }) => (
@@ -85,18 +148,28 @@ function RegisterProfessor() {
                     <InputLabel id="institution-label">Institution</InputLabel>
                     <Select
                       labelId="institution-label"
-                      {...field}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(institutions.find(inst => inst._id === e.target.value))}
+                      value={field.value?.id || field.value?._id || ""}
+                      onChange={(e) => {
+                        const selected = institutions.find(inst => (inst.id || inst._id) === e.target.value)
+                        if (selected) {
+                          // Format the institution object to match the schema
+                          field.onChange({
+                            name: selected.name,
+                            domain: selected.domain,
+                            id: selected.id || selected._id,
+                            slug: selected.slug
+                          })
+                        }
+                      }}
                     >
                       {institutions.map((inst) => (
-                        <MenuItem key={inst._id} value={inst._id}>
+                        <MenuItem key={inst._id || inst.id || inst.name} value={inst.id || inst._id || inst.name}>
                           {inst.name}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  <FormMessage>{error}</FormMessage>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -106,8 +179,8 @@ function RegisterProfessor() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Institution Email</FormLabel>
-                  <Input placeholder="Enter your institution email" {...field} />
+                  <FormLabel>School Email</FormLabel>
+                  <Input placeholder="Enter your school email" {...field} />
                   <FormMessage />
                 </FormItem>
               )}
@@ -149,7 +222,13 @@ function RegisterProfessor() {
                 )}
             />            
     
-            <Button type="submit" className="w-full">Submit</Button>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting || submitSuccess}
+            >
+              {isSubmitting ? "Submitting..." : submitSuccess ? "Email Sent!" : "Submit"}
+            </Button>
           </form>
         </Form>
       </CardContent>
