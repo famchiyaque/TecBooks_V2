@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 // UTILITY CONFIGURATIONS
 const passwordSchema = z.string()
-    .min(8, "Password must be at least 8 characters")
+    .min(5, "Password must be at least 5 characters")
 
 const institutionSchema = z.object({
     name: z.string(),
@@ -38,11 +38,18 @@ export const registerStudentSchema = z.object({
     path: ["email"]
 })
 
-export const finalizeStudentSchema = registerStudentSchema.safeExtend({
-    firstNames: z.string(),
-    lastNames: z.string(),
-    // Add all fields from newPasswordSchema
-    ...newPasswordSchema.shape
+export const finalizeStudentSchema = z.object({
+    institution: institutionSchema,
+    email: z.string().email(),
+    firstNames: z.string().min(1, "First name(s) is required"),
+    lastNames: z.string().min(1, "Last name(s) is required"),
+    newPassword: passwordSchema,
+    confirmNewPassword: z.string()
+}).refine((data) => {
+    return data.newPassword === data.confirmNewPassword
+}, {
+    message: "Passwords must match",
+    path: ["confirmNewPassword"]
 });
 
 export const registerProfessorSchema = z.object({
@@ -57,7 +64,16 @@ export const registerProfessorSchema = z.object({
 })
 
 export const finalizeProfessorSchema = registerProfessorSchema.safeExtend({
-    ...newPasswordSchema.shape
+    newPassword: passwordSchema,
+    confirmNewPassword: z.string()
+}).refine((data) => {
+    if (!data.newPassword || !data.confirmNewPassword) {
+        return false
+    }
+    return data.newPassword === data.confirmNewPassword
+}, {
+    message: "Confirm password must equal new password",
+    path: ["confirmNewPassword"]
 })
 
 export const registerInstitution = z.object({
