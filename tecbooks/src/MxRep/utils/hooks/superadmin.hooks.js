@@ -1,26 +1,38 @@
 import { useState, useCallback } from 'react'
+import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { superAdminService } from '@/MxRep/utils/services/superadmin.service'
 
 export const useGetAllInstitutions = () => {
+    const { token } = useAuth()
     const [institutionsIsLoading, setInstitutionsIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [institutions, setInstitutions] = useState([])
 
     const getAllInstitutions = useCallback(async () => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setInstitutionsIsLoading(true)
         setError(null)
 
         try {
-            const response = await superAdminService.getAllInstitutions()
+            const response = await superAdminService.getAllInstitutions(token)
             console.log("Response from getAllInstitutions: ", response)
-            setInstitutions(response.data)
+            const institutions = (response.data || []).map(inst => ({
+                ...inst,
+                id: inst.id || inst._id
+            }))
+            setInstitutions(institutions)
+            return { success: true, data: institutions }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setInstitutionsIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getAllInstitutions,

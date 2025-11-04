@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import CardInstitutionRequest from '@/MxRep/Components/Panels/SuperAdmin/CardInstitutionRequest'
 import Loader from '@/Global Components/Loader'
+import fetchWithAuth from '@/MxRep/utils/apis/api.service'
 import { Filter, Settings, AlertCircle, Inbox as InboxIcon } from 'lucide-react'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 function Inbox() {
@@ -14,28 +16,22 @@ function Inbox() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!isInitialized || isLoading || !user) {
+    if (!isInitialized || isLoading || !user || !token) {
       return
     }
 
     async function fetchInbox() {
       try {
-        const response = await fetch(`${API_BASE_URL}/mxrep/super-admin-panel/get-inbox`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        })
-
-        if (!response.ok) throw new Error("Error fetching inbox for super-admin")
-
-        const data = await response.json()
+        const data = await fetchWithAuth(
+          `${API_BASE_URL}/mxrep/super-admin-panel/get-inbox`,
+          token,
+          { method: "GET" }
+        )
         console.log("Inbox returned, ", data)
-        setNotifications(data)
+        setNotifications(data.data)
       } catch (e) {
         console.error("Error fetching super admin inbox:", e)
-        setError("Failed to super admin inbox")
+        setError(e.message || "Failed to load inbox")
       } finally {
         setNotificationsLoading(false)
       }
