@@ -5,7 +5,7 @@ import AdminPanelLayout from './Layout'
 import ManageProfessors from '@/MxRep/Views/Panel/Admin/ManageProfessors'
 import ProfessorView from '@/MxRep/Views/Panel/Admin/Professor/Professor'
 import InviteProfessor from '@/MxRep/Views/Panel/Admin/InviteProfessor'
-import ApproveProfessor from '@/MxRep/Views/Panel/Admin/ApproveProfessor'
+import ReviewProfessorRequest from '@/MxRep/Views/Panel/Admin/ReviewProfessorRequest'
 import ManageStudents from '@/MxRep/Views/Panel/Admin/ManageStudents'
 import StudentView from '@/MxRep/Views/Panel/Admin/Student/Student'
 import Inbox from '@/MxRep/Views/Panel/Admin/Inbox'
@@ -34,7 +34,6 @@ function AdminPanelRouter() {
         <Route index element={ <Navigate to="manage-professors" /> } />
 
         <Route path="invite-professor" element={ <InviteProfessor /> } />
-        <Route path="approve-professor/:requestId" element={ <ApproveProfessor /> } />
 
         <Route path="manage-professors">
           <Route index element={ <ManageProfessors /> } />
@@ -46,7 +45,10 @@ function AdminPanelRouter() {
           <Route path=":studentId" element={ <StudentView /> } />
         </Route>
 
-        <Route path="inbox" element={ <Inbox />} />
+        <Route path="inbox">
+          <Route index element={ <Inbox />} />
+          <Route path=":requestId" element={ <ReviewProfessorRequest /> } />
+        </Route>
         <Route path="profile" element={ <Profile />} />
       </Route>
       

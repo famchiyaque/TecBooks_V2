@@ -1,26 +1,38 @@
 import { useState, useCallback } from 'react'
+import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { adminService } from '@/MxRep/utils/services/admin.service'
 
 export const useGetInstitutionProfessors = () => {
+    const { token } = useAuth()
     const [professorsIsLoading, setProfessorsIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [professors, setProfessors] = useState([])
 
     const getInstitutionProfessors = useCallback(async (institutionId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setProfessorsIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.getInstitutionProfessors(institutionId)
+            const response = await adminService.getInstitutionProfessors(institutionId, token)
             console.log("Response from getInstitutionProfessors: ", response)
-            setProfessors(response.data)
+            // Normalize _id to id for consistency
+            const normalizedProfessors = (response.data || response).map(prof => ({
+                ...prof,
+                id: prof.id || prof._id
+            }))
+            setProfessors(normalizedProfessors)
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setProfessorsIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getInstitutionProfessors,
@@ -127,25 +139,36 @@ export const useGetInbox = () => {
 }
 
 export const useGetInstitutionStudents = () => {
+    const { token } = useAuth()
     const [studentsIsLoading, setStudentsIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [students, setStudents] = useState([])
 
     const getInstitutionStudents = useCallback(async (institutionId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setStudentsIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.getInstitutionStudents(institutionId)
+            const response = await adminService.getInstitutionStudents(institutionId, token)
             console.log("Response from getInstitutionStudents: ", response)
-            setStudents(response.data)
+            // Normalize _id to id for consistency
+            const normalizedStudents = (response.data || response).map(student => ({
+                ...student,
+                id: student.id || student._id
+            }))
+            setStudents(normalizedStudents)
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setStudentsIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getInstitutionStudents,

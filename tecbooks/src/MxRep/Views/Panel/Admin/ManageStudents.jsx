@@ -134,13 +134,11 @@ function ManageStudents() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50">
-                    <TableHead className="font-semibold">Student ID</TableHead>
                     <TableHead className="font-semibold">Name</TableHead>
                     <TableHead className="font-semibold">Email</TableHead>
-                    <TableHead className="font-semibold">Major</TableHead>
-                    <TableHead className="font-semibold text-center">Games Played</TableHead>
-                    <TableHead className="font-semibold text-center">Avg Score</TableHead>
-                    <TableHead className="font-semibold text-center">Status</TableHead>
+                    <TableHead className="font-semibold">Department</TableHead>
+                    <TableHead className="font-semibold text-center">Role</TableHead>
+                    <TableHead className="font-semibold text-center">Account Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -150,9 +148,6 @@ function ManageStudents() {
                       onClick={() => handleStudentClick(student.id)}
                       className="cursor-pointer bg-white py-2 hover:bg-slate-50 transition-colors"
                     >
-                      <TableCell className="font-medium text-slate-900">
-                        {student.studentId}
-                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium text-slate-900">
@@ -164,28 +159,20 @@ function ManageStudents() {
                         {student.email}
                       </TableCell>
                       <TableCell className="text-slate-600">
-                        {student.major}
-                      </TableCell>
-                      <TableCell className="text-center text-slate-900">
-                        {student.numGamesPlayed}
+                        {student.department || 'N/A'}
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className={`font-medium ${
-                          student.avgScore >= 90 ? 'text-green-600' :
-                          student.avgScore >= 80 ? 'text-blue-600' :
-                          student.avgScore >= 70 ? 'text-yellow-600' :
-                          'text-red-600'
-                        }`}>
-                          {student.avgScore.toFixed(1)}%
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {student.role || 'student'}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          student.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
+                          student.needsToConfigurePass 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-green-100 text-green-800'
                         }`}>
-                          {student.status}
+                          {student.needsToConfigurePass ? 'Setup Required' : 'Active'}
                         </span>
                       </TableCell>
                     </TableRow>

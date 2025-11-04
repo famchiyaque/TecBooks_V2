@@ -17,11 +17,17 @@ function Layout() {
     useEffect(() => {
         const splitPath = location.pathname.split('/')
         const pathSuffix = splitPath[splitPath.length - 1]
+        const secondToLast = splitPath[splitPath.length - 2]
 
-        const matchingPage = sidebarConfig.pages.find(page => page.route === pathSuffix)
+        // Check if we're on a nested route (e.g., /inbox/:requestId)
+        // In that case, use the parent route for sidebar matching
+        const routeToMatch = secondToLast === 'inbox' ? 'inbox' : pathSuffix
+
+        const matchingPage = sidebarConfig.pages.find(page => page.route === routeToMatch)
         if (matchingPage) {
-            setActiveSidebar(pathSuffix)
-        } else {
+            setActiveSidebar(routeToMatch)
+        } else if (pathSuffix !== 'inbox' && secondToLast !== 'inbox') {
+            // Only redirect if we're not on an inbox route (including nested routes)
             setActiveSidebar(sidebarConfig.defaultRoute)
             navigate(sidebarConfig.defaultRoute)
         }
