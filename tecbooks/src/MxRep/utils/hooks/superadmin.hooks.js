@@ -44,16 +44,22 @@ export const useGetAllInstitutions = () => {
 }
 
 export const useGetInstitution = () => {
+    const { token } = useAuth()
     const [institutionIsLoading, setInstitutionIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [institution, setInstitution] = useState(null)
 
     const getInstitution = useCallback(async (institutionId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setInstitutionIsLoading(true)
         setError(null)
 
         try {
-            const response = await superAdminService.getInstitution(institutionId)
+            const response = await superAdminService.getInstitution(institutionId, token)
             console.log("Response from getInstitution: ", response)
             setInstitution(response.data)
             return { success: true, data: response.data }
@@ -63,7 +69,7 @@ export const useGetInstitution = () => {
         } finally {
             setInstitutionIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getInstitution,

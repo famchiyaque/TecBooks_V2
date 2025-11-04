@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, ChevronUp, Clock, UserPlus } from 'lucide-react'
+import { ChevronDown, ChevronUp, Clock, UserPlus, AlertCircle, CheckCircle2, XCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 
@@ -31,6 +31,26 @@ function CardInstitutionRequest({ notification, onReview }) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
+  const getStatusColor = (status) => {
+    if (status === 'pending') {
+      return 'bg-yellow-100 text-yellow-800'
+    } else if (status === 'approved') {
+      return 'bg-green-100 text-green-800'
+    } else {
+      return 'bg-red-100 text-red-800'
+    }
+  }
+
+  const getStatusIcon = (status) => {
+    if (status === 'pending') {
+      return <AlertCircle className="h-3 w-3" />
+    } else if (status === 'approved') {
+      return <CheckCircle2 className="h-3 w-3" />
+    } else {
+      return <XCircle className="h-3 w-3" />
+    }
+  }
+
   const fullName = `${notification.firstNames || ''} ${notification.lastNames || ''}`.trim()
 
   return (
@@ -44,6 +64,10 @@ function CardInstitutionRequest({ notification, onReview }) {
               <h3 className="text-base font-semibold text-slate-900 truncate">
                 New institution request: {notification.name}
               </h3>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${getStatusColor(notification.status)}`}>
+                {getStatusIcon(notification.status)}
+                {notification.status}
+              </span>
             </div>
 
             {/* Date + requester info */}

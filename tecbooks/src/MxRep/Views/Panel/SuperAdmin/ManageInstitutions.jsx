@@ -23,7 +23,7 @@ function ManageInstitutions() {
   }, [isInitialized, isLoading, user, getAllInstitutions])
 
   const handleInstitutionClick = (institution) => {
-    navigate(`manage-institutions/${institution.id}`)
+    navigate(`${institution.id}`)
   }
 
   if (!isInitialized || isLoading) {
