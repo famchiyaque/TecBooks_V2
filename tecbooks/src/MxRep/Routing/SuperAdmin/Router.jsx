@@ -6,6 +6,7 @@ import ManageInstitutions from '@/MxRep/Views/Panel/SuperAdmin/ManageInstitution
 import InstitutionView from '@/MxRep/Views/Panel/SuperAdmin/Institution/Institution'
 import Inbox from '@/MxRep/Views/Panel/SuperAdmin/Inbox'
 import Profile from '@/MxRep/Views/Panel/SuperAdmin/Profile'
+import InstitutionRequestView from '@/MxRep/Views/Panel/SuperAdmin/InstitutionRequestView'
 
 function SuperAdminPanelRouter() {
   const { user, isLoading, isInitialized, isSuperAdmin, logout } = useAuth()
@@ -32,7 +33,10 @@ function SuperAdminPanelRouter() {
           <Route path=":institutionId" element={<InstitutionView />} />
         </Route>
 
-        <Route path="inbox" element={<Inbox />} />
+        <Route path="inbox">
+          <Route index element={<Inbox />} />
+          <Route path=":requestId" element={<InstitutionRequestView />} />
+        </Route>
         <Route path="profile" element={<Profile />} />
       </Route>
     </Routes>
@@ -40,4 +44,3 @@ function SuperAdminPanelRouter() {
 }
 
 export default SuperAdminPanelRouter
-

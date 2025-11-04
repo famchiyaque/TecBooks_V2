@@ -14,8 +14,8 @@ function CardInstitutionRequest({ notification, onReview }) {
     if (onReview) {
       onReview(notification)
     } else {
-      const slug = user?.institution?.slug
-      navigate(`/mxrep/${slug}/admin-panel/approve-professor/${notification._id}`)
+      console.log("Navigating to institution request view")
+      navigate(`/mxrep/super-admin-panel/inbox/${notification._id}`)
     }
   }
 

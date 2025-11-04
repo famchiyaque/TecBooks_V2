@@ -157,6 +157,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const now = Date.now() / 1000
+      console.log("Token expiration: ", decodedToken.exp, " vs now: ", now)
       if (decodedToken.exp && decodedToken.exp < now) {
         console.log('[TOKEN EXPIRED] logging out')
         logout("Session expired")
