@@ -11,7 +11,7 @@ import { cn } from '@/components/lib/utils'
 function StatusBadge({ 
   isActive, 
   activeLabel = "Admin", 
-  inactiveLabel = "Standard",
+  inactiveLabel = "Normal",
   size = "md",
   className 
 }) {

@@ -22,7 +22,13 @@ function CardProfessor({ professor, onClick }) {
               <CardDescription className="truncate">{professor.email}</CardDescription>
             </div>
           </div>
-          <StatusBadge isActive={professor.aStatus} size="sm" />
+          {professor.needsToConfigurePass ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              Needs Finishing
+            </span>
+          ) : (
+            <StatusBadge isActive={professor.isAdmin} size="sm" />
+          )}
         </div>
       </CardHeader>
 

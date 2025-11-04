@@ -44,58 +44,90 @@ export const useGetInstitutionProfessors = () => {
 }
 
 export const useGetProfessor = () => {
+    const { token } = useAuth()
     const [professorIsLoading, setProfessorIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [professor, setProfessor] = useState(null)
 
     const getProfessor = useCallback(async (professorId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setProfessorIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.getProfessor(professorId)
+            const response = await adminService.getProfessor(professorId, token)
             console.log("Response from getProfessor: ", response)
-            setProfessor(response.data)
-            return { success: true, data: response.data }
+            // Normalize _id to id and handle response structure
+            const profData = response.data || response
+            const normalizedProfessor = {
+                ...profData,
+                id: profData.id || profData._id
+            }
+            setProfessor(normalizedProfessor)
+            return { success: true, data: normalizedProfessor }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setProfessorIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     const updateProfessor = useCallback(async (professorId, data) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setProfessorIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.updateProfessor(professorId, data)
-            setProfessor(response.data)
-            return { success: true, data: response.data }
+            const response = await adminService.updateProfessor(professorId, data, token)
+            const profData = response.data || response
+            const normalizedProfessor = {
+                ...profData,
+                id: profData.id || profData._id
+            }
+            setProfessor(normalizedProfessor)
+            return { success: true, data: normalizedProfessor }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setProfessorIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     const toggleAdminStatus = useCallback(async (professorId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setProfessorIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.toggleProfessorAdminStatus(professorId)
-            setProfessor(response.data)
-            return { success: true, data: response.data }
+            const response = await adminService.toggleProfessorAdminStatus(professorId, token)
+            const profData = response.data || response
+            const normalizedProfessor = {
+                ...profData,
+                id: profData.id || profData._id
+            }
+            setProfessor(normalizedProfessor)
+            return { success: true, data: normalizedProfessor }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setProfessorIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getProfessor,
@@ -180,33 +212,50 @@ export const useGetInstitutionStudents = () => {
 }
 
 export const useGetStudent = () => {
+    const { token } = useAuth()
     const [studentIsLoading, setStudentIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [student, setStudent] = useState(null)
 
     const getStudent = useCallback(async (studentId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setStudentIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.getStudent(studentId)
+            const response = await adminService.getStudent(studentId, token)
             console.log("Response from getStudent: ", response)
-            setStudent(response.data)
-            return { success: true, data: response.data }
+            // Normalize _id to id and handle response structure
+            const studentData = response.data || response
+            const normalizedStudent = {
+                ...studentData,
+                id: studentData.id || studentData._id
+            }
+            setStudent(normalizedStudent)
+            return { success: true, data: normalizedStudent }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setStudentIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     const removeStudent = useCallback(async (studentId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setStudentIsLoading(true)
         setError(null)
 
         try {
-            const response = await adminService.removeStudent(studentId)
+            const response = await adminService.removeStudent(studentId, token)
             return { success: true, data: response.data }
         } catch (err) {
             setError(err.message)
@@ -214,7 +263,7 @@ export const useGetStudent = () => {
         } finally {
             setStudentIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getStudent,

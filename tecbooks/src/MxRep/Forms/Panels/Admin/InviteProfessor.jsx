@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage, FormControl } from '@/components/ui/form'
 import { Card, CardContent } from '@/components/ui/card'
+import { defaultInviteProfessor } from '@/MxRep/utils/schemas/form.defaults'
 import { Mail, User, Briefcase, X, Send } from 'lucide-react'
 
 // Schema for invite form (simpler than registration)
@@ -16,38 +17,25 @@ const inviteProfessorSchema = z.object({
   department: z.string().min(1, 'Department is required')
 })
 
-function InviteProfessor({ institutionName, onSendInvite }) {
+function InviteProfessor({ institutionName, onSendInvite, isSubmitting = false }) {
   const form = useForm({
     resolver: zodResolver(inviteProfessorSchema),
-    defaultValues: {
-      email: '',
-      firstNames: '',
-      lastNames: '',
-      department: ''
-    }
+    defaultValues: defaultInviteProfessor,
+    mode: 'onChange'
   })
 
   const handleClear = () => {
-    form.reset({
-      email: '',
-      firstNames: '',
-      lastNames: '',
-      department: ''
-    })
+    form.reset(defaultInviteProfessor)
   }
 
-  const handleSubmit = (data) => {
+  const handleSubmit = async (data) => {
     if (onSendInvite) {
-      onSendInvite(data)
+      await onSendInvite(data)
     }
   }
 
-  // Check if form is valid and has values
-  const isFormValid = form.formState.isValid && 
-    form.watch('email') && 
-    form.watch('firstNames') && 
-    form.watch('lastNames') && 
-    form.watch('department')
+  // Check if form is valid
+  const isFormValid = form.formState.isValid
 
   return (
     <Card className="border-slate-200">
@@ -171,11 +159,11 @@ function InviteProfessor({ institutionName, onSendInvite }) {
               </Button>
               <Button 
                 type="submit"
-                disabled={!isFormValid}
+                disabled={!isFormValid || isSubmitting}
                 className="flex-1 gap-2"
               >
                 <Send className="h-4 w-4" />
-                Send Invite
+                {isSubmitting ? 'Sending...' : 'Send Invite'}
               </Button>
             </div>
           </form>

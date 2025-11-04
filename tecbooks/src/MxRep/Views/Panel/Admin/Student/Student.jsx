@@ -5,7 +5,8 @@ import { useGetStudent } from '@/MxRep/utils/hooks/admin.hooks'
 import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, AlertCircle, Trash2 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowLeft, AlertCircle, Trash2, User } from 'lucide-react'
 
 function Student() {
   const { studentId } = useParams()
@@ -96,7 +97,7 @@ function Student() {
                 {student.firstNames} {student.lastNames}
               </h1>
               <p className="text-slate-600 mt-1">
-                {student.studentId} • {student.email}
+                {student.email}
               </p>
             </div>
           </div>
@@ -116,13 +117,65 @@ function Student() {
         <div className="h-px bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 mt-6" />
       </div>
 
-      {/* Content Placeholder */}
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
-          <p className="text-slate-600">
-            Student details and management features will be implemented here.
-          </p>
-        </div>
+      {/* Content Section */}
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Student Information */}
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Student Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-slate-500 mb-1.5">Full Name</p>
+                <p className="text-base font-medium text-slate-900">
+                  {student.firstNames} {student.lastNames}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 mb-1.5">Email</p>
+                <p className="text-base font-medium text-slate-900">{student.email}</p>
+              </div>
+              {student.department && (
+                <div>
+                  <p className="text-sm text-slate-500 mb-1.5">Department</p>
+                  <p className="text-base font-medium text-slate-900">{student.department}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-slate-500 mb-1.5">Role</p>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {student.role || 'student'}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 mb-1.5">Account Status</p>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  student.needsToConfigurePass 
+                    ? 'bg-yellow-100 text-yellow-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {student.needsToConfigurePass ? 'Setup Required' : 'Active'}
+                </span>
+              </div>
+              {student.createdAt && (
+                <div>
+                  <p className="text-sm text-slate-500 mb-1.5">Created At</p>
+                  <p className="text-base font-medium text-slate-900">
+                    {new Date(student.createdAt).toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    })}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

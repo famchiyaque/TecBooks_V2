@@ -38,75 +38,71 @@ export const adminService = {
         return data
     },
 
-    async getStudent(studentId) {
-        // Mock data - in real implementation, fetch from backend
-        const students = {
-            "student001": {
-                id: "student001",
-                email: "maria.garcia@tec.mx",
-                firstNames: "Maria Elena",
-                lastNames: "Garcia Rodriguez",
-                studentId: "A01234567",
-                major: "Computer Science",
-                enrollmentDate: "2023-08-15",
-                numGamesPlayed: 15,
-                avgScore: 85.5,
-                status: "active"
-            },
-            "student002": {
-                id: "student002",
-                email: "carlos.lopez@tec.mx",
-                firstNames: "Carlos Alberto",
-                lastNames: "Lopez Martinez",
-                studentId: "A01234568",
-                major: "Software Engineering",
-                enrollmentDate: "2023-08-15",
-                numGamesPlayed: 22,
-                avgScore: 92.3,
-                status: "active"
-            }
-        }
-
-        return {
-            success: true,
-            data: students[studentId] || null
-        }
-        // const suffix = `get-student?studentId=${studentId}`
-        // const response = await fetch(`${API_BASE_URL}/mxrep/admin-panel/${suffix}`, {
-        //     method: "GET",
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //     }
-        // })
-
-        // if (!response.ok) {
-        //     throw new Error(`Failed to get student: ${response.status} ${response.statusText}`)
-        // }
-
-        // const data = await response.json()
-        // return data
+    async getProfessor(professorId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/admin-panel/get-professor?professorId=${professorId}`,
+            token,
+            { method: "GET" }
+        )
+        return data
     },
 
-    async removeStudent(studentId) {
-        return {
-            success: true,
-            message: "Student removed successfully"
-        }
-        // const suffix = `remove-student`
-        // const response = await fetch(`${API_BASE_URL}/mxrep/admin-panel/${suffix}`, {
-        //     method: "DELETE",
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({ studentId })
-        // })
+    async updateProfessor(professorId, data, token) {
+        const response = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/admin-panel/update-professor`,
+            token,
+            {
+                method: "POST",
+                body: { professorId, ...data }
+            }
+        )
+        return response
+    },
 
-        // if (!response.ok) {
-        //     throw new Error(`Failed to remove student: ${response.status} ${response.statusText}`)
-        // }
+    async toggleProfessorAdminStatus(professorId, token) {
+        const response = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/admin-panel/toggle-professor-admin-status`,
+            token,
+            {
+                method: "POST",
+                body: { professorId }
+            }
+        )
+        return response
+    },
 
-        // const data = await response.json()
-        // return data
+    async getStudent(studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/admin-panel/get-student?studentId=${studentId}`,
+            token,
+            { method: "GET" }
+        )
+        console.log("Response from getStudent: ", data)
+        return data
+    },
+
+    async removeStudent(studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/admin-panel/remove-student`,
+            token,
+            {
+                method: "DELETE",
+                body: { studentId }
+            }
+        )
+        return data
+    },
+
+    async inviteProfessor(inviteData, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/admin-panel/invite-professor`,
+            token,
+            {
+                method: "POST",
+                body: inviteData
+            }
+        )
+        return data
     },
 
     async getAdminProfile(userId) {

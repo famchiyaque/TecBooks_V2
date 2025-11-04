@@ -18,18 +18,36 @@ function Layout() {
         const splitPath = location.pathname.split('/')
         const pathSuffix = splitPath[splitPath.length - 1]
         const secondToLast = splitPath[splitPath.length - 2]
+        const thirdToLast = splitPath[splitPath.length - 3]
 
-        // Check if we're on a nested route (e.g., /inbox/:requestId)
+        // Check if we're on a nested route (e.g., /inbox/:requestId, /manage-professors/:professorId, /manage-students/:studentId)
         // In that case, use the parent route for sidebar matching
-        const routeToMatch = secondToLast === 'inbox' ? 'inbox' : pathSuffix
+        let routeToMatch = pathSuffix
+        
+        if (secondToLast === 'inbox') {
+            routeToMatch = 'inbox'
+        } else if (secondToLast === 'manage-professors' || thirdToLast === 'manage-professors') {
+            routeToMatch = 'manage-professors'
+        } else if (secondToLast === 'manage-students' || thirdToLast === 'manage-students') {
+            routeToMatch = 'manage-students'
+        } else if (pathSuffix === 'invite-professor') {
+            routeToMatch = 'manage-professors' // Invite professor is under manage-professors context
+        }
 
         const matchingPage = sidebarConfig.pages.find(page => page.route === routeToMatch)
         if (matchingPage) {
             setActiveSidebar(routeToMatch)
-        } else if (pathSuffix !== 'inbox' && secondToLast !== 'inbox') {
-            // Only redirect if we're not on an inbox route (including nested routes)
-            setActiveSidebar(sidebarConfig.defaultRoute)
-            navigate(sidebarConfig.defaultRoute)
+        } else {
+            // Only redirect if route doesn't match any sidebar page and isn't a nested route
+            const isNestedRoute = secondToLast === 'inbox' || 
+                                  secondToLast === 'manage-professors' || 
+                                  secondToLast === 'manage-students' ||
+                                  pathSuffix === 'invite-professor'
+            
+            if (!isNestedRoute) {
+                setActiveSidebar(sidebarConfig.defaultRoute)
+                navigate(sidebarConfig.defaultRoute)
+            }
         }
     }, [location, navigate]);
 

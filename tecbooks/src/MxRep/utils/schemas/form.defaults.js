@@ -44,3 +44,10 @@ export const defaultRegisterInstitution = {
     lastNames: "",
     department: "",
 }
+
+export const defaultInviteProfessor = {
+    email: "",
+    firstNames: "",
+    lastNames: "",
+    department: ""
+}

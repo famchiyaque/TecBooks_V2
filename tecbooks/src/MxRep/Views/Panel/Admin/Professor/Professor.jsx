@@ -42,7 +42,7 @@ function Professor() {
     if (professorId) {
       getProfessor(professorId)
     }
-  }, [isInitialized, authLoading, user, professorId])
+  }, [isInitialized, authLoading, user, professorId, getProfessor])
 
   useEffect(() => {
     if (professor) {
@@ -144,7 +144,7 @@ function Professor() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-6 py-8">
+    <div className="w-full px-6 py-8">
       {/* Header Section */}
       <div className="mb-8">
         <Button 
@@ -170,8 +170,14 @@ function Professor() {
           </div>
 
           <div className="flex items-center gap-3">
-            <StatusBadge isActive={professor.aStatus} size="md" />
-            {!professor.aStatus && (
+            {professor.needsToConfigurePass ? (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                Needs Finishing
+              </span>
+            ) : (
+              <StatusBadge isActive={true} size="md" />
+            )}
+            {!professor.isAdmin && (
               <Button 
                 variant="outline" 
                 size="icon"
@@ -214,44 +220,52 @@ function Professor() {
 
       {/* Content Section */}
       <div className="space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Classes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-slate-900">{professor.numClasses || 0}</p>
-            </CardContent>
-          </Card>
+        {/* Stats Cards - Placeholder for future stats */}
+        {(professor.numClasses !== undefined || professor.numGroups !== undefined || professor.numGames !== undefined) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {professor.numClasses !== undefined && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Classes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-slate-900">{professor.numClasses || 0}</p>
+                </CardContent>
+              </Card>
+            )}
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Groups
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-slate-900">{professor.numGroups || 0}</p>
-            </CardContent>
-          </Card>
+            {professor.numGroups !== undefined && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Groups
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-slate-900">{professor.numGroups || 0}</p>
+                </CardContent>
+              </Card>
+            )}
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                <Gamepad2 className="h-4 w-4" />
-                Games
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-slate-900">{professor.numGames || 0}</p>
-            </CardContent>
-          </Card>
-        </div>
+            {professor.numGames !== undefined && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                    <Gamepad2 className="h-4 w-4" />
+                    Games
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-slate-900">{professor.numGames || 0}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Professor Details Form */}
         <Card>
@@ -315,12 +329,34 @@ function Professor() {
                   <span className="text-slate-500">Professor ID:</span>
                   <span className="ml-2 text-slate-900 font-medium">{professor.id}</span>
                 </div>
+                {professor.department && (
+                  <div>
+                    <span className="text-slate-500">Department:</span>
+                    <span className="ml-2 text-slate-900 font-medium">{professor.department}</span>
+                  </div>
+                )}
                 <div>
                   <span className="text-slate-500">Status:</span>
                   <span className="ml-2">
-                    <StatusBadge isActive={professor.aStatus} size="sm" />
+                    {professor.needsToConfigurePass ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Needs Finishing
+                      </span>
+                    ) : (
+                      <StatusBadge isActive={true} size="sm" />
+                    )}
                   </span>
                 </div>
+                {professor.isAdmin !== undefined && (
+                  <div>
+                    <span className="text-slate-500">Admin:</span>
+                    <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+                      professor.isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {professor.isAdmin ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
