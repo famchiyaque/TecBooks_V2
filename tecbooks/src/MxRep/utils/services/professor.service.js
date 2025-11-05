@@ -269,24 +269,16 @@ export const professorService = {
         }
     },
 
-    async getGroup(groupId) {
-        const groups = {
-            "group001": {
-                id: "group001",
-                groupCode: "NS-G1",
-                className: "Network Security",
-                classId: "class001",
-                semester: "Feb-Jun-2025",
-                subperiod: "1-2",
-                status: "current",
-                numStudents: 28,
-                createdAt: "2025-02-01T10:00:00Z"
-            }
-        }
-
+    async getGroup(groupId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-group?groupId=${groupId}`,
+            token,
+            { method: "GET" }
+        )
+        console.log("[PROFESSOR SERVICE] Raw response from get-group: ", data)
         return {
             success: true,
-            data: groups[groupId] || null
+            data: data.data || data
         }
     },
 
@@ -310,13 +302,86 @@ export const professorService = {
         }
     },
 
-    async updateGroup(groupId, groupData) {
+    async updateGroup(groupId, groupData, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/update-group`,
+            token,
+            {
+                method: "POST",
+                body: {
+                    groupId,
+                    ...groupData
+                }
+            }
+        )
         return {
             success: true,
-            data: {
-                id: groupId,
-                ...groupData
+            data: data.data || data
+        }
+    },
+
+    async addStudentToGroup(groupId, studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/group/add-student`,
+            token,
+            {
+                method: "POST",
+                body: {
+                    groupId,
+                    studentId
+                }
             }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async removeStudentFromGroup(groupId, studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/group/remove-student`,
+            token,
+            {
+                method: "POST",
+                body: {
+                    groupId,
+                    studentId
+                }
+            }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async deleteGroup(groupId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/delete-group`,
+            token,
+            {
+                method: "POST",
+                body: {
+                    groupId
+                }
+            }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async getInstitutionStudents(institutionId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-institution-students?institutionId=${institutionId}`,
+            token,
+            { method: "GET" }
+        )
+        return {
+            success: true,
+            data: data.data || data
         }
     },
 

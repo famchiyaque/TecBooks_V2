@@ -262,34 +262,88 @@ export const useGetProfessorGroups = () => {
 }
 
 export const useGetGroup = () => {
+    const { token } = useAuth()
     const [groupIsLoading, setGroupIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [group, setGroup] = useState(null)
 
     const getGroup = useCallback(async (groupId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setGroupIsLoading(true)
         setError(null)
 
         try {
-            const response = await professorService.getGroup(groupId)
+            const response = await professorService.getGroup(groupId, token)
             console.log("Response from getGroup: ", response)
-            setGroup(response.data)
-            return { success: true, data: response.data }
+            // Normalize the group data
+            const groupData = response.data || response
+            const normalizedGroup = {
+                ...groupData,
+                id: groupData.id || groupData._id,
+                classId: typeof groupData.classId === 'object' ? (groupData.classId._id || groupData.classId.id || groupData.classId) : groupData.classId,
+                className: typeof groupData.classId === 'object' ? groupData.classId.name : groupData.className,
+                numStudents: groupData.members ? groupData.members.length : groupData.numStudents || 0,
+                members: groupData.members || []
+            }
+            setGroup(normalizedGroup)
+            return { success: true, data: normalizedGroup }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setGroupIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     const updateGroup = useCallback(async (groupId, data) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setGroupIsLoading(true)
         setError(null)
 
         try {
-            const response = await professorService.updateGroup(groupId, data)
-            setGroup(response.data)
+            const response = await professorService.updateGroup(groupId, data, token)
+            console.log("Response from updateGroup: ", response)
+            const groupData = response.data || response
+            const normalizedGroup = {
+                ...groupData,
+                id: groupData.id || groupData._id,
+                classId: typeof groupData.classId === 'object' ? (groupData.classId._id || groupData.classId.id || groupData.classId) : groupData.classId,
+                className: typeof groupData.classId === 'object' ? groupData.classId.name : groupData.className,
+                numStudents: groupData.members ? groupData.members.length : groupData.numStudents || 0,
+                members: groupData.members || []
+            }
+            setGroup(normalizedGroup)
+            return { success: true, data: normalizedGroup }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setGroupIsLoading(false)
+        }
+    }, [token])
+
+    const addStudentToGroup = useCallback(async (groupId, studentId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setGroupIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.addStudentToGroup(groupId, studentId, token)
+            console.log("Response from addStudentToGroup: ", response)
+            // Refresh group data after adding student
+            await getGroup(groupId)
             return { success: true, data: response.data }
         } catch (err) {
             setError(err.message)
@@ -297,11 +351,58 @@ export const useGetGroup = () => {
         } finally {
             setGroupIsLoading(false)
         }
-    }, [])
+    }, [token, getGroup])
+
+    const removeStudentFromGroup = useCallback(async (groupId, studentId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setGroupIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.removeStudentFromGroup(groupId, studentId, token)
+            console.log("Response from removeStudentFromGroup: ", response)
+            // Refresh group data after removing student
+            await getGroup(groupId)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setGroupIsLoading(false)
+        }
+    }, [token, getGroup])
+
+    const deleteGroup = useCallback(async (groupId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setGroupIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.deleteGroup(groupId, token)
+            console.log("Response from deleteGroup: ", response)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setGroupIsLoading(false)
+        }
+    }, [token])
 
     return {
         getGroup,
         updateGroup,
+        addStudentToGroup,
+        removeStudentFromGroup,
+        deleteGroup,
         groupIsLoading,
         error,
         group,
@@ -340,6 +441,47 @@ export const useCreateGroup = () => {
         createGroup,
         isCreating,
         error,
+        setError
+    }
+}
+
+export const useGetInstitutionStudents = () => {
+    const { token } = useAuth()
+    const [studentsIsLoading, setStudentsIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [students, setStudents] = useState([])
+
+    const getInstitutionStudents = useCallback(async (institutionId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setStudentsIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.getInstitutionStudents(institutionId, token)
+            console.log("Response from getInstitutionStudents: ", response)
+            // Normalize _id to id for consistency
+            const normalizedStudents = (response.data || []).map(student => ({
+                ...student,
+                id: student.id || student._id
+            }))
+            setStudents(normalizedStudents)
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setStudentsIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        getInstitutionStudents,
+        studentsIsLoading,
+        error,
+        students,
         setError
     }
 }
