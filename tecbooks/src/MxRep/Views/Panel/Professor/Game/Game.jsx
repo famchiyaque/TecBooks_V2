@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { useGetGame } from '@/MxRep/utils/hooks/professor.hooks'
+import { useGetGame, useGameActions } from '@/MxRep/utils/hooks/professor.hooks'
 import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, AlertCircle, Settings, Users, Trophy, Calendar, Gamepad2, Building2, Package, Factory, Briefcase, Receipt, ChevronDown, ChevronUp, Hash } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Settings, Users, Trophy, Calendar, Gamepad2, Building2, Package, Factory, Briefcase, Receipt, ChevronDown, ChevronUp, Hash, Play, Pause, CheckCircle, Trash2 } from 'lucide-react'
 
 function Game() {
   const { gameId } = useParams()
   const navigate = useNavigate()
   const { user, isLoading, isInitialized } = useAuth()
   const { getGame, gameIsLoading, error, game } = useGetGame()
+  const { activateGame, pauseGame, completeGame, deleteGame, isLoading: actionLoading, error: actionError } = useGameActions()
   const [activeTab, setActiveTab] = useState('overview')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     premises: false,
     orderConfig: false,
@@ -47,6 +49,54 @@ function Game() {
       ...prev,
       [section]: !prev[section]
     }))
+  }
+
+  const handleActivateGame = async () => {
+    if (window.confirm('Are you sure you want to activate this game? Students will be able to access it.')) {
+      const result = await activateGame(gameId)
+      if (result.success) {
+        alert('Game activated successfully!')
+        getGame(gameId) // Refresh game data
+      } else {
+        alert(`Failed to activate game: ${result.error}`)
+      }
+    }
+  }
+
+  const handlePauseGame = async () => {
+    if (window.confirm('Are you sure you want to pause this game?')) {
+      const result = await pauseGame(gameId)
+      if (result.success) {
+        alert('Game paused successfully!')
+        getGame(gameId)
+      } else {
+        alert(`Failed to pause game: ${result.error}`)
+      }
+    }
+  }
+
+  const handleCompleteGame = async () => {
+    if (window.confirm('Are you sure you want to mark this game as completed? This action cannot be undone.')) {
+      const result = await completeGame(gameId)
+      if (result.success) {
+        alert('Game completed successfully!')
+        getGame(gameId)
+      } else {
+        alert(`Failed to complete game: ${result.error}`)
+      }
+    }
+  }
+
+  const handleDeleteGame = async () => {
+    if (window.confirm('⚠️ WARNING: Are you absolutely sure you want to DELETE this game? This will remove all associated data and CANNOT be undone!')) {
+      const result = await deleteGame(gameId)
+      if (result.success) {
+        alert('Game deleted successfully!')
+        handleBack()
+      } else {
+        alert(`Failed to delete game: ${result.error}`)
+      }
+    }
   }
 
   if (!isInitialized || isLoading) {
@@ -116,12 +166,55 @@ function Game() {
           </div>
           
           <div className="flex items-center gap-3">
+            {game.status === 'draft' && (
+              <Button 
+                onClick={handleActivateGame}
+                disabled={actionLoading}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Play className="h-4 w-4" />
+                Activate
+              </Button>
+            )}
+            {game.status === 'active' && (
+              <>
+                <Button 
+                  onClick={handlePauseGame}
+                  disabled={actionLoading}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Pause className="h-4 w-4" />
+                  Pause
+                </Button>
+                <Button 
+                  onClick={handleCompleteGame}
+                  disabled={actionLoading}
+                  className="gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Complete
+                </Button>
+              </>
+            )}
+            {game.status === 'paused' && (
+              <Button 
+                onClick={handleActivateGame}
+                disabled={actionLoading}
+                className="gap-2"
+              >
+                <Play className="h-4 w-4" />
+                Resume
+              </Button>
+            )}
             <Button 
-              variant="outline"
+              onClick={handleDeleteGame}
+              disabled={actionLoading}
+              variant="destructive"
               className="gap-2"
             >
-              <Settings className="h-4 w-4" />
-              Settings
+              <Trash2 className="h-4 w-4" />
+              Delete
             </Button>
           </div>
         </div>
@@ -129,6 +222,14 @@ function Game() {
       </div>
 
       <div className='max-w-7xl mx-auto'>
+        {/* Action Error Alert */}
+        {actionError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{actionError}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="border-slate-200">
@@ -475,15 +576,56 @@ function Game() {
 
           <TabsContent value="teams">
             <Card className="border-slate-200">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Teams</CardTitle>
+                <Button className="gap-2" size="sm">
+                  <Users className="h-4 w-4" />
+                  Create Team
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
-                  <p className="text-slate-600">
-                    Team information and performance will be displayed here
-                  </p>
-                </div>
+                {game.teams && game.teams.length > 0 ? (
+                  <div className="space-y-4">
+                    {game.teams.map((team, index) => (
+                      <Card key={team._id || team.id || index} className="border-slate-200">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="font-semibold text-lg">{team.name}</h3>
+                              <p className="text-sm text-slate-500">
+                                {team.studentIds?.length || team.members?.length || 0} members
+                              </p>
+                            </div>
+                            <Button variant="outline" size="sm">
+                              Manage
+                            </Button>
+                          </div>
+                          {team.members && team.members.length > 0 && (
+                            <div className="space-y-1">
+                              {team.members.map((member, idx) => (
+                                <div key={idx} className="text-sm text-slate-600">
+                                  • {member.name || member.email || 'Student'}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
+                    <Users className="h-12 w-12 text-slate-400 mx-auto mb-3" />
+                    <h3 className="font-semibold text-slate-900 mb-2">No teams yet</h3>
+                    <p className="text-slate-600 mb-4">
+                      Create teams and assign students from the group
+                    </p>
+                    <Button className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Create Your First Team
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -491,14 +633,46 @@ function Game() {
           <TabsContent value="students">
             <Card className="border-slate-200">
               <CardHeader>
-                <CardTitle>Available Students</CardTitle>
+                <CardTitle>Group Students</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
-                  <p className="text-slate-600">
-                    Student roster and assignments will be displayed here
-                  </p>
-                </div>
+                {game.groupStudents && game.groupStudents.length > 0 ? (
+                  <div className="space-y-2">
+                    {game.groupStudents.map((student, index) => (
+                      <div 
+                        key={student._id || student.id || index}
+                        className="flex items-center justify-between p-3 border border-slate-200 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-slate-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {student.firstNames} {student.lastNames}
+                            </p>
+                            <p className="text-sm text-slate-500">{student.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {student.teamName ? (
+                            <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                              Team: {student.teamName}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-slate-400">Not assigned</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
+                    <p className="text-slate-600">
+                      No students in this group yet
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

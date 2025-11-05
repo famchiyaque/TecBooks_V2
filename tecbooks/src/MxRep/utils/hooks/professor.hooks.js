@@ -3,25 +3,36 @@ import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { professorService } from '@/MxRep/utils/services/professor.service'
 
 export const useGetProfessorGames = () => {
+    const { token } = useAuth()
     const [gamesIsLoading, setGamesIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [games, setGames] = useState([])
 
     const getProfessorGames = useCallback(async (professorId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setGamesIsLoading(true)
         setError(null)
 
         try {
-            const response = await professorService.getProfessorGames(professorId)
+            const response = await professorService.getProfessorGames(professorId, token)
             console.log("Response from getProfessorGames: ", response)
-            setGames(response.data)
+            // Normalize _id to id
+            const normalizedGames = (response.data || []).map(game => ({
+                ...game,
+                id: game.id || game._id
+            }))
+            setGames(normalizedGames)
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setGamesIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getProfessorGames,
@@ -33,26 +44,37 @@ export const useGetProfessorGames = () => {
 }
 
 export const useGetGame = () => {
+    const { token } = useAuth()
     const [gameIsLoading, setGameIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [game, setGame] = useState(null)
 
     const getGame = useCallback(async (gameId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setGameIsLoading(true)
         setError(null)
 
         try {
-            const response = await professorService.getGame(gameId)
+            const response = await professorService.getGame(gameId, token)
             console.log("Response from getGame: ", response)
-            setGame(response.data)
-            return { success: true, data: response.data }
+            // Normalize _id to id
+            const normalizedGame = {
+                ...response.data,
+                id: response.data.id || response.data._id
+            }
+            setGame(normalizedGame)
+            return { success: true, data: normalizedGame }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
         } finally {
             setGameIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getGame,
@@ -65,15 +87,21 @@ export const useGetGame = () => {
 }
 
 export const useCreateGame = () => {
+    const { token } = useAuth()
     const [isCreating, setIsCreating] = useState(false)
     const [error, setError] = useState(null)
 
     const createGame = useCallback(async (gameData) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setIsCreating(true)
         setError(null)
 
         try {
-            const response = await professorService.createGame(gameData)
+            const response = await professorService.createGame(gameData, token)
             console.log("Response from createGame: ", response)
             return { success: true, data: response.data }
         } catch (err) {
@@ -82,12 +110,216 @@ export const useCreateGame = () => {
         } finally {
             setIsCreating(false)
         }
-    }, [])
+    }, [token])
 
     return {
         createGame,
         isCreating,
         error,
+        setError
+    }
+}
+
+export const useUpdateGame = () => {
+    const { token } = useAuth()
+    const [isUpdating, setIsUpdating] = useState(false)
+    const [error, setError] = useState(null)
+
+    const updateGame = useCallback(async (gameId, gameData) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsUpdating(true)
+        setError(null)
+
+        try {
+            const response = await professorService.updateGame(gameId, gameData, token)
+            console.log("Response from updateGame: ", response)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsUpdating(false)
+        }
+    }, [token])
+
+    return {
+        updateGame,
+        isUpdating,
+        error,
+        setError
+    }
+}
+
+export const useGameActions = () => {
+    const { token } = useAuth()
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    const activateGame = useCallback(async (gameId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.activateGame(gameId, token)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    const pauseGame = useCallback(async (gameId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.pauseGame(gameId, token)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    const completeGame = useCallback(async (gameId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.completeGame(gameId, token)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    const deleteGame = useCallback(async (gameId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.deleteGame(gameId, token)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        activateGame,
+        pauseGame,
+        completeGame,
+        deleteGame,
+        isLoading,
+        error,
+        setError
+    }
+}
+
+export const useGetTemplates = () => {
+    const { token } = useAuth()
+    const [templatesIsLoading, setTemplatesIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [templates, setTemplates] = useState(null)
+
+    const getTemplates = useCallback(async () => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setTemplatesIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.getTemplates(token)
+            console.log("Response from getTemplates: ", response)
+            setTemplates(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setTemplatesIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        getTemplates,
+        templatesIsLoading,
+        error,
+        templates,
+        setError
+    }
+}
+
+export const useGetDefaultConfigs = () => {
+    const { token } = useAuth()
+    const [configsIsLoading, setConfigsIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [defaultConfigs, setDefaultConfigs] = useState(null)
+
+    const getDefaultConfigs = useCallback(async () => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setConfigsIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.getDefaultConfigs(token)
+            console.log("Response from getDefaultConfigs: ", response)
+            setDefaultConfigs(response.data)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setConfigsIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        getDefaultConfigs,
+        configsIsLoading,
+        error,
+        defaultConfigs,
         setError
     }
 }
