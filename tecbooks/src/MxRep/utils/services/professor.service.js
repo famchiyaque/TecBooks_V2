@@ -141,89 +141,6 @@ export const professorService = {
         }
     },
 
-    async getProfessorGames_OLD_MOCK(professorId) {
-        // Mock data
-        return {
-            success: true,
-            data: [
-                {
-                    id: "game001",
-                    name: "Network Security Challenge",
-                    description: "A comprehensive network security simulation covering firewall configuration, intrusion detection, and incident response",
-                    status: "active",
-                    createdAt: "2024-01-15T10:00:00Z",
-                    startDate: "2024-02-01T00:00:00Z",
-                    endDate: "2024-03-15T23:59:59Z",
-                    numTeams: 8,
-                    numStudents: 32,
-                    numRuns: 12
-                },
-                {
-                    id: "game002",
-                    name: "Web Application Security",
-                    description: "Hands-on practice with OWASP Top 10 vulnerabilities including SQL injection, XSS, and CSRF attacks",
-                    status: "active",
-                    createdAt: "2024-01-20T14:30:00Z",
-                    startDate: "2024-02-10T00:00:00Z",
-                    endDate: "2024-03-20T23:59:59Z",
-                    numTeams: 6,
-                    numStudents: 24,
-                    numRuns: 8
-                },
-                {
-                    id: "game003",
-                    name: "Cryptography Fundamentals",
-                    description: "Learn encryption algorithms, key management, and secure communication protocols through practical exercises",
-                    status: "over",
-                    createdAt: "2023-11-01T09:00:00Z",
-                    startDate: "2023-12-01T00:00:00Z",
-                    endDate: "2024-01-15T23:59:59Z",
-                    numTeams: 10,
-                    numStudents: 40,
-                    numRuns: 15
-                },
-                {
-                    id: "game004",
-                    name: "Cloud Security Architecture",
-                    description: "Design and implement secure cloud infrastructure with AWS, Azure, and GCP security best practices",
-                    status: "active",
-                    createdAt: "2024-02-01T11:00:00Z",
-                    startDate: "2024-02-15T00:00:00Z",
-                    endDate: "2024-04-01T23:59:59Z",
-                    numTeams: 5,
-                    numStudents: 20,
-                    numRuns: 6
-                },
-                {
-                    id: "game005",
-                    name: "Penetration Testing Basics",
-                    description: "Introduction to ethical hacking, reconnaissance, exploitation, and post-exploitation techniques",
-                    status: "over",
-                    createdAt: "2023-10-15T08:00:00Z",
-                    startDate: "2023-11-01T00:00:00Z",
-                    endDate: "2023-12-20T23:59:59Z",
-                    numTeams: 7,
-                    numStudents: 28,
-                    numRuns: 10
-                }
-            ]
-        }
-        // const suffix = `get-professor-games?professorId=${professorId}`
-        // const response = await fetch(`${API_BASE_URL}/mxrep/professor-panel/${suffix}`, {
-        //     method: "GET",
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //     }
-        // })
-
-        // if (!response.ok) {
-        //     throw new Error(`Failed to get professor games: ${response.status} ${response.statusText}`)
-        // }
-
-        // const data = await response.json()
-        // return data
-    },
-
     async getProfessorClasses(professorId, token) {
         const data = await fetchWithAuth(
             `${API_BASE_URL}/mxrep/professor-panel/get-my-classes`,
@@ -468,6 +385,46 @@ export const professorService = {
                     contactEmail: profileData.contactEmail
                 }
             }
+        }
+    },
+
+
+    async getTeamsByGame(gameId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-teams-by-game?gameId=${gameId}`,
+            token,
+            { method: "GET" }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async getStudentsByGroup(groupId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-students-by-group?groupId=${groupId}`,
+            token,
+            { method: "GET" }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async createTeam(teamData, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/create-team`,
+            token,
+            {
+                method: "POST",
+                body: JSON.stringify(teamData)
+            }
+        )
+        return {
+            success: true,
+            data: data.data || data
         }
     }
 }

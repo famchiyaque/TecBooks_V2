@@ -61,10 +61,27 @@ export const useGetGame = () => {
         try {
             const response = await professorService.getGame(gameId, token)
             console.log("Response from getGame: ", response)
-            // Normalize _id to id
+            // Normalize _id to id and handle nested objects
             const normalizedGame = {
                 ...response.data,
-                id: response.data.id || response.data._id
+                id: response.data.id || response.data._id,
+                // Handle nested groupId
+                groupName: typeof response.data.groupId === 'object' ? response.data.groupId.name : null,
+                groupId: typeof response.data.groupId === 'object' ? response.data.groupId._id : response.data.groupId,
+                // Handle nested classId
+                className: typeof response.data.classId === 'object' ? response.data.classId.name : null,
+                classId: typeof response.data.classId === 'object' ? response.data.classId._id : response.data.classId,
+                // Handle nested institutionId
+                institutionName: typeof response.data.institutionId === 'object' ? response.data.institutionId.name : null,
+                institutionId: typeof response.data.institutionId === 'object' ? response.data.institutionId._id : response.data.institutionId,
+                // Handle nested professorId
+                professorName: typeof response.data.professorId === 'object' 
+                    ? `${response.data.professorId.firstNames} ${response.data.professorId.lastNames}` 
+                    : null,
+                professorId: typeof response.data.professorId === 'object' ? response.data.professorId._id : response.data.professorId,
+                // Handle nested configurationId
+                configurationName: typeof response.data.configurationId === 'object' ? response.data.configurationId.name : null,
+                configuration: typeof response.data.configurationId === 'object' ? response.data.configurationId : null,
             }
             setGame(normalizedGame)
             return { success: true, data: normalizedGame }
@@ -763,6 +780,122 @@ export const useGetProfessorProfile = () => {
         error,
         profile,
         setProfile,
+        setError
+    }
+}
+
+export const useGetTeamsByGame = () => {
+    const { token } = useAuth()
+    const [teamsIsLoading, setTeamsIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [teams, setTeams] = useState([])
+
+    const getTeamsByGame = useCallback(async (gameId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setTeamsIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.getTeamsByGame(gameId, token)
+            console.log("Response from getTeamsByGame: ", response)
+            const normalizedTeams = (response.data || []).map(team => ({
+                ...team,
+                id: team.id || team._id
+            }))
+            setTeams(normalizedTeams)
+            return { success: true, data: normalizedTeams }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setTeamsIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        getTeamsByGame,
+        teamsIsLoading,
+        error,
+        teams,
+        setError
+    }
+}
+
+export const useGetStudentsByGroup = () => {
+    const { token } = useAuth()
+    const [studentsIsLoading, setStudentsIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [students, setStudents] = useState([])
+
+    const getStudentsByGroup = useCallback(async (groupId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setStudentsIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.getStudentsByGroup(groupId, token)
+            console.log("Response from getStudentsByGroup: ", response)
+            const normalizedStudents = (response.data || []).map(student => ({
+                ...student,
+                id: student.id || student._id
+            }))
+            setStudents(normalizedStudents)
+            return { success: true, data: normalizedStudents }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setStudentsIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        getStudentsByGroup,
+        studentsIsLoading,
+        error,
+        students,
+        setError
+    }
+}
+
+export const useCreateTeam = () => {
+    const { token } = useAuth()
+    const [isCreating, setIsCreating] = useState(false)
+    const [error, setError] = useState(null)
+
+    const createTeam = useCallback(async (teamData) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsCreating(true)
+        setError(null)
+
+        try {
+            const response = await professorService.createTeam(teamData, token)
+            console.log("Response from createTeam: ", response)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsCreating(false)
+        }
+    }, [token])
+
+    return {
+        createTeam,
+        isCreating,
+        error,
         setError
     }
 }
