@@ -28,7 +28,7 @@ function ManageGroups() {
     if (!groups || groups.length === 0) return []
     
     if (filter === 'current') {
-      return groups.filter(group => group.status === 'current')
+      return groups.filter(group => group.status === 'active' || group.status === 'current')
     }
     
     return groups

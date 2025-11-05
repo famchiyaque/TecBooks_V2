@@ -15,15 +15,16 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { Select, MenuItem, InputLabel, FormControl as MUIFormControl } from '@mui/material'
+import { Textarea } from '@/components/ui/textarea'
 import { useGetProfessorClasses } from '@/MxRep/utils/hooks/professor.hooks'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { Users, Hash, Calendar, X } from 'lucide-react'
+import { Users, Hash, X } from 'lucide-react'
 
 const createGroupSchema = z.object({
-  groupCode: z.string().min(2, 'Group code must be at least 2 characters'),
+  code: z.string().min(2, 'Group code must be at least 2 characters'),
   classId: z.string().min(1, 'Class is required'),
-  semester: z.string().min(1, 'Semester is required'),
-  subperiod: z.string().min(1, 'Subperiod is required'),
+  name: z.string().min(3, 'Group name must be at least 3 characters'),
+  description: z.string().optional(),
 })
 
 function CreateGroup({ onSubmit, isCreating, preselectedClassId }) {
@@ -32,10 +33,10 @@ function CreateGroup({ onSubmit, isCreating, preselectedClassId }) {
   const form = useForm({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
-      groupCode: '',
+      code: '',
       classId: preselectedClassId || '',
-      semester: '',
-      subperiod: ''
+      name: '',
+      description: ''
     }
   })
 
@@ -53,40 +54,17 @@ function CreateGroup({ onSubmit, isCreating, preselectedClassId }) {
 
   const handleSubmit = (data) => {
     if (onSubmit) {
-      // Find the class name from classes
-      const selectedClass = classes.find(c => c.id === data.classId)
-      onSubmit({
-        ...data,
-        className: selectedClass?.name || '',
-      })
+      onSubmit(data)
     }
   }
 
   const handleClear = () => {
     form.reset({
-      groupCode: '',
+      code: '',
       classId: preselectedClassId || '',
-      semester: '',
-      subperiod: ''
+      name: '',
+      description: ''
     })
-  }
-
-  const subperiodOptions = ['1', '2', '3', '1-2', '1-3', '2-3']
-
-  // Generate semester options (current and next few semesters)
-  const getSemesterOptions = () => {
-    const options = []
-    const currentDate = new Date()
-    const currentYear = currentDate.getFullYear()
-    const currentMonth = currentDate.getMonth() + 1
-    
-    // Generate semesters for current year and next year
-    for (let year = currentYear - 1; year <= currentYear + 1; year++) {
-      options.push(`Feb-Jun-${year}`)
-      options.push(`Aug-Dec-${year}`)
-    }
-    
-    return options
   }
 
   return (
@@ -127,95 +105,63 @@ function CreateGroup({ onSubmit, isCreating, preselectedClassId }) {
               )}
             />
 
-            {/* Two Column Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Group Code */}
-              <FormField
-                control={form.control}
-                name="groupCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Group Code
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., NS-G1" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      A short identifier for this group
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Group Name */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Group Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Group A" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* Semester */}
-              <FormField
-                control={form.control}
-                name="semester"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Semester
-                    </FormLabel>
-                    <FormControl>
-                      <MUIFormControl fullWidth>
-                        <InputLabel id="semester-select-label">Select Semester</InputLabel>
-                        <Select
-                          labelId="semester-select-label"
-                          {...field}
-                          value={field.value || ""}
-                          label="Select Semester"
-                          onChange={(e) => field.onChange(e.target.value)}
-                        >
-                          {getSemesterOptions().map((semester) => (
-                            <MenuItem key={semester} value={semester}>
-                              {semester}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </MUIFormControl>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Group Code */}
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Hash className="h-4 w-4" />
+                    Group Code
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., NS-G1" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    A short identifier for this group
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* Subperiod */}
-              <FormField
-                control={form.control}
-                name="subperiod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Subperiod
-                    </FormLabel>
-                    <FormControl>
-                      <MUIFormControl fullWidth>
-                        <InputLabel id="subperiod-select-label">Select Subperiod</InputLabel>
-                        <Select
-                          labelId="subperiod-select-label"
-                          {...field}
-                          value={field.value || ""}
-                          label="Select Subperiod"
-                          onChange={(e) => field.onChange(e.target.value)}
-                        >
-                          {subperiodOptions.map((period) => (
-                            <MenuItem key={period} value={period}>
-                              {period}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </MUIFormControl>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Optional description of the group"
+                      className="resize-none h-24"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">

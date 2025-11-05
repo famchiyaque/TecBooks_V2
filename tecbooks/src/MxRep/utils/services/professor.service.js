@@ -1,3 +1,4 @@
+import fetchWithAuth from '@/MxRep/utils/apis/api.service'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -193,35 +194,15 @@ export const professorService = {
         // return data
     },
 
-    async getProfessorClasses(professorId) {
+    async getProfessorClasses(professorId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-my-classes`,
+            token,
+            { method: "GET" }
+        )
         return {
             success: true,
-            data: [
-                {
-                    id: "class001",
-                    name: "Network Security",
-                    code: "CS-401",
-                    createdAt: "2024-01-10T10:00:00Z",
-                    numGroups: 4,
-                    description: "Advanced network security concepts and practices"
-                },
-                {
-                    id: "class002",
-                    name: "Web Application Security",
-                    code: "CS-402",
-                    createdAt: "2024-01-15T14:00:00Z",
-                    numGroups: 3,
-                    description: "Security vulnerabilities in web applications"
-                },
-                {
-                    id: "class003",
-                    name: "Cryptography",
-                    code: "CS-403",
-                    createdAt: "2023-08-20T09:00:00Z",
-                    numGroups: 2,
-                    description: "Mathematical foundations of cryptography"
-                }
-            ]
+            data: data.data || data
         }
     },
 
@@ -243,15 +224,22 @@ export const professorService = {
         }
     },
 
-    async createClass(classData) {
+    async createClass(classData, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/create-class`,
+            token,
+            {
+                method: "POST",
+                body: {
+                    name: classData.name,
+                    code: classData.code,
+                    ...(classData.description && { description: classData.description })
+                }
+            }
+        )
         return {
             success: true,
-            data: {
-                id: "class" + Date.now(),
-                ...classData,
-                createdAt: new Date().toISOString(),
-                numGroups: 0
-            }
+            data: data.data || data
         }
     },
 
@@ -265,66 +253,19 @@ export const professorService = {
         }
     },
 
-    async getProfessorGroups(professorId) {
+    async getProfessorGroups(professorId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-my-groups`,
+            token,
+            { method: "GET" }
+        )
+        console.log("[PROFESSOR SERVICE] Raw response from get-my-groups: ", data)
+        // Handle both array response and wrapped response
+        const groupsArray = Array.isArray(data) ? data : (data.data || [])
+        console.log("[PROFESSOR SERVICE] Extracted groups array: ", groupsArray)
         return {
             success: true,
-            data: [
-                {
-                    id: "group001",
-                    groupCode: "NS-G1",
-                    className: "Network Security",
-                    classId: "class001",
-                    semester: "Feb-Jun-2025",
-                    subperiod: "1-2",
-                    status: "current",
-                    numStudents: 28,
-                    createdAt: "2025-02-01T10:00:00Z"
-                },
-                {
-                    id: "group002",
-                    groupCode: "NS-G2",
-                    className: "Network Security",
-                    classId: "class001",
-                    semester: "Feb-Jun-2025",
-                    subperiod: "2-3",
-                    status: "current",
-                    numStudents: 25,
-                    createdAt: "2025-02-01T10:00:00Z"
-                },
-                {
-                    id: "group003",
-                    groupCode: "WAS-G1",
-                    className: "Web Application Security",
-                    classId: "class002",
-                    semester: "Feb-Jun-2025",
-                    subperiod: "1",
-                    status: "current",
-                    numStudents: 30,
-                    createdAt: "2025-02-01T10:00:00Z"
-                },
-                {
-                    id: "group004",
-                    groupCode: "NS-G1",
-                    className: "Network Security",
-                    classId: "class001",
-                    semester: "Aug-Dec-2024",
-                    subperiod: "1-2",
-                    status: "past",
-                    numStudents: 32,
-                    createdAt: "2024-08-01T10:00:00Z"
-                },
-                {
-                    id: "group005",
-                    groupCode: "CRYPT-G1",
-                    className: "Cryptography",
-                    classId: "class003",
-                    semester: "Aug-Dec-2024",
-                    subperiod: "2",
-                    status: "past",
-                    numStudents: 24,
-                    createdAt: "2024-08-01T10:00:00Z"
-                }
-            ]
+            data: groupsArray
         }
     },
 
@@ -349,16 +290,23 @@ export const professorService = {
         }
     },
 
-    async createGroup(groupData) {
+    async createGroup(groupData, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/create-group`,
+            token,
+            {
+                method: "POST",
+                body: {
+                    classId: groupData.classId,
+                    name: groupData.name,
+                    code: groupData.code,
+                    ...(groupData.description && { description: groupData.description })
+                }
+            }
+        )
         return {
             success: true,
-            data: {
-                id: "group" + Date.now(),
-                ...groupData,
-                createdAt: new Date().toISOString(),
-                numStudents: 0,
-                status: "current"
-            }
+            data: data.data || data
         }
     },
 

@@ -17,13 +17,46 @@ function Layout() {
     useEffect(() => {
         const splitPath = location.pathname.split('/')
         const pathSuffix = splitPath[splitPath.length - 1]
+        const secondToLast = splitPath[splitPath.length - 2]
+        const thirdToLast = splitPath[splitPath.length - 3]
 
-        const matchingPage = sidebarConfig.pages.find(page => page.route === pathSuffix)
+        // Check if we're on a nested route (e.g., /manage-games/:gameId, /manage-groups/:groupId, /manage-classes/:classId)
+        // In that case, use the parent route for sidebar matching
+        let routeToMatch = pathSuffix
+        
+        if (secondToLast === 'inbox') {
+            routeToMatch = 'inbox'
+        } else if (secondToLast === 'manage-games' || thirdToLast === 'manage-games') {
+            routeToMatch = 'manage-games'
+        } else if (secondToLast === 'manage-groups' || thirdToLast === 'manage-groups') {
+            routeToMatch = 'manage-groups'
+        } else if (secondToLast === 'manage-classes' || thirdToLast === 'manage-classes') {
+            routeToMatch = 'manage-classes'
+        } else if (pathSuffix === 'create-game') {
+            routeToMatch = 'manage-games' // Create game is under manage-games context
+        } else if (pathSuffix === 'create-group') {
+            routeToMatch = 'manage-groups' // Create group is under manage-groups context
+        } else if (pathSuffix === 'create-class') {
+            routeToMatch = 'manage-classes' // Create class is under manage-classes context
+        }
+
+        const matchingPage = sidebarConfig.pages.find(page => page.route === routeToMatch)
         if (matchingPage) {
-            setActiveSidebar(pathSuffix)
+            setActiveSidebar(routeToMatch)
         } else {
-            setActiveSidebar(sidebarConfig.defaultRoute)
-            navigate(sidebarConfig.defaultRoute)
+            // Only redirect if route doesn't match any sidebar page and isn't a nested route
+            const isNestedRoute = secondToLast === 'inbox' || 
+                                  secondToLast === 'manage-games' || 
+                                  secondToLast === 'manage-groups' ||
+                                  secondToLast === 'manage-classes' ||
+                                  pathSuffix === 'create-game' ||
+                                  pathSuffix === 'create-group' ||
+                                  pathSuffix === 'create-class'
+            
+            if (!isNestedRoute) {
+                setActiveSidebar(sidebarConfig.defaultRoute)
+                navigate(sidebarConfig.defaultRoute)
+            }
         }
     }, [location, navigate]);
 

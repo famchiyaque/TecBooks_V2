@@ -17,14 +17,35 @@ function Layout() {
     useEffect(() => {
         const splitPath = location.pathname.split('/')
         const pathSuffix = splitPath[splitPath.length - 1]
+        const secondToLast = splitPath[splitPath.length - 2]
+        const thirdToLast = splitPath[splitPath.length - 3]
 
-        const matchingPage = sidebarConfig.pages.find(page => page.route === pathSuffix)
+        // Check if we're on a nested route (e.g., /manage-institutions/:institutionId, /inbox/:requestId)
+        // In that case, use the parent route for sidebar matching
+        let routeToMatch = pathSuffix
+        
+        if (secondToLast === 'inbox') {
+            routeToMatch = 'inbox'
+        } else if (secondToLast === 'manage-institutions' || thirdToLast === 'manage-institutions') {
+            routeToMatch = 'manage-institutions'
+        }
+
+        const matchingPage = sidebarConfig.pages.find(page => page.route === routeToMatch)
         if (matchingPage) {
-            setActiveSidebar(pathSuffix)
+            setActiveSidebar(routeToMatch)
         } else if (pathSuffix === 'super-admin-panel' || pathSuffix === '') {
             setActiveSidebar(sidebarConfig.defaultRoute)
             if (location.pathname.endsWith('/super-admin-panel') || location.pathname.endsWith('/super-admin-panel/')) {
                 navigate(sidebarConfig.defaultRoute, { replace: true })
+            }
+        } else {
+            // Only redirect if route doesn't match any sidebar page and isn't a nested route
+            const isNestedRoute = secondToLast === 'inbox' || 
+                                  secondToLast === 'manage-institutions'
+            
+            if (!isNestedRoute) {
+                setActiveSidebar(sidebarConfig.defaultRoute)
+                navigate(sidebarConfig.defaultRoute)
             }
         }
     }, [location, navigate]);
