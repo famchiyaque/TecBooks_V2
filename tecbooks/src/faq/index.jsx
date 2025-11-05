@@ -1,14 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import FAQSidebar from "./components/FAQSidebar";
 import FAQContentView from "./components/FAQContentView";
 import { faqData } from "./data/faqData";
 import "@/styles/general.css";
 
 function FAQ() {
+  const [searchParams] = useSearchParams();
   const [activeSectionId, setActiveSectionId] = useState(null);
   const [activeSubsectionId, setActiveSubsectionId] = useState(null);
   const [activeItemId, setActiveItemId] = useState(null);
   const [viewType, setViewType] = useState("default"); // 'default', 'section', 'subsection', 'item'
+
+  // Handle URL parameters for direct navigation
+  useEffect(() => {
+    const sectionParam = searchParams.get("section");
+    const itemParam = searchParams.get("item");
+
+    if (sectionParam) {
+      setActiveSectionId(sectionParam);
+      if (itemParam) {
+        // Check if item is a subsection or regular item
+        const section = faqData.find((s) => s.id === sectionParam);
+        const isSubsection = section?.subsections.some(
+          (ss) => ss.id === itemParam
+        );
+
+        if (isSubsection) {
+          setActiveSubsectionId(itemParam);
+          setViewType("subsection");
+        } else {
+          setActiveItemId(itemParam);
+          setViewType("item");
+        }
+      } else {
+        setViewType("section");
+      }
+    }
+  }, [searchParams]);
 
   const handleSectionClick = (sectionId) => {
     setActiveSectionId(sectionId);
