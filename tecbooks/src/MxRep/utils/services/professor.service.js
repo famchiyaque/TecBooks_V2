@@ -420,6 +420,36 @@ export const professorService = {
             success: true,
             data: data.data || data
         }
+    },
+
+    async removeStudentFromTeam(teamId, studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/team/remove-student`,
+            token,
+            {
+                method: "POST",
+                body: JSON.stringify({ teamId, studentId })
+            }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async addStudentToTeam(teamId, studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/team/add-student`,
+            token,
+            {
+                method: "POST",
+                body: JSON.stringify({ teamId, studentId })
+            }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
     }
 }
 

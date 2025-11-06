@@ -197,7 +197,7 @@ export const AuthProvider = ({ children }) => {
 
           // If we don't have user/token yet, try to load from localStorage
           if (!user || !token) {
-            console.log('[NO SESSION] Attempting to initiate from localStorage')
+            console.log('[NO SESSION CONTEXT] Attempting to initiate from localStorage')
             const sessionLoaded = initiateSession()
             
             if (!sessionLoaded) {

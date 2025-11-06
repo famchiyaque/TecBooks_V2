@@ -911,3 +911,59 @@ export const useCreateTeam = () => {
     }
 }
 
+export const useTeamManagement = () => {
+    const { token } = useAuth()
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    const removeStudentFromTeam = useCallback(async (teamId, studentId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.removeStudentFromTeam(teamId, studentId, token)
+            console.log("Response from removeStudentFromTeam: ", response)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    const addStudentToTeam = useCallback(async (teamId, studentId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await professorService.addStudentToTeam(teamId, studentId, token)
+            console.log("Response from addStudentToTeam: ", response)
+            return { success: true, data: response.data }
+        } catch (err) {
+            setError(err.message)
+            return { success: false, error: err.message }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [token])
+
+    return {
+        removeStudentFromTeam,
+        addStudentToTeam,
+        isLoading,
+        error,
+        setError
+    }
+}
+

@@ -6,8 +6,9 @@ import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import InviteStudent from '@/MxRep/Forms/Panels/Student/InviteStudent'
-import { ArrowLeft, AlertCircle, UserPlus, Users, PlayCircle, Hash, Building2, ChevronDown, ChevronUp, Factory, Package, Briefcase, Receipt, Settings, Pause, CheckCircle2, Trophy, Clock } from 'lucide-react'
+import { ArrowLeft, AlertCircle, UserPlus, Users, PlayCircle, Hash, Building2, ChevronDown, ChevronUp, Factory, Package, Briefcase, Receipt, Settings, Pause, CheckCircle2, Trophy, Clock, Gamepad2 } from 'lucide-react'
 
 function Game() {
   const { gameId } = useParams()
@@ -18,13 +19,15 @@ function Game() {
   const { getGroupStudents, studentsIsLoading, students } = useGetGroupStudents()
   const { inviteStudent, isInviting, error: inviteError } = useInviteStudent()
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('game')
   const [expandedSections, setExpandedSections] = useState({
-    premises: false,
-    orderConfig: false,
-    machinery: false,
-    bom: false,
+    gameSettings: false,
+    boms: false,
+    expenses: false,
+    assets: false,
     employees: false,
-    expenses: false
+    materials: false,
+    processes: false
   })
   const [userTeam, setUserTeam] = useState(null)
 
@@ -191,9 +194,6 @@ function Game() {
                   {game.status}
                 </span>
               </div>
-              <p className="text-slate-600 mt-1">
-                {game.description}
-              </p>
             </div>
           </div>
           
@@ -213,10 +213,23 @@ function Game() {
         <div className="h-px bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 mt-6" />
       </div>
 
-      <div className='max-w-7xl mx-auto space-y-6'>
-        {/* Game Details Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-slate-900">Game Details</h2>
+      <div className='max-w-7xl mx-auto'>
+        {/* Tabs Section */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="game">Game</TabsTrigger>
+            <TabsTrigger value="runs">Runs</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="game" className="space-y-4">
+            {/* Game Description */}
+            {game.description && (
+              <Card className="border-slate-200">
+                <CardContent className="pt-6">
+                  <p className="text-slate-600">{game.description}</p>
+                </CardContent>
+              </Card>
+            )}
           
           {/* Teams List */}
           <Card className="border-slate-200">
@@ -278,258 +291,288 @@ function Game() {
             </CardContent>
           </Card>
 
-        {/* Game Configuration Section */}
-        <Card className="border-slate-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Game Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-100">
-              <div>
-                <p className="text-sm text-slate-500 mb-1">Game Code</p>
-                <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-slate-400" />
-                  <p className="text-sm font-mono font-medium text-slate-900">{game.code}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-slate-500 mb-1">Status</p>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(game.status)}`}>
-                  {game.status}
-                </span>
-              </div>
-              </div>
-
-            {/* Premises Section */}
-            {game.configuration?.premises && (
-              <div className="border-b border-slate-100 last:border-0">
-                <button
-                  onClick={() => toggleSection('premises')}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium text-slate-900">Premises</span>
-                  </div>
-                  {expandedSections.premises ? (
-                    <ChevronUp className="h-4 w-4 text-slate-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-600" />
-                  )}
-                </button>
-                {expandedSections.premises && (
-                  <div className="pb-3 px-2 space-y-2">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-slate-500">Area: </span>
-                        <span className="text-slate-900">{game.configuration.premises.area} sq ft</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500">Rent Cost: </span>
-                        <span className="text-slate-900">${game.configuration.premises.rentCost?.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500">Power Capacity: </span>
-                        <span className="text-slate-900">{game.configuration.premises.powerCapacity} kW</span>
-                      </div>
-                      {game.configuration.premises.inflationRate !== undefined && (
-                        <div>
-                          <span className="text-slate-500">Inflation Rate: </span>
-                          <span className="text-slate-900">{(game.configuration.premises.inflationRate * 100).toFixed(2)}%</span>
+            {/* Game Configuration Section */}
+            <Card className="border-slate-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Game Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {game.configuration ? (
+                  <>
+                    {/* Game Settings */}
+                    <div className="border-b border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('gameSettings')}
+                        className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Gamepad2 className="h-4 w-4 text-slate-600" />
+                          <span className="font-medium text-slate-900">Game Settings</span>
                         </div>
-                      )}
-                      {game.configuration.premises.lendingRate !== undefined && (
-              <div>
-                          <span className="text-slate-500">Lending Rate: </span>
-                          <span className="text-slate-900">{(game.configuration.premises.lendingRate * 100).toFixed(2)}%</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Order Config Section */}
-            {game.configuration?.orderConfig && (
-              <div className="border-b border-slate-100 last:border-0">
-                <button
-                  onClick={() => toggleSection('orderConfig')}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium text-slate-900">Order Configuration</span>
-                  </div>
-                  {expandedSections.orderConfig ? (
-                    <ChevronUp className="h-4 w-4 text-slate-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-600" />
-                  )}
-                </button>
-                {expandedSections.orderConfig && (
-                  <div className="pb-3 px-2 space-y-2">
-                    <div className="text-sm text-slate-500 mb-2">
-                      Product Type: <span className="text-slate-900 font-medium">{game.configuration.orderConfig.productType}</span>
-                    </div>
-                    <div className="text-sm text-slate-500 mb-2">
-                      Initial Orders: <span className="text-slate-900 font-medium">{game.configuration.orderConfig.initialOrders}</span>
-                    </div>
-                    {game.configuration.orderConfig.demandRate && (
-              <div>
-                        <p className="text-sm text-slate-500 mb-2">Monthly Demand Rate:</p>
-                        <div className="space-y-1">
-                          {Object.entries(game.configuration.orderConfig.demandRate).map(([month, rate]) => (
-                            <div key={month} className="flex justify-between text-sm">
-                              <span className="text-slate-700">{month}:</span>
-                              <span className="text-slate-900 font-medium">{(rate * 100).toFixed(1)}%</span>
+                        {expandedSections.gameSettings ? (
+                          <ChevronUp className="h-4 w-4 text-slate-600" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-slate-600" />
+                        )}
+                      </button>
+                      {expandedSections.gameSettings && (
+                        <div className="pb-3 px-2 space-y-2">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-slate-500">Game Code: </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Hash className="h-4 w-4 text-slate-400" />
+                                <span className="text-slate-900 font-medium font-mono">{game.code}</span>
+                              </div>
                             </div>
-                          ))}
+                            <div>
+                              <span className="text-slate-500">Status: </span>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${getStatusColor(game.status)}`}>
+                                {game.status}
+                              </span>
+                            </div>
+                            {game.configuration.initialCapital !== undefined && (
+                              <div>
+                                <span className="text-slate-500">Initial Capital: </span>
+                                <span className="text-slate-900 font-medium">${game.configuration.initialCapital?.toLocaleString()}</span>
+                              </div>
+                            )}
+                            {game.configuration.gameDurationMonths !== undefined && (
+                              <div>
+                                <span className="text-slate-500">Duration: </span>
+                                <span className="text-slate-900 font-medium">{game.configuration.gameDurationMonths} months</span>
+                              </div>
+                            )}
+                            {game.configuration.name && (
+                              <div className="col-span-2">
+                                <span className="text-slate-500">Configuration Name: </span>
+                                <span className="text-slate-900 font-medium">{game.configuration.name}</span>
+                              </div>
+                            )}
+                            {game.configuration.description && (
+                              <div className="col-span-2">
+                                <span className="text-slate-500">Description: </span>
+                                <span className="text-slate-900">{game.configuration.description}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
-                          Total: {Object.values(game.configuration.orderConfig.demandRate).reduce((sum, rate) => sum + (rate * 100), 0).toFixed(1)}%
-                        </div>
+                      )}
+                    </div>
+
+                    {/* BOMs Section */}
+                    {game.configuration?.availableBOMIds && game.configuration.availableBOMIds.length > 0 && (
+                      <div className="border-b border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection('boms')}
+                          className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Package className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium text-slate-900">Available BOMs ({game.configuration.availableBOMIds.length})</span>
+                          </div>
+                          {expandedSections.boms ? (
+                            <ChevronUp className="h-4 w-4 text-slate-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-600" />
+                          )}
+                        </button>
+                        {expandedSections.boms && (
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableBOMIds.map((bom, index) => (
+                              <div key={bom._id || bom.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{bom.name}</p>
+                                {bom.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{bom.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
+
+                    {/* Expenses Section */}
+                    {game.configuration?.availableExpenseIds && game.configuration.availableExpenseIds.length > 0 && (
+                      <div className="border-b border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection('expenses')}
+                          className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Receipt className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium text-slate-900">Available Expenses ({game.configuration.availableExpenseIds.length})</span>
+                          </div>
+                          {expandedSections.expenses ? (
+                            <ChevronUp className="h-4 w-4 text-slate-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-600" />
+                          )}
+                        </button>
+                        {expandedSections.expenses && (
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableExpenseIds.map((expense, index) => (
+                              <div key={expense._id || expense.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{expense.name}</p>
+                                {expense.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{expense.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Assets Section */}
+                    {game.configuration?.availableAssetIds && game.configuration.availableAssetIds.length > 0 && (
+                      <div className="border-b border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection('assets')}
+                          className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium text-slate-900">Available Assets ({game.configuration.availableAssetIds.length})</span>
+                          </div>
+                          {expandedSections.assets ? (
+                            <ChevronUp className="h-4 w-4 text-slate-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-600" />
+                          )}
+                        </button>
+                        {expandedSections.assets && (
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableAssetIds.map((asset, index) => (
+                              <div key={asset._id || asset.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{asset.name}</p>
+                                {asset.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{asset.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Employees Section */}
+                    {game.configuration?.availableEmployeeIds && game.configuration.availableEmployeeIds.length > 0 && (
+                      <div className="border-b border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection('employees')}
+                          className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium text-slate-900">Available Employees ({game.configuration.availableEmployeeIds.length})</span>
+                          </div>
+                          {expandedSections.employees ? (
+                            <ChevronUp className="h-4 w-4 text-slate-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-600" />
+                          )}
+                        </button>
+                        {expandedSections.employees && (
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableEmployeeIds.map((employee, index) => (
+                              <div key={employee._id || employee.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{employee.name}</p>
+                                {employee.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{employee.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Materials Section */}
+                    {game.configuration?.availableMaterialIds && game.configuration.availableMaterialIds.length > 0 && (
+                      <div className="border-b border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection('materials')}
+                          className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Factory className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium text-slate-900">Available Materials ({game.configuration.availableMaterialIds.length})</span>
+                          </div>
+                          {expandedSections.materials ? (
+                            <ChevronUp className="h-4 w-4 text-slate-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-600" />
+                          )}
+                        </button>
+                        {expandedSections.materials && (
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableMaterialIds.map((material, index) => (
+                              <div key={material._id || material.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{material.name}</p>
+                                {material.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{material.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Processes Section */}
+                    {game.configuration?.availableProcessIds && game.configuration.availableProcessIds.length > 0 && (
+                      <div className="border-b border-slate-100 last:border-0">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection('processes')}
+                          className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium text-slate-900">Available Processes ({game.configuration.availableProcessIds.length})</span>
+                          </div>
+                          {expandedSections.processes ? (
+                            <ChevronUp className="h-4 w-4 text-slate-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-600" />
+                          )}
+                        </button>
+                        {expandedSections.processes && (
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableProcessIds.map((process, index) => (
+                              <div key={process._id || process.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{process.name}</p>
+                                {process.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{process.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <Settings className="h-12 w-12 mx-auto mb-3 text-slate-400" />
+                    <p>No configuration data available</p>
                   </div>
                 )}
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Machinery Section */}
-            {game.configuration?.machinery && game.configuration.machinery.length > 0 && (
-              <div className="border-b border-slate-100 last:border-0">
-                <button
-                  onClick={() => toggleSection('machinery')}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Factory className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium text-slate-900">Machinery ({game.configuration.machinery.length})</span>
-                  </div>
-                  {expandedSections.machinery ? (
-                    <ChevronUp className="h-4 w-4 text-slate-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-600" />
-                  )}
-                </button>
-                {expandedSections.machinery && (
-                  <div className="pb-3 px-2 space-y-2">
-                    <div className="space-y-1">
-                      {game.configuration.machinery.map((item, index) => (
-                        <div key={index} className="text-sm text-slate-900">
-                          • {item.name || item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* BOM Section */}
-            {game.configuration?.boms && game.configuration.boms.length > 0 && (
-              <div className="border-b border-slate-100 last:border-0">
-                <button
-                  onClick={() => toggleSection('bom')}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium text-slate-900">BOMs ({game.configuration.boms.length})</span>
-                  </div>
-                  {expandedSections.bom ? (
-                    <ChevronUp className="h-4 w-4 text-slate-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-600" />
-                  )}
-                </button>
-                {expandedSections.bom && (
-                  <div className="pb-3 px-2 space-y-2">
-                    <div className="space-y-1">
-                      {game.configuration.boms.map((item, index) => (
-                        <div key={index} className="text-sm text-slate-900">
-                          • {item.productName || item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Employees Section */}
-            {game.configuration?.employees && game.configuration.employees.length > 0 && (
-              <div className="border-b border-slate-100 last:border-0">
-                <button
-                  onClick={() => toggleSection('employees')}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium text-slate-900">Employees ({game.configuration.employees.length})</span>
-                  </div>
-                  {expandedSections.employees ? (
-                    <ChevronUp className="h-4 w-4 text-slate-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-600" />
-                  )}
-                </button>
-                {expandedSections.employees && (
-                  <div className="pb-3 px-2 space-y-2">
-                    <div className="space-y-1">
-                      {game.configuration.employees.map((item, index) => (
-                        <div key={index} className="text-sm text-slate-900">
-                          • {item.name || item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Expenses Section */}
-            {game.configuration?.expenses && game.configuration.expenses.length > 0 && (
-              <div>
-                <button
-                  onClick={() => toggleSection('expenses')}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 rounded-lg px-2 -mx-2"
-                >
-                <div className="flex items-center gap-2">
-                    <Receipt className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium text-slate-900">Expenses ({game.configuration.expenses.length})</span>
-                  </div>
-                  {expandedSections.expenses ? (
-                    <ChevronUp className="h-4 w-4 text-slate-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-600" />
-                  )}
-                </button>
-                {expandedSections.expenses && (
-                  <div className="pb-3 px-2 space-y-2">
-                    <div className="space-y-1">
-                      {game.configuration.expenses.map((item, index) => (
-                        <div key={index} className="text-sm text-slate-900">
-                          • {item.name || item}
-                        </div>
-                      ))}
-                    </div>
-                </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </div>
-
-        {/* Runs Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-slate-900">Your Team's Runs</h2>
+          <TabsContent value="runs" className="space-y-4">
           
           {!userTeam ? (
             <Card className="border-slate-200">
@@ -611,7 +654,8 @@ function Game() {
               ))}
             </div>
           )}
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Invite Student Modal */}

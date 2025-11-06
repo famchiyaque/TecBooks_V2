@@ -17,13 +17,31 @@ function Layout() {
     useEffect(() => {
         const splitPath = location.pathname.split('/')
         const pathSuffix = splitPath[splitPath.length - 1]
+        const secondToLast = splitPath[splitPath.length - 2]
+        const thirdToLast = splitPath[splitPath.length - 3]
 
-        const matchingPage = sidebarConfig.pages.find(page => page.route === pathSuffix)
+        // Check if we're on a nested route (e.g., /my-games/:gameId)
+        // In that case, use the parent route for sidebar matching
+        let routeToMatch = pathSuffix
+        
+        if (secondToLast === 'inbox') {
+            routeToMatch = 'inbox'
+        } else if (secondToLast === 'my-games' || thirdToLast === 'my-games') {
+            routeToMatch = 'my-games'
+        }
+
+        const matchingPage = sidebarConfig.pages.find(page => page.route === routeToMatch)
         if (matchingPage) {
-            setActiveSidebar(pathSuffix)
+            setActiveSidebar(routeToMatch)
         } else {
-            setActiveSidebar(sidebarConfig.defaultRoute)
-            navigate(sidebarConfig.defaultRoute)
+            // Only redirect if route doesn't match any sidebar page and isn't a nested route
+            const isNestedRoute = secondToLast === 'inbox' || 
+                                  secondToLast === 'my-games'
+            
+            if (!isNestedRoute) {
+                setActiveSidebar(sidebarConfig.defaultRoute)
+                navigate(sidebarConfig.defaultRoute)
+            }
         }
     }, [location, navigate]);
 

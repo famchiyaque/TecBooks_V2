@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { useGetGame, useGameActions, useGetTeamsByGame, useGetStudentsByGroup, useCreateTeam } from '@/MxRep/utils/hooks/professor.hooks'
+import { useGetGame, useGameActions, useGetTeamsByGame, useGetStudentsByGroup, useCreateTeam, useTeamManagement } from '@/MxRep/utils/hooks/professor.hooks'
 import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, AlertCircle, Settings, Users, Trophy, Calendar, Gamepad2, Building2, Package, Factory, Briefcase, Receipt, ChevronDown, ChevronUp, Hash, Play, Pause, CheckCircle, Trash2, DollarSign, X } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Settings, Users, Trophy, Calendar, Gamepad2, Building2, Package, Factory, Briefcase, Receipt, ChevronDown, ChevronUp, Hash, Play, Pause, CheckCircle, Trash2, DollarSign, X, UserPlus } from 'lucide-react'
 
 function Game() {
   const { gameId } = useParams()
@@ -20,11 +20,15 @@ function Game() {
   const { getTeamsByGame, teamsIsLoading, teams } = useGetTeamsByGame()
   const { getStudentsByGroup, studentsIsLoading, students } = useGetStudentsByGroup()
   const { createTeam, isCreating: isCreatingTeam, error: createTeamError } = useCreateTeam()
+  const { removeStudentFromTeam, addStudentToTeam, isLoading: isManagingTeam, error: manageTeamError } = useTeamManagement()
   const [activeTab, setActiveTab] = useState('overview')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showCreateTeamDialog, setShowCreateTeamDialog] = useState(false)
+  const [showManageTeamDialog, setShowManageTeamDialog] = useState(false)
+  const [selectedTeam, setSelectedTeam] = useState(null)
   const [teamName, setTeamName] = useState('')
   const [selectedStudentIds, setSelectedStudentIds] = useState([])
+  const [selectedStudentToAdd, setSelectedStudentToAdd] = useState('')
   const [expandedSections, setExpandedSections] = useState({
     gameSettings: false,
     boms: false,
@@ -132,6 +136,18 @@ function Game() {
     setSelectedStudentIds([])
   }
 
+  const handleManageTeam = (team) => {
+    setSelectedTeam(team)
+    setShowManageTeamDialog(true)
+    setSelectedStudentToAdd('')
+  }
+
+  const handleCloseManageTeamDialog = () => {
+    setShowManageTeamDialog(false)
+    setSelectedTeam(null)
+    setSelectedStudentToAdd('')
+  }
+
   const handleStudentToggle = (studentId) => {
     setSelectedStudentIds(prev => 
       prev.includes(studentId)
@@ -162,11 +178,83 @@ function Game() {
     if (result.success) {
       alert('Team created successfully!')
       handleCloseCreateTeamDialog()
-      // Refresh teams list
+      // Refresh teams list and students
       getTeamsByGame(gameId)
+      if (game?.groupId) {
+        getStudentsByGroup(game.groupId)
+      }
     } else {
       alert(`Failed to create team: ${result.error || createTeamError}`)
     }
+  }
+
+  const handleRemoveStudentFromTeam = async (studentId) => {
+    if (!selectedTeam) return
+
+    if (window.confirm('Are you sure you want to remove this student from the team?')) {
+      const result = await removeStudentFromTeam(selectedTeam._id || selectedTeam.id, studentId)
+      
+      if (result.success) {
+        alert('Student removed successfully!')
+        // Refresh teams list and students
+        getTeamsByGame(gameId)
+        if (game?.groupId) {
+          getStudentsByGroup(game.groupId)
+        }
+        // Update the selected team in the modal
+        const updatedTeams = teams.find(t => (t._id || t.id) === (selectedTeam._id || selectedTeam.id))
+        if (updatedTeams) {
+          setSelectedTeam(updatedTeams)
+        }
+      } else {
+        alert(`Failed to remove student: ${result.error || manageTeamError}`)
+      }
+    }
+  }
+
+  const handleAddStudentToTeam = async () => {
+    if (!selectedTeam || !selectedStudentToAdd) return
+
+    const result = await addStudentToTeam(selectedTeam._id || selectedTeam.id, selectedStudentToAdd)
+    
+    if (result.success) {
+      alert('Student added successfully!')
+      setSelectedStudentToAdd('')
+      // Refresh teams list and students
+      getTeamsByGame(gameId)
+      if (game?.groupId) {
+        getStudentsByGroup(game.groupId)
+      }
+    } else {
+      alert(`Failed to add student: ${result.error || manageTeamError}`)
+    }
+  }
+
+  // Get available students for adding to team (not already in this team)
+  const getAvailableStudentsForTeam = () => {
+    if (!students || !selectedTeam) return []
+    
+    const teamMemberIds = selectedTeam.members?.map(m => m._id || m.id) || selectedTeam.studentIds || []
+    return students.filter(s => !teamMemberIds.includes(s._id || s.id))
+  }
+
+  // Get team name for a student
+  const getStudentTeamName = (studentId) => {
+    if (!teams || teams.length === 0) return null
+    
+    for (const team of teams) {
+      const teamMembers = team.members || team.studentIds || []
+      const isMember = teamMembers.some(m => {
+        const memberId = m._id || m.id || m
+        return memberId === studentId
+      })
+      
+      if (isMember) {
+        return team.name || 'Unnamed Team'
+      }
+    }
+    
+    return null
   }
 
   if (!isInitialized || isLoading) {
@@ -229,9 +317,6 @@ function Game() {
                   {game.status}
                 </span>
               </div>
-              <p className="text-slate-600 mt-1">
-                {game.description}
-              </p>
             </div>
           </div>
           
@@ -310,7 +395,7 @@ function Game() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Teams</p>
-                  <p className="text-2xl font-bold text-slate-900">{game.numTeams}</p>
+                  <p className="text-2xl font-bold text-slate-900">{teams?.length || game.numTeams || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -324,7 +409,7 @@ function Game() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Students</p>
-                  <p className="text-2xl font-bold text-slate-900">{game.numStudents}</p>
+                  <p className="text-2xl font-bold text-slate-900">{students?.length || game.numStudents || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -355,6 +440,15 @@ function Game() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
+            {/* Game Description */}
+            {game.description && (
+              <Card className="border-slate-200">
+                <CardContent className="pt-6">
+                  <p className="text-slate-600">{game.description}</p>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="border-slate-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -686,32 +780,57 @@ function Game() {
                   </div>
                 ) : teams && teams.length > 0 ? (
                   <div className="space-y-4">
-                    {teams.map((team) => (
-                      <Card key={team._id || team.id} className="border-slate-200">
-                        <CardContent className="pt-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <h3 className="font-semibold text-lg">{team.name}</h3>
-                              <p className="text-sm text-slate-500">
-                                {team.studentIds?.length || team.members?.length || 0} members
-                              </p>
+                    {teams.map((team) => {
+                      // Handle case where team might be an array of students or a team object
+                      const isTeamObject = team.name !== undefined
+                      const teamMembers = isTeamObject ? (team.members || team.studentIds || []) : []
+                      const teamName = isTeamObject ? team.name : 'Unnamed Team'
+                      const teamId = team._id || team.id
+                      
+                      return (
+                        <Card key={teamId} className="border-slate-200">
+                          <CardContent className="pt-6">
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <h3 className="font-semibold text-lg">{teamName}</h3>
+                                <p className="text-sm text-slate-500">
+                                  {teamMembers.length} members
+                                </p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleManageTeam(team)}
+                              >
+                                Manage
+                              </Button>
                             </div>
-                            <Button variant="outline" size="sm">
-                              Manage
-                            </Button>
-                          </div>
-                          {team.members && team.members.length > 0 && (
-                            <div className="space-y-1">
-                              {team.members.map((member, idx) => (
-                                <div key={idx} className="text-sm text-slate-600">
-                                  • {member.firstNames} {member.lastNames} ({member.email})
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
+                            {teamMembers.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {teamMembers.map((member) => {
+                                  // Handle both full member objects and just IDs
+                                  const memberId = member._id || member.id || member
+                                  const memberName = member.firstNames 
+                                    ? `${member.firstNames} ${member.lastNames}` 
+                                    : 'Unknown Member'
+                                  
+                                  return (
+                                    <div 
+                                      key={memberId} 
+                                      className="inline-flex items-center px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm"
+                                    >
+                                      {memberName}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-slate-500 italic">No members yet</div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
@@ -742,33 +861,38 @@ function Game() {
                   </div>
                 ) : students && students.length > 0 ? (
                   <div className="space-y-2">
-                    {students.map((student) => (
-                      <div 
-                        key={student._id || student.id}
-                        className="flex items-center justify-between p-3 border border-slate-200 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-slate-600" />
+                    {students.map((student) => {
+                      const studentId = student._id || student.id
+                      const teamName = getStudentTeamName(studentId)
+                      
+                      return (
+                        <div 
+                          key={studentId}
+                          className="flex items-center justify-between p-3 border border-slate-200 rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+                              <Users className="h-5 w-5 text-slate-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900">
+                                {student.firstNames} {student.lastNames}
+                              </p>
+                              <p className="text-sm text-slate-500">{student.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-slate-900">
-                              {student.firstNames} {student.lastNames}
-                            </p>
-                            <p className="text-sm text-slate-500">{student.email}</p>
+                          <div className="flex items-center gap-2">
+                            {teamName ? (
+                              <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                                Team: {teamName}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-slate-400">Not assigned</span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {student.teamName ? (
-                            <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-                              Team: {student.teamName}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-slate-400">Not assigned</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center">
@@ -901,6 +1025,119 @@ function Game() {
                         Create Team
                       </>
                     )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Team Dialog */}
+      {showManageTeamDialog && selectedTeam && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleCloseManageTeamDialog}>
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Manage Team: {selectedTeam.name}</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCloseManageTeamDialog}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {manageTeamError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{manageTeamError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-6">
+                {/* Current Team Members */}
+                <div className="space-y-2">
+                  <Label>Current Team Members ({selectedTeam.members?.length || 0})</Label>
+                  {selectedTeam.members && selectedTeam.members.length > 0 ? (
+                    <div className="border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
+                      {selectedTeam.members.map((member) => {
+                        const memberId = member._id || member.id
+                        return (
+                          <div
+                            key={memberId}
+                            className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                          >
+                            <div>
+                              <p className="font-medium text-slate-900">
+                                {member.firstNames} {member.lastNames}
+                              </p>
+                              <p className="text-sm text-slate-500">{member.email}</p>
+                            </div>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleRemoveStudentFromTeam(memberId)}
+                              disabled={isManagingTeam}
+                              className="gap-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Remove
+                            </Button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="border border-slate-200 rounded-lg p-8 text-center">
+                      <p className="text-slate-600">No members in this team yet</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add Student Section */}
+                <div className="space-y-2">
+                  <Label>Add Student to Team</Label>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedStudentToAdd}
+                      onChange={(e) => setSelectedStudentToAdd(e.target.value)}
+                      className="flex-1 h-10 px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={isManagingTeam || getAvailableStudentsForTeam().length === 0}
+                    >
+                      <option value="">Select a student...</option>
+                      {getAvailableStudentsForTeam().map((student) => {
+                        const studentId = student._id || student.id
+                        return (
+                          <option key={studentId} value={studentId}>
+                            {student.firstNames} {student.lastNames} ({student.email})
+                          </option>
+                        )
+                      })}
+                    </select>
+                    <Button
+                      onClick={handleAddStudentToTeam}
+                      disabled={isManagingTeam || !selectedStudentToAdd}
+                      className="gap-2"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                  {getAvailableStudentsForTeam().length === 0 && (
+                    <p className="text-sm text-slate-500">No available students to add</p>
+                  )}
+                </div>
+
+                {/* Close Button */}
+                <div className="flex items-center justify-end pt-4 border-t">
+                  <Button
+                    onClick={handleCloseManageTeamDialog}
+                    disabled={isManagingTeam}
+                  >
+                    Close
                   </Button>
                 </div>
               </div>
