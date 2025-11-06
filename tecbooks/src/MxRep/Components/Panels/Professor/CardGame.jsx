@@ -60,7 +60,11 @@ function CardGame({ game, onClick, onDashboardClick, isProfessor = false }) {
     )
   }
 
-  // Student view: show run status and dashboard button
+  // Student view: show team status and run count
+  const hasTeam = game.team && game.team.id
+  const activeRuns = game.runs ? game.runs.filter(r => r.status === 'in-progress').length : 0
+  const totalRuns = game.runs ? game.runs.length : 0
+
   return (
     <Card 
       className="border-slate-200 hover:shadow-lg transition-all duration-200 h-full flex flex-col"
@@ -73,39 +77,37 @@ function CardGame({ game, onClick, onDashboardClick, isProfessor = false }) {
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${getStatusColor(game.status)}`}>
             {game.status}
           </span>
-            </div>
+        </div>
         <p className="text-sm text-slate-600 line-clamp-2">
           {game.description}
         </p>
       </CardHeader>
 
       <CardContent className="space-y-3 flex-1 flex flex-col">
-        {/* Run Status */}
-        <div className="flex items-center gap-2 text-sm">
-          {hasRun ? (
-            <>
-              <PlayCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-              <span className="text-slate-700">Run in progress</span>
-            </>
-          ) : (
-            <>
-              <CircleOff className="h-4 w-4 text-slate-400 flex-shrink-0" />
-              <span className="text-slate-500">No active run</span>
-            </>
-          )}
-        </div>
-
-        {/* Dashboard Button */}
-        {hasRun && onDashboardClick && (
-          <Button 
-            onClick={(e) => {
-              e.stopPropagation()
-              onDashboardClick(game)
-            }}
-            className="w-full mt-auto"
-          >
-            Go to Dashboard
-          </Button>
+        {/* Team Status */}
+        {!hasTeam ? (
+          <div className="flex items-center gap-2 py-3 px-4 bg-amber-50 rounded-lg border border-amber-100">
+            <Users className="h-4 w-4 text-amber-600 flex-shrink-0" />
+            <span className="text-sm text-amber-800 font-medium">No team yet</span>
+          </div>
+        ) : (
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-600 flex-shrink-0" />
+              <span className="text-sm text-slate-700">{game.team.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Gamepad2 className="h-4 w-4 text-purple-600 flex-shrink-0" />
+              <span className="text-sm text-slate-700">
+                {totalRuns} run{totalRuns !== 1 ? 's' : ''}
+                {activeRuns > 0 && (
+                  <span className="ml-1 text-green-600 font-medium">
+                    ({activeRuns} active)
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

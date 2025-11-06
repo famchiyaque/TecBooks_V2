@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { useGetStudentGames } from '@/MxRep/utils/hooks/student.hooks'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ function MyGames() {
   const { games, gamesIsLoading, error, getStudentGames } = useGetStudentGames()
   const [showJoinForm, setShowJoinForm] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
+  const [showActiveOnly, setShowActiveOnly] = useState(true)
 
   useEffect(() => {
     if (!isInitialized || isLoading || !user) {
@@ -25,16 +26,16 @@ function MyGames() {
     getStudentGames(user.userId)
   }, [isInitialized, isLoading, user, getStudentGames])
 
+  // Filter games based on active status
+  const filteredGames = useMemo(() => {
+    if (!games) return []
+    if (!showActiveOnly) return games
+    return games.filter(game => game.status === 'active')
+  }, [games, showActiveOnly])
+
   const handleGameClick = (game) => {
     const slug = user.institution?.slug
     navigate(`/mxrep/${slug}/student-panel/my-games/${game.id}`)
-  }
-
-  const handleDashboardClick = (game) => {
-    const slug = user.institution?.slug
-    if (game.run && game.run.id) {
-      navigate(`/mxrep/${slug}/dashboard/${game.id}/${game.run.id}`)
-    }
   }
 
   const handleJoinGame = async (code) => {
@@ -75,25 +76,11 @@ function MyGames() {
           </div>
           <div className="flex items-center gap-3">
             <Button 
-              variant="outline" 
-              size="icon"
-              className="h-10 w-10"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-            <Button 
               onClick={() => setShowJoinForm(true)}
               className="gap-2"
             >
               <Plus className="h-4 w-4" />
               Join Game
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon"
-              className="h-10 w-10"
-            >
-              <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -119,39 +106,72 @@ function MyGames() {
           </Alert>
         )}
 
+        {/* Filter Toggle and Games Count */}
+        {!gamesIsLoading && !error && games && games.length > 0 && (
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-slate-600">
+              Showing {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''}
+              {showActiveOnly && games.length > filteredGames.length && (
+                <span className="text-slate-400 ml-1">
+                  ({games.length - filteredGames.length} inactive hidden)
+                </span>
+              )}
+            </p>
+            <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-lg">
+              <button
+                onClick={() => setShowActiveOnly(true)}
+                className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                  showActiveOnly
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setShowActiveOnly(false)}
+                className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                  !showActiveOnly
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Empty State */}
-        {!gamesIsLoading && !error && games?.length === 0 && (
+        {!gamesIsLoading && !error && filteredGames.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 px-4">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
               <Gamepad2 className="h-8 w-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No games yet</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              {showActiveOnly ? 'No active games' : 'No games yet'}
+            </h3>
             <p className="text-slate-600 text-center mb-6 max-w-sm">
-              You haven't joined any games yet. Use the join code from your professor to get started.
+              {showActiveOnly 
+                ? 'You have no active games at the moment. Switch to "All" to see inactive games.'
+                : 'You haven\'t joined any games yet. Use the join code from your professor to get started.'
+              }
             </p>
           </div>
         )}
 
         {/* Games Grid */}
-        {!gamesIsLoading && games && games.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-slate-600">
-                Showing {games.length} game{games.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-6">
-              {games.map((game) => (
-                <div key={game.id} className="w-[calc(33.333%-16px)] min-w-[300px]">
-                  <CardGame 
-                    game={game}
-                    onClick={() => handleGameClick(game)}
-                    onDashboardClick={handleDashboardClick}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
+        {!gamesIsLoading && filteredGames.length > 0 && (
+          <div className="flex flex-wrap gap-6">
+            {filteredGames.map((game) => (
+              <div key={game.id} className="w-[calc(33.333%-16px)] min-w-[300px]">
+                <CardGame 
+                  game={game}
+                  onClick={() => handleGameClick(game)}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

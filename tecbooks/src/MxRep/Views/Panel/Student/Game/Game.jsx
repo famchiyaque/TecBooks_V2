@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { useGetStudentGame, useGetGroupStudents, useInviteStudent } from '@/MxRep/utils/hooks/student.hooks'
+import { useGetGame, useGetTeamRuns, useGetGroupStudents, useInviteStudent } from '@/MxRep/utils/hooks/student.hooks'
 import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import InviteStudent from '@/MxRep/Forms/Panels/Student/InviteStudent'
-import { ArrowLeft, AlertCircle, UserPlus, Users, Calendar, DollarSign, PlayCircle, Hash, Building2, ChevronDown, ChevronUp, Factory, Package, Briefcase, Receipt, Settings } from 'lucide-react'
+import { ArrowLeft, AlertCircle, UserPlus, Users, PlayCircle, Hash, Building2, ChevronDown, ChevronUp, Factory, Package, Briefcase, Receipt, Settings, Pause, CheckCircle2, Trophy, Clock } from 'lucide-react'
 
 function Game() {
   const { gameId } = useParams()
   const navigate = useNavigate()
   const { user, isLoading, isInitialized } = useAuth()
-  const { getStudentGame, gameIsLoading, error, game } = useGetStudentGame()
+  const { getGame, gameIsLoading, error, game } = useGetGame()
+  const { getTeamRuns, runsIsLoading, runs } = useGetTeamRuns()
   const { getGroupStudents, studentsIsLoading, students } = useGetGroupStudents()
   const { inviteStudent, isInviting, error: inviteError } = useInviteStudent()
   const [showInviteModal, setShowInviteModal] = useState(false)
@@ -25,14 +26,30 @@ function Game() {
     employees: false,
     expenses: false
   })
+  const [userTeam, setUserTeam] = useState(null)
 
   useEffect(() => {
     if (!isInitialized || isLoading || !user) {
       return
     }
-    console.log("[GAME VIEW] getting student game data for gameId: ", gameId)
-    getStudentGame(gameId, user.userId)
-  }, [isInitialized, isLoading, user, gameId, getStudentGame])
+    console.log("[GAME VIEW] getting game data for gameId: ", gameId)
+    getGame(gameId)
+  }, [isInitialized, isLoading, user, gameId, getGame])
+
+  // Find user's team and fetch their runs
+  useEffect(() => {
+    if (game && game.teams && user) {
+      const team = game.teams.find(t => 
+        t.members.some(m => m.id === user.userId)
+      )
+      setUserTeam(team)
+      
+      if (team) {
+        console.log("[GAME VIEW] getting team runs for teamId: ", team.id)
+        getTeamRuns(gameId, team.id)
+      }
+    }
+  }, [game, user, gameId, getTeamRuns])
 
   useEffect(() => {
     if (showInviteModal && game?.groupId && user?.userId) {
@@ -46,11 +63,9 @@ function Game() {
     navigate(`/mxrep/${slug}/student-panel/my-games`)
   }
 
-  const handleDashboardClick = () => {
+  const handleDashboardClick = (runId) => {
     const slug = user?.institution?.slug
-    if (game?.run && game.run.id) {
-      navigate(`/mxrep/${slug}/dashboard/${gameId}/${game.run.id}`)
-    }
+    navigate(`/mxrep/${slug}/dashboard/${gameId}/${runId}`)
   }
 
   const handleInviteStudent = () => {
@@ -58,15 +73,15 @@ function Game() {
   }
 
   const handleInviteSubmit = async (studentId) => {
-    if (!game?.team?.id) {
+    if (!userTeam?.id) {
       return
     }
     
-    const result = await inviteStudent(game.team.id, studentId)
+    const result = await inviteStudent(userTeam.id, studentId)
     if (result.success) {
       setShowInviteModal(false)
       // Refresh game data to get updated team
-      getStudentGame(gameId, user.userId)
+      getGame(gameId)
     }
   }
 
@@ -104,9 +119,22 @@ function Game() {
       return 'bg-green-100 text-green-800'
     } else if (status === 'ended' || status === 'completed') {
       return 'bg-gray-100 text-gray-800'
-    } else {
+    } else if (status === 'paused') {
       return 'bg-yellow-100 text-yellow-800'
+    } else {
+      return 'bg-slate-100 text-slate-800'
     }
+  }
+
+  const getRunStatusIcon = (status) => {
+    if (status === 'in-progress') {
+      return <PlayCircle className="h-4 w-4 text-green-600" />
+    } else if (status === 'completed') {
+      return <CheckCircle2 className="h-4 w-4 text-gray-600" />
+    } else if (status === 'paused') {
+      return <Pause className="h-4 w-4 text-yellow-600" />
+    }
+    return null
   }
 
   if (!isInitialized || isLoading) {
@@ -170,16 +198,7 @@ function Game() {
           </div>
           
           <div className="flex items-center gap-3">
-            {game.run && game.run.status === 'in-progress' && (
-              <Button 
-                onClick={handleDashboardClick}
-                className="gap-2"
-              >
-                <PlayCircle className="h-4 w-4" />
-                Go to Dashboard
-              </Button>
-            )}
-            {game.team && (
+            {userTeam && (
               <Button 
                 onClick={handleInviteStudent}
                 variant="outline"
@@ -194,48 +213,67 @@ function Game() {
         <div className="h-px bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 mt-6" />
       </div>
 
-      <div className='max-w-7xl mx-auto space-y-4'>
-        {/* Team Section - Compact */}
-        {game.team && (
+      <div className='max-w-7xl mx-auto space-y-6'>
+        {/* Game Details Section */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-slate-900">Game Details</h2>
+          
+          {/* Teams List */}
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Users className="h-4 w-4" />
-                Your Team
+                Teams
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 space-y-2">
-              <div className="text-sm text-slate-500 mb-2">Team Name: <span className="text-slate-900 font-medium">{game.team.name}</span></div>
-              <div className="space-y-1">
-                  {game.team.members && game.team.members.map((member) => (
-                  <div key={member.id} className="text-sm text-left">
-                    <span className="text-slate-900">{member.firstNames} {member.lastNames}</span>
-                    <span className="text-slate-500 ml-2">({member.email})</span>
+            <CardContent className="pt-0 space-y-3">
+              {!game.teams || game.teams.length === 0 ? (
+                <div className="text-sm text-slate-500">No teams yet</div>
+              ) : (
+                <>
+                  {/* User's Team First */}
+                  {userTeam && (
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-blue-900">{userTeam.name}</span>
+                        <span className="text-xs text-blue-600 font-medium">Your Team</span>
+                      </div>
+                      <div className="space-y-1">
+                        {userTeam.members.map((member) => (
+                          <div key={member.id} className="text-sm text-left">
+                            <span className="text-slate-900">{member.firstNames} {member.lastNames}</span>
+                            <span className="text-slate-500 ml-2">({member.email})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Other Teams */}
+                  {game.teams.filter(t => t.id !== userTeam?.id).map((team) => (
+                    <div key={team.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="text-sm font-medium text-slate-900 mb-2">{team.name}</div>
+                      <div className="space-y-1">
+                        {team.members.map((member) => (
+                          <div key={member.id} className="text-sm text-left">
+                            <span className="text-slate-700">{member.firstNames} {member.lastNames}</span>
+                            <span className="text-slate-500 ml-2">({member.email})</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Run Section - Minimal */}
-          <Card className="border-slate-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <PlayCircle className="h-4 w-4" />
-                Your Team's Run
-              </CardTitle>
-            </CardHeader>
-          <CardContent className="pt-0">
-            {game.run ? (
-              <div className="text-sm">
-                <span className="text-slate-600">Status: </span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(game.run.status)}`}>
-                    {game.run.status}
-                  </span>
-              </div>
-            ) : (
-              <div className="text-sm text-slate-500">No run started yet</div>
+                  
+                  {/* No Team Warning */}
+                  {!userTeam && (
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm text-amber-800 font-medium">You are not part of any team yet</span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -487,6 +525,93 @@ function Game() {
             )}
           </CardContent>
         </Card>
+        </div>
+
+        {/* Runs Section */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-slate-900">Your Team's Runs</h2>
+          
+          {!userTeam ? (
+            <Card className="border-slate-200">
+              <CardContent className="py-8">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <AlertCircle className="h-12 w-12 text-amber-400" />
+                  <div>
+                    <p className="text-slate-900 font-medium">No Team Yet</p>
+                    <p className="text-sm text-slate-600 mt-1">You need to be part of a team to view runs</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : runsIsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader message="Loading runs..." />
+            </div>
+          ) : !runs || runs.length === 0 ? (
+            <Card className="border-slate-200">
+              <CardContent className="py-8">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <PlayCircle className="h-12 w-12 text-slate-400" />
+                  <div>
+                    <p className="text-slate-900 font-medium">No Runs Yet</p>
+                    <p className="text-sm text-slate-600 mt-1">Your team hasn't started any runs for this game</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {runs.map((run) => (
+                <Card key={run.id} className="border-slate-200 hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        {getRunStatusIcon(run.status)}
+                        Run #{run.id.slice(-4)}
+                      </CardTitle>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(run.status)}`}>
+                        {run.status}
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Run Details */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Clock className="h-4 w-4 flex-shrink-0" />
+                        <span>Period: {run.currentPeriod}/{run.totalPeriods}</span>
+                      </div>
+                      {run.score !== undefined && (
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <Trophy className="h-4 w-4 flex-shrink-0" />
+                          <span>Score: {run.score.toFixed(1)}</span>
+                        </div>
+                      )}
+                      <div className="text-xs text-slate-500">
+                        Started: {formatDateTime(run.startedAt)}
+                      </div>
+                      {run.endedAt && (
+                        <div className="text-xs text-slate-500">
+                          Ended: {formatDateTime(run.endedAt)}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Dashboard Button */}
+                    <Button 
+                      onClick={() => handleDashboardClick(run.id)}
+                      className="w-full mt-2"
+                      variant={run.status === 'in-progress' ? 'default' : 'outline'}
+                    >
+                      <PlayCircle className="h-4 w-4 mr-2" />
+                      Go to Dashboard
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Invite Student Modal */}
@@ -498,8 +623,8 @@ function Game() {
               onCancel={handleInviteCancel}
               isInviting={isInviting}
               availableStudents={students}
-              currentTeamSize={game?.team?.members?.length || 0}
-              currentTeamMemberIds={game?.team?.members?.map(m => m.id) || []}
+              currentTeamSize={userTeam?.members?.length || 0}
+              currentTeamMemberIds={userTeam?.members?.map(m => m.id) || []}
               maxTeamSize={4}
             />
             {inviteError && (

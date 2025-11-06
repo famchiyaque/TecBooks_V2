@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+import fetchWithAuth from '@/MxRep/utils/apis/api.service'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const studentService = {
     async getStudentProfile(userId) {
@@ -59,49 +61,15 @@ const studentService = {
         }
     },
 
-    async getStudentGames(studentId) {
+    async getStudentGames(studentId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/student-panel/get-my-games`,
+            token,
+            { method: "GET" }
+        )
         return {
             success: true,
-            data: [
-                {
-                    id: "game001",
-                    name: "Network Security Simulation",
-                    description: "A comprehensive simulation game focusing on network security principles and threat mitigation",
-                    status: "active",
-                    code: "NS-2025-001",
-                    groupId: "group001",
-                    professorId: "prof001",
-                    configurationId: "config001",
-                    createdAt: "2025-01-15T10:00:00Z",
-                    startDate: "2025-03-01T00:00:00Z",
-                    endDate: "2025-03-15T23:59:59Z",
-                    numTeams: 5,
-                    numStudents: 20,
-                    maxScore: 1000,
-                    avgScore: 750.5,
-                    run: {
-                        id: "run001",
-                        status: "in-progress"
-                    }
-                },
-                {
-                    id: "game002",
-                    name: "Web Application Security",
-                    description: "Learn web security vulnerabilities and how to protect applications",
-                    status: "active",
-                    code: "WAS-2025-001",
-                    groupId: "group002",
-                    professorId: "prof001",
-                    configurationId: "config002",
-                    createdAt: "2025-01-20T14:00:00Z",
-                    startDate: "2025-02-15T00:00:00Z",
-                    endDate: "2025-02-28T23:59:59Z",
-                    numTeams: 3,
-                    numStudents: 12,
-                    maxScore: 1000,
-                    avgScore: 820.3
-                }
-            ]
+            data: data.data || data
         }
     },
 
@@ -293,6 +261,30 @@ const studentService = {
                 })
             }, 1000)
         })
+    },
+
+    async getGame(gameId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/student-panel/get-game?gameId=${gameId}`,
+            token,
+            { method: "GET" }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
+    },
+
+    async getTeamRuns(gameId, teamId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/student-panel/get-runs?gameId=${gameId}&teamId=${teamId}`,
+            token,
+            { method: "GET" }
+        )
+        return {
+            success: true,
+            data: data.data || data
+        }
     }
 }
 

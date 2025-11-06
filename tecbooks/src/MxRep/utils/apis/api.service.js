@@ -34,6 +34,12 @@ export default async function fetchWithAuth(url, token, options = {}) {
     const response = await fetch(url, fetchOptions)
     
     if (!response.ok) {
+        // Handle 403 Forbidden - token expired or invalid
+        // if (response.status === 403) {
+        //     window.location.href = '/login'
+        //     throw new Error('Session expired. Please login again.')
+        // }
+        
         // Try to get error message from response body
         let errorMessage = `HTTP error! status: ${response.status}`
         try {
