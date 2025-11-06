@@ -153,21 +153,15 @@ export const professorService = {
         }
     },
 
-    async getClass(classId) {
-        const classes = {
-            "class001": {
-                id: "class001",
-                name: "Network Security",
-                code: "CS-401",
-                createdAt: "2024-01-10T10:00:00Z",
-                numGroups: 4,
-                description: "Advanced network security concepts and practices"
-            }
-        }
-
+    async getClass(classId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/professor-panel/get-class?classId=${classId}`,
+            token,
+            { method: "GET" }
+        )
         return {
             success: true,
-            data: classes[classId] || null
+            data: data.data || data
         }
     },
 
@@ -190,7 +184,7 @@ export const professorService = {
         }
     },
 
-    async updateClass(classId, classData) {
+    async updateClass(classId, classData, token) {
         return {
             success: true,
             data: {

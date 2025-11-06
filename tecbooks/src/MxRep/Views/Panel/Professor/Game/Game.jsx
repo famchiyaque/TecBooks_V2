@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { useGetGame, useGameActions, useGetTeamsByGame, useGetStudentsByGroup } from '@/MxRep/utils/hooks/professor.hooks'
+import { useGetGame, useGameActions, useGetTeamsByGame, useGetStudentsByGroup, useCreateTeam } from '@/MxRep/utils/hooks/professor.hooks'
 import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, AlertCircle, Settings, Users, Trophy, Calendar, Gamepad2, Building2, Package, Factory, Briefcase, Receipt, ChevronDown, ChevronUp, Hash, Play, Pause, CheckCircle, Trash2, DollarSign } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft, AlertCircle, Settings, Users, Trophy, Calendar, Gamepad2, Building2, Package, Factory, Briefcase, Receipt, ChevronDown, ChevronUp, Hash, Play, Pause, CheckCircle, Trash2, DollarSign, X } from 'lucide-react'
 
 function Game() {
   const { gameId } = useParams()
@@ -17,8 +19,12 @@ function Game() {
   const { activateGame, pauseGame, completeGame, deleteGame, isLoading: actionLoading, error: actionError } = useGameActions()
   const { getTeamsByGame, teamsIsLoading, teams } = useGetTeamsByGame()
   const { getStudentsByGroup, studentsIsLoading, students } = useGetStudentsByGroup()
+  const { createTeam, isCreating: isCreatingTeam, error: createTeamError } = useCreateTeam()
   const [activeTab, setActiveTab] = useState('overview')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCreateTeamDialog, setShowCreateTeamDialog] = useState(false)
+  const [teamName, setTeamName] = useState('')
+  const [selectedStudentIds, setSelectedStudentIds] = useState([])
   const [expandedSections, setExpandedSections] = useState({
     gameSettings: false,
     boms: false,
@@ -111,6 +117,55 @@ function Game() {
       } else {
         alert(`Failed to delete game: ${result.error}`)
       }
+    }
+  }
+
+  const handleCreateTeam = () => {
+    setShowCreateTeamDialog(true)
+    setTeamName('')
+    setSelectedStudentIds([])
+  }
+
+  const handleCloseCreateTeamDialog = () => {
+    setShowCreateTeamDialog(false)
+    setTeamName('')
+    setSelectedStudentIds([])
+  }
+
+  const handleStudentToggle = (studentId) => {
+    setSelectedStudentIds(prev => 
+      prev.includes(studentId)
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    )
+  }
+
+  const handleSubmitCreateTeam = async () => {
+    if (!teamName.trim()) {
+      alert('Please enter a team name')
+      return
+    }
+
+    if (selectedStudentIds.length === 0) {
+      alert('Please select at least one student')
+      return
+    }
+
+    const teamData = {
+      gameId: gameId,
+      name: teamName.trim(),
+      studentIds: selectedStudentIds
+    }
+
+    const result = await createTeam(teamData)
+    
+    if (result.success) {
+      alert('Team created successfully!')
+      handleCloseCreateTeamDialog()
+      // Refresh teams list
+      getTeamsByGame(gameId)
+    } else {
+      alert(`Failed to create team: ${result.error || createTeamError}`)
     }
   }
 
@@ -425,8 +480,15 @@ function Game() {
                           )}
                         </button>
                         {expandedSections.boms && (
-                          <div className="pb-3 px-2">
-                            <p className="text-sm text-slate-600 mb-2">{game.configuration.availableBOMIds.length} Bill of Materials available for this game</p>
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableBOMIds.map((bom, index) => (
+                              <div key={bom._id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{bom.name}</p>
+                                {bom.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{bom.description}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -451,8 +513,15 @@ function Game() {
                           )}
                         </button>
                         {expandedSections.expenses && (
-                          <div className="pb-3 px-2">
-                            <p className="text-sm text-slate-600 mb-2">{game.configuration.availableExpenseIds.length} expenses available for this game</p>
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableExpenseIds.map((expense, index) => (
+                              <div key={expense._id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{expense.name}</p>
+                                {expense.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{expense.description}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -477,8 +546,15 @@ function Game() {
                           )}
                         </button>
                         {expandedSections.assets && (
-                          <div className="pb-3 px-2">
-                            <p className="text-sm text-slate-600 mb-2">{game.configuration.availableAssetIds.length} assets available for this game</p>
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableAssetIds.map((asset, index) => (
+                              <div key={asset._id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{asset.name}</p>
+                                {asset.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{asset.description}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -503,8 +579,15 @@ function Game() {
                           )}
                         </button>
                         {expandedSections.employees && (
-                          <div className="pb-3 px-2">
-                            <p className="text-sm text-slate-600 mb-2">{game.configuration.availableEmployeeIds.length} employees available for this game</p>
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableEmployeeIds.map((employee, index) => (
+                              <div key={employee._id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{employee.name}</p>
+                                {employee.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{employee.description}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -529,8 +612,15 @@ function Game() {
                           )}
                         </button>
                         {expandedSections.materials && (
-                          <div className="pb-3 px-2">
-                            <p className="text-sm text-slate-600 mb-2">{game.configuration.availableMaterialIds.length} materials available for this game</p>
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableMaterialIds.map((material, index) => (
+                              <div key={material._id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{material.name}</p>
+                                {material.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{material.description}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -555,8 +645,15 @@ function Game() {
                           )}
                         </button>
                         {expandedSections.processes && (
-                          <div className="pb-3 px-2">
-                            <p className="text-sm text-slate-600 mb-2">{game.configuration.availableProcessIds.length} processes available for this game</p>
+                          <div className="pb-3 px-2 space-y-2">
+                            {game.configuration.availableProcessIds.map((process, index) => (
+                              <div key={process._id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <p className="font-medium text-slate-900 text-sm">{process.name}</p>
+                                {process.description && (
+                                  <p className="text-xs text-slate-600 mt-1">{process.description}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -577,7 +674,7 @@ function Game() {
             <Card className="border-slate-200">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Teams</CardTitle>
-                <Button className="gap-2" size="sm">
+                <Button className="gap-2" size="sm" onClick={handleCreateTeam}>
                   <Users className="h-4 w-4" />
                   Create Team
                 </Button>
@@ -623,7 +720,7 @@ function Game() {
                     <p className="text-slate-600 mb-4">
                       Create teams and assign students from the group
                     </p>
-                    <Button className="gap-2">
+                    <Button className="gap-2" onClick={handleCreateTeam}>
                       <Users className="h-4 w-4" />
                       Create Your First Team
                     </Button>
@@ -685,6 +782,132 @@ function Game() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Create Team Dialog */}
+      {showCreateTeamDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleCloseCreateTeamDialog}>
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Create New Team</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCloseCreateTeamDialog}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {createTeamError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{createTeamError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-6">
+                {/* Team Name Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="teamName">Team Name</Label>
+                  <Input
+                    id="teamName"
+                    placeholder="Enter team name"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Student Selection */}
+                <div className="space-y-2">
+                  <Label>Select Students</Label>
+                  {studentsIsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader message="Loading students..." />
+                    </div>
+                  ) : students && students.length > 0 ? (
+                    <div className="border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto space-y-3">
+                      {students.map((student) => {
+                        const studentId = student._id || student.id
+                        const isSelected = selectedStudentIds.includes(studentId)
+                        return (
+                          <div
+                            key={studentId}
+                            className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer"
+                            onClick={() => handleStudentToggle(studentId)}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleStudentToggle(studentId)}
+                              id={`student-${studentId}`}
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label
+                              htmlFor={`student-${studentId}`}
+                              className="flex-1 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-slate-900">
+                                    {student.firstNames} {student.lastNames}
+                                  </p>
+                                  <p className="text-sm text-slate-500">{student.email}</p>
+                                </div>
+                                {student.teamName && (
+                                  <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                                    In: {student.teamName}
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="border border-slate-200 rounded-lg p-8 text-center">
+                      <p className="text-slate-600">No students available in this group</p>
+                    </div>
+                  )}
+                  {selectedStudentIds.length > 0 && (
+                    <p className="text-sm text-slate-500">
+                      {selectedStudentIds.length} student{selectedStudentIds.length !== 1 ? 's' : ''} selected
+                    </p>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={handleCloseCreateTeamDialog}
+                    disabled={isCreatingTeam}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSubmitCreateTeam}
+                    disabled={isCreatingTeam || !teamName.trim() || selectedStudentIds.length === 0}
+                    className="gap-2"
+                  >
+                    {isCreatingTeam ? (
+                      'Creating...'
+                    ) : (
+                      <>
+                        <Users className="h-4 w-4" />
+                        Create Team
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -383,16 +383,22 @@ export const useGetProfessorClasses = () => {
 }
 
 export const useGetClass = () => {
+    const { token } = useAuth()
     const [classIsLoading, setClassIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [classData, setClassData] = useState(null)
 
     const getClass = useCallback(async (classId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setClassIsLoading(true)
         setError(null)
 
         try {
-            const response = await professorService.getClass(classId)
+            const response = await professorService.getClass(classId, token)
             console.log("Response from getClass: ", response)
             setClassData(response.data)
             return { success: true, data: response.data }
@@ -402,14 +408,19 @@ export const useGetClass = () => {
         } finally {
             setClassIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     const updateClass = useCallback(async (classId, data) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
         setClassIsLoading(true)
         setError(null)
 
         try {
-            const response = await professorService.updateClass(classId, data)
+            const response = await professorService.updateClass(classId, data, token)
             setClassData(response.data)
             return { success: true, data: response.data }
         } catch (err) {
@@ -418,7 +429,7 @@ export const useGetClass = () => {
         } finally {
             setClassIsLoading(false)
         }
-    }, [])
+    }, [token])
 
     return {
         getClass,
