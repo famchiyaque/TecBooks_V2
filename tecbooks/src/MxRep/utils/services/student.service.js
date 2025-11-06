@@ -285,6 +285,22 @@ const studentService = {
             success: true,
             data: data.data || data
         }
+    },
+
+    async createRun(gameId, teamId, token) {
+        const data = await fetchWithAuth(
+            `${API_BASE_URL}/mxrep/student-panel/create-run`,
+            token,
+            {
+                method: "POST",
+                body: JSON.stringify({ gameId, teamId })
+            }
+        )
+
+        return {
+            success: true,
+            data: data.data || data
+        }
     }
 }
 

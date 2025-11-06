@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
+import studentService from '@/MxRep/utils/services/student.service'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import studentService from '../services/student.service'
 
 export const useGetStudentProfile = () => {
     const [profileIsLoading, setProfileIsLoading] = useState(false)
@@ -13,7 +13,6 @@ export const useGetStudentProfile = () => {
 
         try {
             const response = await studentService.getStudentProfile(userId)
-            console.log("Response from getStudentProfile: ", response)
             setProfile(response.data)
             return { success: true, data: response.data }
         } catch (err) {
@@ -24,7 +23,7 @@ export const useGetStudentProfile = () => {
         }
     }, [])
 
-    const updateStudentProfile = useCallback(async (userId, profileData) => {
+    const updateProfile = useCallback(async (userId, profileData) => {
         setProfileIsLoading(true)
         setError(null)
 
@@ -42,7 +41,7 @@ export const useGetStudentProfile = () => {
 
     return {
         getStudentProfile,
-        updateStudentProfile,
+        updateProfile,
         profileIsLoading,
         error,
         profile,
@@ -75,6 +74,7 @@ export const useGetStudentGames = () => {
                 id: game.id || game._id
             }))
             setGames(normalizedGames)
+            return { success: true, data: normalizedGames }
         } catch (err) {
             setError(err.message)
             return { success: false, error: err.message }
@@ -92,18 +92,17 @@ export const useGetStudentGames = () => {
     }
 }
 
-export const useGetStudentGame = () => {
+export const useGetGameDetails = () => {
     const [gameIsLoading, setGameIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [game, setGame] = useState(null)
 
-    const getStudentGame = useCallback(async (gameId, studentId) => {
+    const getGameDetails = useCallback(async (gameId) => {
         setGameIsLoading(true)
         setError(null)
 
         try {
-            const response = await studentService.getStudentGame(gameId, studentId)
-            console.log("Response from getStudentGame: ", response)
+            const response = await studentService.getStudentGame(gameId)
             setGame(response.data)
             return { success: true, data: response.data }
         } catch (err) {
@@ -115,7 +114,7 @@ export const useGetStudentGame = () => {
     }, [])
 
     return {
-        getStudentGame,
+        getGameDetails,
         gameIsLoading,
         error,
         game,
@@ -129,13 +128,13 @@ export const useGetGroupStudents = () => {
     const [error, setError] = useState(null)
     const [students, setStudents] = useState([])
 
-    const getGroupStudents = useCallback(async (groupId, gameId, currentStudentId) => {
+    const getGroupStudents = useCallback(async (groupId, gameId, currentUserId) => {
         setStudentsIsLoading(true)
         setError(null)
 
         try {
-            const response = await studentService.getGroupStudents(groupId, gameId, currentStudentId)
-            setStudents(response.data)
+            const response = await studentService.getGroupStudents(groupId, gameId, currentUserId)
+            setStudents(response.data || [])
             return { success: true, data: response.data }
         } catch (err) {
             setError(err.message)
@@ -202,7 +201,15 @@ export const useGetGame = () => {
             // Normalize _id to id for game and nested objects
             const normalizedGame = {
                 ...response.data,
-                id: response.data.id || response.data._id
+                id: response.data.id || response.data._id,
+                teams: (response.data.teams || []).map(team => ({
+                    ...team,
+                    id: team.id || team._id,
+                    members: (team.members || []).map(member => ({
+                        ...member,
+                        id: member.id || member._id
+                    }))
+                }))
             }
             setGame(normalizedGame)
             return { success: true, data: normalizedGame }
@@ -267,3 +274,31 @@ export const useGetTeamRuns = () => {
     }
 }
 
+export const useCreateRun = () => {
+    const { token } = useAuth()
+    const [isCreating, setIsCreating] = useState(false)
+    const [error, setError] = useState(null)
+
+    const createRun = useCallback(async (gameId, teamId) => {
+        if (!token) {
+            setError("No authentication token available")
+            return { success: false, error: "No authentication token available" }
+        }
+
+        setIsCreating(true)
+        setError(null)
+
+        try {
+            const response = await studentService.createRun(gameId, teamId, token)
+            setIsCreating(false)
+            return { success: true, data: response.data }
+        } catch (err) {
+            const errorMessage = err.message || "Failed to create run"
+            setError(errorMessage)
+            setIsCreating(false)
+            return { success: false, error: errorMessage }
+        }
+    }, [token])
+
+    return { createRun, isCreating, error }
+}

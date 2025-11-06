@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { useGetGame, useGetTeamRuns, useGetGroupStudents, useInviteStudent } from '@/MxRep/utils/hooks/student.hooks'
+import { useGetGame, useGetTeamRuns, useGetGroupStudents, useInviteStudent, useCreateRun } from '@/MxRep/utils/hooks/student.hooks'
 import Loader from '@/Global Components/Loader'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -18,6 +18,7 @@ function Game() {
   const { getTeamRuns, runsIsLoading, runs } = useGetTeamRuns()
   const { getGroupStudents, studentsIsLoading, students } = useGetGroupStudents()
   const { inviteStudent, isInviting, error: inviteError } = useInviteStudent()
+  const { createRun, isCreating, error: createRunError } = useCreateRun()
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [activeTab, setActiveTab] = useState('game')
   const [expandedSections, setExpandedSections] = useState({
@@ -39,17 +40,28 @@ function Game() {
     getGame(gameId)
   }, [isInitialized, isLoading, user, gameId, getGame])
 
-  // Find user's team and fetch their runs
+  // Set user's team from game.myTeam and fetch their runs
   useEffect(() => {
-    if (game && game.teams && user) {
-      const team = game.teams.find(t => 
-        t.members.some(m => m.id === user.userId)
-      )
-      setUserTeam(team)
-      
-      if (team) {
-        console.log("[GAME VIEW] getting team runs for teamId: ", team.id)
-        getTeamRuns(gameId, team.id)
+    if (game && user) {
+      // Check if game.myTeam exists and normalize the _id to id
+      if (game.myTeam) {
+        const normalizedTeam = {
+          ...game.myTeam,
+          id: game.myTeam.id || game.myTeam._id,
+          members: (game.myTeam.studentIds || []).map(student => ({
+            ...student,
+            id: student.id || student._id,
+            firstNames: student.firstNames,
+            lastNames: student.lastNames,
+            email: student.email
+          }))
+        }
+        setUserTeam(normalizedTeam)
+        
+        console.log("[GAME VIEW] getting team runs for teamId: ", normalizedTeam.id)
+        getTeamRuns(gameId, normalizedTeam.id)
+      } else {
+        setUserTeam(null)
       }
     }
   }, [game, user, gameId, getTeamRuns])
@@ -90,6 +102,20 @@ function Game() {
 
   const handleInviteCancel = () => {
     setShowInviteModal(false)
+  }
+
+  const handleStartRun = async () => {
+    if (!userTeam?.id || !gameId) {
+      return
+    }
+    
+    const result = await createRun(gameId, userTeam.id)
+    if (result.success) {
+      // Refresh runs to show the new one
+      getTeamRuns(gameId, userTeam.id)
+      // Navigate to the runs tab
+      setActiveTab('runs')
+    }
   }
 
   const toggleSection = (section) => {
@@ -199,14 +225,24 @@ function Game() {
           
           <div className="flex items-center gap-3">
             {userTeam && (
-              <Button 
-                onClick={handleInviteStudent}
-                variant="outline"
-                className="gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                Invite Student
-              </Button>
+              <>
+                <Button 
+                  onClick={handleInviteStudent}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Invite Student
+                </Button>
+                <Button 
+                  onClick={handleStartRun}
+                  disabled={isCreating || game.status !== 'active'}
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  {isCreating ? 'Starting...' : 'Start Run'}
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -231,62 +267,47 @@ function Game() {
               </Card>
             )}
           
-          {/* Teams List */}
+          {/* My Team */}
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Users className="h-4 w-4" />
-                Teams
+                My Team
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
-              {!game.teams || game.teams.length === 0 ? (
-                <div className="text-sm text-slate-500">No teams yet</div>
+              {!userTeam ? (
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm text-amber-800 font-medium">You are not part of any team yet</span>
+                  </div>
+                </div>
               ) : (
-                <>
-                  {/* User's Team First */}
-                  {userTeam && (
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-blue-900">{userTeam.name}</span>
-                        <span className="text-xs text-blue-600 font-medium">Your Team</span>
-                      </div>
-                      <div className="space-y-1">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="mb-3">
+                    <span className="text-base font-semibold text-blue-900">{userTeam.name}</span>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">Team Members</p>
+                    {userTeam.members && userTeam.members.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
                         {userTeam.members.map((member) => (
-                          <div key={member.id} className="text-sm text-left">
-                            <span className="text-slate-900">{member.firstNames} {member.lastNames}</span>
-                            <span className="text-slate-500 ml-2">({member.email})</span>
+                          <div 
+                            key={member.id} 
+                            className="inline-flex items-center px-3 py-1.5 bg-white rounded-full border border-blue-200"
+                          >
+                            <span className="text-sm font-medium text-slate-900">
+                              {member.firstNames} {member.lastNames}
+                            </span>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Other Teams */}
-                  {game.teams.filter(t => t.id !== userTeam?.id).map((team) => (
-                    <div key={team.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <div className="text-sm font-medium text-slate-900 mb-2">{team.name}</div>
-                      <div className="space-y-1">
-                        {team.members.map((member) => (
-                          <div key={member.id} className="text-sm text-left">
-                            <span className="text-slate-700">{member.firstNames} {member.lastNames}</span>
-                            <span className="text-slate-500 ml-2">({member.email})</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* No Team Warning */}
-                  {!userTeam && (
-                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-amber-600" />
-                        <span className="text-sm text-amber-800 font-medium">You are not part of any team yet</span>
-                      </div>
-                    </div>
-                  )}
-                </>
+                    ) : (
+                      <div className="text-sm text-blue-700">No members yet</div>
+                    )}
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -300,7 +321,7 @@ function Game() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {game.configuration ? (
+                {game.configurationId ? (
                   <>
                     {/* Game Settings */}
                     <div className="border-b border-slate-100">
@@ -335,28 +356,28 @@ function Game() {
                                 {game.status}
                               </span>
                             </div>
-                            {game.configuration.initialCapital !== undefined && (
+                            {game.configurationId.initialCapital !== undefined && (
                               <div>
                                 <span className="text-slate-500">Initial Capital: </span>
-                                <span className="text-slate-900 font-medium">${game.configuration.initialCapital?.toLocaleString()}</span>
+                                <span className="text-slate-900 font-medium">${game.configurationId.initialCapital?.toLocaleString()}</span>
                               </div>
                             )}
-                            {game.configuration.gameDurationMonths !== undefined && (
+                            {game.configurationId.gameDurationMonths !== undefined && (
                               <div>
                                 <span className="text-slate-500">Duration: </span>
-                                <span className="text-slate-900 font-medium">{game.configuration.gameDurationMonths} months</span>
+                                <span className="text-slate-900 font-medium">{game.configurationId.gameDurationMonths} months</span>
                               </div>
                             )}
-                            {game.configuration.name && (
+                            {game.configurationId.name && (
                               <div className="col-span-2">
                                 <span className="text-slate-500">Configuration Name: </span>
-                                <span className="text-slate-900 font-medium">{game.configuration.name}</span>
+                                <span className="text-slate-900 font-medium">{game.configurationId.name}</span>
                               </div>
                             )}
-                            {game.configuration.description && (
+                            {game.configurationId.description && (
                               <div className="col-span-2">
                                 <span className="text-slate-500">Description: </span>
-                                <span className="text-slate-900">{game.configuration.description}</span>
+                                <span className="text-slate-900">{game.configurationId.description}</span>
                               </div>
                             )}
                           </div>
@@ -365,7 +386,7 @@ function Game() {
                     </div>
 
                     {/* BOMs Section */}
-                    {game.configuration?.availableBOMIds && game.configuration.availableBOMIds.length > 0 && (
+                    {game.configurationId?.availableBOMIds && game.configurationId.availableBOMIds.length > 0 && (
                       <div className="border-b border-slate-100">
                         <button
                           type="button"
@@ -374,7 +395,7 @@ function Game() {
                         >
                           <div className="flex items-center gap-2">
                             <Package className="h-4 w-4 text-slate-600" />
-                            <span className="font-medium text-slate-900">Available BOMs ({game.configuration.availableBOMIds.length})</span>
+                            <span className="font-medium text-slate-900">Available BOMs ({game.configurationId.availableBOMIds.length})</span>
                           </div>
                           {expandedSections.boms ? (
                             <ChevronUp className="h-4 w-4 text-slate-600" />
@@ -384,7 +405,7 @@ function Game() {
                         </button>
                         {expandedSections.boms && (
                           <div className="pb-3 px-2 space-y-2">
-                            {game.configuration.availableBOMIds.map((bom, index) => (
+                            {game.configurationId.availableBOMIds.map((bom, index) => (
                               <div key={bom._id || bom.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <p className="font-medium text-slate-900 text-sm">{bom.name}</p>
                                 {bom.description && (
@@ -398,7 +419,7 @@ function Game() {
                     )}
 
                     {/* Expenses Section */}
-                    {game.configuration?.availableExpenseIds && game.configuration.availableExpenseIds.length > 0 && (
+                    {game.configurationId?.availableExpenseIds && game.configurationId.availableExpenseIds.length > 0 && (
                       <div className="border-b border-slate-100">
                         <button
                           type="button"
@@ -407,7 +428,7 @@ function Game() {
                         >
                           <div className="flex items-center gap-2">
                             <Receipt className="h-4 w-4 text-slate-600" />
-                            <span className="font-medium text-slate-900">Available Expenses ({game.configuration.availableExpenseIds.length})</span>
+                            <span className="font-medium text-slate-900">Available Expenses ({game.configurationId.availableExpenseIds.length})</span>
                           </div>
                           {expandedSections.expenses ? (
                             <ChevronUp className="h-4 w-4 text-slate-600" />
@@ -417,7 +438,7 @@ function Game() {
                         </button>
                         {expandedSections.expenses && (
                           <div className="pb-3 px-2 space-y-2">
-                            {game.configuration.availableExpenseIds.map((expense, index) => (
+                            {game.configurationId.availableExpenseIds.map((expense, index) => (
                               <div key={expense._id || expense.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <p className="font-medium text-slate-900 text-sm">{expense.name}</p>
                                 {expense.description && (
@@ -431,7 +452,7 @@ function Game() {
                     )}
 
                     {/* Assets Section */}
-                    {game.configuration?.availableAssetIds && game.configuration.availableAssetIds.length > 0 && (
+                    {game.configurationId?.availableAssetIds && game.configurationId.availableAssetIds.length > 0 && (
                       <div className="border-b border-slate-100">
                         <button
                           type="button"
@@ -440,7 +461,7 @@ function Game() {
                         >
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4 text-slate-600" />
-                            <span className="font-medium text-slate-900">Available Assets ({game.configuration.availableAssetIds.length})</span>
+                            <span className="font-medium text-slate-900">Available Assets ({game.configurationId.availableAssetIds.length})</span>
                           </div>
                           {expandedSections.assets ? (
                             <ChevronUp className="h-4 w-4 text-slate-600" />
@@ -450,7 +471,7 @@ function Game() {
                         </button>
                         {expandedSections.assets && (
                           <div className="pb-3 px-2 space-y-2">
-                            {game.configuration.availableAssetIds.map((asset, index) => (
+                            {game.configurationId.availableAssetIds.map((asset, index) => (
                               <div key={asset._id || asset.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <p className="font-medium text-slate-900 text-sm">{asset.name}</p>
                                 {asset.description && (
@@ -464,7 +485,7 @@ function Game() {
                     )}
 
                     {/* Employees Section */}
-                    {game.configuration?.availableEmployeeIds && game.configuration.availableEmployeeIds.length > 0 && (
+                    {game.configurationId?.availableEmployeeIds && game.configurationId.availableEmployeeIds.length > 0 && (
                       <div className="border-b border-slate-100">
                         <button
                           type="button"
@@ -473,7 +494,7 @@ function Game() {
                         >
                           <div className="flex items-center gap-2">
                             <Briefcase className="h-4 w-4 text-slate-600" />
-                            <span className="font-medium text-slate-900">Available Employees ({game.configuration.availableEmployeeIds.length})</span>
+                            <span className="font-medium text-slate-900">Available Employees ({game.configurationId.availableEmployeeIds.length})</span>
                           </div>
                           {expandedSections.employees ? (
                             <ChevronUp className="h-4 w-4 text-slate-600" />
@@ -483,7 +504,7 @@ function Game() {
                         </button>
                         {expandedSections.employees && (
                           <div className="pb-3 px-2 space-y-2">
-                            {game.configuration.availableEmployeeIds.map((employee, index) => (
+                            {game.configurationId.availableEmployeeIds.map((employee, index) => (
                               <div key={employee._id || employee.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <p className="font-medium text-slate-900 text-sm">{employee.name}</p>
                                 {employee.description && (
@@ -497,7 +518,7 @@ function Game() {
                     )}
 
                     {/* Materials Section */}
-                    {game.configuration?.availableMaterialIds && game.configuration.availableMaterialIds.length > 0 && (
+                    {game.configurationId?.availableMaterialIds && game.configurationId.availableMaterialIds.length > 0 && (
                       <div className="border-b border-slate-100">
                         <button
                           type="button"
@@ -506,7 +527,7 @@ function Game() {
                         >
                           <div className="flex items-center gap-2">
                             <Factory className="h-4 w-4 text-slate-600" />
-                            <span className="font-medium text-slate-900">Available Materials ({game.configuration.availableMaterialIds.length})</span>
+                            <span className="font-medium text-slate-900">Available Materials ({game.configurationId.availableMaterialIds.length})</span>
                           </div>
                           {expandedSections.materials ? (
                             <ChevronUp className="h-4 w-4 text-slate-600" />
@@ -516,7 +537,7 @@ function Game() {
                         </button>
                         {expandedSections.materials && (
                           <div className="pb-3 px-2 space-y-2">
-                            {game.configuration.availableMaterialIds.map((material, index) => (
+                            {game.configurationId.availableMaterialIds.map((material, index) => (
                               <div key={material._id || material.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <p className="font-medium text-slate-900 text-sm">{material.name}</p>
                                 {material.description && (
@@ -530,7 +551,7 @@ function Game() {
                     )}
 
                     {/* Processes Section */}
-                    {game.configuration?.availableProcessIds && game.configuration.availableProcessIds.length > 0 && (
+                    {game.configurationId?.availableProcessIds && game.configurationId.availableProcessIds.length > 0 && (
                       <div className="border-b border-slate-100 last:border-0">
                         <button
                           type="button"
@@ -539,7 +560,7 @@ function Game() {
                         >
                           <div className="flex items-center gap-2">
                             <Settings className="h-4 w-4 text-slate-600" />
-                            <span className="font-medium text-slate-900">Available Processes ({game.configuration.availableProcessIds.length})</span>
+                            <span className="font-medium text-slate-900">Available Processes ({game.configurationId.availableProcessIds.length})</span>
                           </div>
                           {expandedSections.processes ? (
                             <ChevronUp className="h-4 w-4 text-slate-600" />
@@ -549,7 +570,7 @@ function Game() {
                         </button>
                         {expandedSections.processes && (
                           <div className="pb-3 px-2 space-y-2">
-                            {game.configuration.availableProcessIds.map((process, index) => (
+                            {game.configurationId.availableProcessIds.map((process, index) => (
                               <div key={process._id || process.id || index} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                                 <p className="font-medium text-slate-900 text-sm">{process.name}</p>
                                 {process.description && (
@@ -657,6 +678,16 @@ function Game() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Create Run Error Alert */}
+      {createRunError && (
+        <div className="fixed bottom-4 right-4 z-50 max-w-md">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{createRunError}</AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Invite Student Modal */}
       {showInviteModal && (
