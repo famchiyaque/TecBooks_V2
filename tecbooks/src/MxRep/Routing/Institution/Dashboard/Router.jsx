@@ -14,26 +14,12 @@ import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 
 function DashboardRouter() {
     console.log("rendering dashboard router")
-    // const { sim } = useSimData()
 
     const { simData, isLoading, error } = useSimData()
-    // const ""
-
-    // const [activeView, setActiveView] = useState(1)
-    // const [activeSidebar, setActiveSidebar] = useState(1)
-
-    // const jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkpvaG4gRG9lIiwic2ltdWxhdGlvbk5hbWUiOiJNeSBTaW11bGF0aW9uIiwicHJvZHVjdCI6IldpZGdldCIsImlhdCI6MTcyNzg2MjkwOSwiZXhwIjoxNzI3ODY2NTA5fQ.hLIlINXDt4Ltncu4npydGLkEba-tzLc3sZLKoKr8QbI"
-
-    // console.log("sim after useEffect: ", simData)
-
-    // if (isLoading == true) return <Loader />
-    // if (simData == null || error == true) return <Navigate to="/error" />
-
-    // const simUserInfo = {"name": simData.userName, "teamName": simData.teamName, "ranking": simData.placement}
 
     return (
         <Routes>
-            <Route path="/" element={<MainLayout />}>
+            <Route path=":gameId/:runId" element={<MainLayout />}>
                 <Route index element={<Navigate to="overview" />} />
                 <Route path="overview" element={<Overview_View />} />
                 <Route path="production-line" element={<Productivity_View />} />
