@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { useParams } from 'react-router-dom'
 import Loader from '@/Global Components/Loader'
 import { newPasswordSchema } from '@/MxRep/utils/schemas/form.schemas';
+import FAQHelpButton from '@/faq/components/FAQHelpButton'
 
 function ResetPassword() {
   const [isLoading, setIsLoading] = useState(true)
@@ -48,7 +49,10 @@ function ResetPassword() {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader> {/* Added text-left here */}
+      <CardHeader className="relative"> {/* Added text-left here */}
+        <div className="absolute top-4 right-4">
+          <FAQHelpButton faqSectionId="accounts" />
+        </div>
         <CardTitle className="text-2xl">Reset Password</CardTitle>
         <CardDescription>
           Enter your new password and confirm it to regain access to your account
