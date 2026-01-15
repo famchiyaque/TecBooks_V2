@@ -6,7 +6,7 @@ import HomePage from "./HomePage/HomePage";
 import MxRepRouter from "./MxRep/Routing/Router";
 import TECBooks from "./TECBooks/Index";
 import Simulators from "./Sims/Index";
-import FAQ from "./faq";
+import FAQ from "./faq/index";
 import { Navigate } from "react-router-dom";
 import { OrientationProvider } from "./Global Components/PortraitContext";
 
