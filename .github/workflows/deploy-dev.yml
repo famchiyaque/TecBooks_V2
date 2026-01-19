@@ -1,0 +1,19 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  notify-deployment:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger deployment webhook
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: ${{ secrets.WEBHOOK_SIGNATURE }}" \
+            -d '{"ref":"refs/heads/develop","repository":{"name":"${{ github.repository }}"},"pusher":{"name":"${{ github.actor }}"},"commits":[]}' \
+            ${{ secrets.DEV_WEBHOOK_URL }}
