@@ -1,0 +1,349 @@
+const months = ["August", "September", "October"];
+  const incomeData = {
+    netSales: [simData.netSales, simData.netSales, simData.netSales], // 1000000
+    totalCosts: [simData.totalCosts, simData.totalCosts, simData.totalCosts], // 500000
+    grossProfit: [
+      simData.netSales - simData.totalCosts,
+      simData.netSales - simData.totalCosts,
+      simData.netSales - simData.totalCosts,
+    ],
+
+    administrativeExpenses: [
+      simData.administrativeExpenses,
+      simData.administrativeExpenses,
+      simData.administrativeExpenses,
+    ], // 100000
+    sellingExpenses: [
+      simData.sellingExpenses,
+      simData.sellingExpenses,
+      simData.sellingExpenses,
+    ], // 100000
+    operatingExpenses: [
+      simData.operatingExpenses,
+      simData.operatingExpenses,
+      simData.operatingExpenses,
+    ], // 200000
+    sellingAndOperatingExpenses: [
+      simData.sellingExpenses + simData.operatingExpenses,
+      simData.sellingExpenses + simData.operatingExpenses,
+      simData.sellingExpenses + simData.operatingExpenses,
+    ],
+    totalOperatingExpenses: [
+      simData.administrativeExpenses +
+        simData.sellingExpenses +
+        simData.operatingExpenses,
+      simData.administrativeExpenses +
+        simData.sellingExpenses +
+        simData.operatingExpenses,
+      simData.administrativeExpenses +
+        simData.sellingExpenses +
+        simData.operatingExpenses,
+    ],
+    operatingProfit: [
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses),
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses),
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses),
+    ], // EBITAD
+
+    depreciation: [
+      simData.depreciation,
+      simData.depreciation,
+      simData.depreciation,
+    ], // 100000
+    otherIncome: [
+      simData.otherIncome,
+      simData.otherIncome,
+      simData.otherIncome,
+    ], // 50000
+    otherExpenses: [
+      simData.otherExpenses,
+      simData.otherExpenses,
+      simData.otherExpenses,
+    ], // 25000
+    otherIncomeAndExpenses: [
+      simData.otherIncome - simData.otherExpenses,
+      simData.otherIncome - simData.otherExpenses,
+      simData.otherIncome - simData.otherExpenses,
+    ],
+    fixedAssetsSale: [
+      simData.fixedAssetsSale,
+      simData.fixedAssetsSale,
+      simData.fixedAssetsSale,
+    ], // 100000
+    incomeBeforeTax: [
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses) +
+        simData.otherIncome -
+        simData.otherExpenses -
+        simData.depreciation +
+        simData.fixedAssetsSale,
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses) +
+        simData.otherIncome -
+        simData.otherExpenses -
+        simData.depreciation +
+        simData.fixedAssetsSale,
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses) +
+        simData.otherIncome -
+        simData.otherExpenses -
+        simData.depreciation +
+        simData.fixedAssetsSale,
+    ],
+
+    taxExpense: [simData.taxExpense, simData.taxExpense, simData.taxExpense], // 50000
+    netIncome: [
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses) +
+        simData.otherIncome -
+        simData.otherExpenses -
+        simData.depreciation +
+        simData.fixedAssetsSale -
+        simData.taxExpense,
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses) +
+        simData.otherIncome -
+        simData.otherExpenses -
+        simData.depreciation +
+        simData.fixedAssetsSale -
+        simData.taxExpense,
+      simData.netSales -
+        simData.totalCosts -
+        (simData.administrativeExpenses +
+          simData.sellingExpenses +
+          simData.operatingExpenses) +
+        simData.otherIncome -
+        simData.otherExpenses -
+        simData.depreciation +
+        simData.fixedAssetsSale -
+        simData.taxExpense,
+    ],
+  };
+
+  const balanceData = {
+    // ASSETS
+    // CURRENT ASSETS
+    cashAndBanks: [
+      simData.cashAndBanks,
+      simData.cashAndBanks,
+      simData.cashAndBanks,
+    ], // 100000
+    customers: [simData.customers, simData.customers, simData.customers], // 50000
+    accountsReceivable: [
+      simData.accountsReceivable,
+      simData.accountsReceivable,
+      simData.accountsReceivable,
+    ], // 50000
+    rawMaterials: [
+      simData.rawMaterials,
+      simData.rawMaterials,
+      simData.rawMaterials,
+    ], // 50000
+    goodsInProcess: [
+      simData.goodsInProcess,
+      simData.goodsInProcess,
+      simData.goodsInProcess,
+    ], // 50000
+    finishedGoods: [
+      simData.finishedGoods,
+      simData.finishedGoods,
+      simData.finishedGoods,
+    ], // 100000
+    totalCurrentAssets: [
+      simData.cashAndBanks +
+        simData.customers +
+        simData.accountsReceivable +
+        simData.rawMaterials +
+        simData.goodsInProcess +
+        simData.finishedGoods,
+      simData.cashAndBanks +
+        simData.customers +
+        simData.accountsReceivable +
+        simData.rawMaterials +
+        simData.goodsInProcess +
+        simData.finishedGoods,
+      simData.cashAndBanks +
+        simData.customers +
+        simData.accountsReceivable +
+        simData.rawMaterials +
+        simData.goodsInProcess +
+        simData.finishedGoods,
+    ],
+
+    // FIXED ASSETS
+    buildings: [simData.buildings, simData.buildings, simData.buildings], // 100000
+    transportation: [
+      simData.transportation,
+      simData.transportation,
+      simData.transportation,
+    ], // 50000
+    machinery: [simData.machinery, simData.machinery, simData.machinery], // 50000
+    equipment: [simData.equipment, simData.equipment, simData.equipment], // 100000
+    netAccumulatedDepreciation: [
+      simData.netAccumulatedDepreciation,
+      simData.netAccumulatedDepreciation,
+      simData.netAccumulatedDepreciation,
+    ], // 50000
+    others: [simData.others, simData.others, simData.others], // 50000
+    totalFixedAssets: [
+      simData.buildings +
+        simData.transportation +
+        simData.machinery +
+        simData.equipment +
+        simData.others -
+        simData.netAccumulatedDepreciation,
+      simData.buildings +
+        simData.transportation +
+        simData.machinery +
+        simData.equipment +
+        simData.others -
+        simData.netAccumulatedDepreciation,
+      simData.buildings +
+        simData.transportation +
+        simData.machinery +
+        simData.equipment +
+        simData.others -
+        simData.netAccumulatedDepreciation,
+    ],
+
+    // TOTAL ASSETS
+    totalAssets: [
+      simData.cashAndBanks +
+        simData.customers +
+        simData.accountsReceivable +
+        simData.rawMaterials +
+        simData.goodsInProcess +
+        simData.finishedGoods +
+        (simData.buildings +
+          simData.transportation +
+          simData.machinery +
+          simData.equipment +
+          simData.others -
+          simData.netAccumulatedDepreciation),
+      simData.cashAndBanks +
+        simData.customers +
+        simData.accountsReceivable +
+        simData.rawMaterials +
+        simData.goodsInProcess +
+        simData.finishedGoods +
+        (simData.buildings +
+          simData.transportation +
+          simData.machinery +
+          simData.equipment +
+          simData.others -
+          simData.netAccumulatedDepreciation),
+      simData.cashAndBanks +
+        simData.customers +
+        simData.accountsReceivable +
+        simData.rawMaterials +
+        simData.goodsInProcess +
+        simData.finishedGoods +
+        (simData.buildings +
+          simData.transportation +
+          simData.machinery +
+          simData.equipment +
+          simData.others -
+          simData.netAccumulatedDepreciation),
+    ],
+
+    // LIABILITIES
+    suppliers: [simData.suppliers, simData.suppliers, simData.suppliers], // 50000
+    accountsPayable: [
+      simData.accountsPayable,
+      simData.accountsPayable,
+      simData.accountsPayable,
+    ], // 50000
+    totalCurrentLiabilities: [
+      simData.suppliers + simData.accountsPayable,
+      simData.suppliers + simData.accountsPayable,
+      simData.suppliers + simData.accountsPayable,
+    ],
+
+    // LONG TERM LIABILITIES
+    longtermAccountsPayable: [
+      simData.longtermAccountsPayable,
+      simData.longtermAccountsPayable,
+      simData.longtermAccountsPayable,
+    ], // 50000
+    totalLongTermLiabilities: [
+      simData.longtermAccountsPayable,
+      simData.longtermAccountsPayable,
+      simData.longtermAccountsPayable,
+    ],
+
+    // TOTAL LIABILITIES
+    totalLiabilities: [
+      simData.suppliers +
+        simData.accountsPayable +
+        simData.longtermAccountsPayable,
+      simData.suppliers +
+        simData.accountsPayable +
+        simData.longtermAccountsPayable,
+      simData.suppliers +
+        simData.accountsPayable +
+        simData.longtermAccountsPayable,
+    ],
+
+    // EQUITY
+    capital: [simData.capital, simData.capital, simData.capital], // 100000
+    periodEarnings: [
+      simData.periodEarnings,
+      simData.periodEarnings,
+      simData.periodEarnings,
+    ], // 50000
+    retainedEarnings: [
+      simData.retainedEarnings,
+      simData.retainedEarnings,
+      simData.retainedEarnings,
+    ], // 50000
+
+    // TOTAL EQUITY
+    totalEquity: [
+      simData.capital + simData.retainedEarnings + simData.periodEarnings,
+      simData.capital + simData.retainedEarnings + simData.periodEarnings,
+      simData.capital + simData.retainedEarnings + simData.periodEarnings,
+    ],
+
+    // TOTAL LIABILITIES AND EQUITY
+    totalLiabilitiesAndEquity: [
+      simData.suppliers +
+        simData.accountsPayable +
+        simData.longtermAccountsPayable +
+        (simData.capital + simData.retainedEarnings + simData.periodEarnings),
+      simData.suppliers +
+        simData.accountsPayable +
+        simData.longtermAccountsPayable +
+        (simData.capital + simData.retainedEarnings + simData.periodEarnings),
+      simData.suppliers +
+        simData.accountsPayable +
+        simData.longtermAccountsPayable +
+        (simData.capital + simData.retainedEarnings + simData.periodEarnings),
+    ],
+  };

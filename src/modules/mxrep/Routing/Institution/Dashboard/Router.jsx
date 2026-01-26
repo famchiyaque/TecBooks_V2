@@ -1,0 +1,35 @@
+import '@/styles/homepage.css'
+import '@/styles/general.css'
+import React, { useState } from 'react'
+import MainLayout from './Layout'
+// import Loader from './Novus Components/Loader'
+import Overview_View from '@/MxRep/Views/Dashboard/OverView/Overview_View'
+import Productivity_View from '@/MxRep/Views/Dashboard/Productivity/Productivity_View'
+import FinanceKPIs_View from '@/MxRep/Views/Dashboard/Finance_KPIs/Finance_KPI_View'
+import Financial_Statement_View from '@/MxRep/Views/Dashboard/Financial_Statement/Finance_Statement_View'
+import Forecasts_View from '@/MxRep/Views/Dashboard/Forecasts/Forecasts_View'
+import Investments_View from '@/MxRep/Views/Dashboard/Investments/Investments_View'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
+import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+
+function DashboardRouter() {
+    console.log("rendering dashboard router")
+
+    const { simData, isLoading, error } = useSimData()
+
+    return (
+        <Routes>
+            <Route path=":gameId/:runId" element={<MainLayout />}>
+                <Route index element={<Navigate to="overview" />} />
+                <Route path="overview" element={<Overview_View />} />
+                <Route path="production-line" element={<Productivity_View />} />
+                <Route path="financial-health" element={<FinanceKPIs_View />} />
+                <Route path="statements" element={<Financial_Statement_View />} />
+                <Route path="forecasts" element={<Forecasts_View />} />
+                <Route path="investments" element={<Investments_View />} />
+            </Route>
+        </Routes>
+    )
+}
+
+export default DashboardRouter
