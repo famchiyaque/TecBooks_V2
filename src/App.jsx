@@ -10,6 +10,10 @@ import FAQ from "./faq/index";
 import { Navigate } from "react-router-dom";
 import { OrientationProvider } from "./Global Components/PortraitContext";
 
+// New unified architecture imports
+import Dashboard from "./dashboard/index";
+import ExcelTemplates from "./modules/excel-templates/index";
+
 function App() {
   console.log("app loaded");
 
@@ -22,15 +26,23 @@ function App() {
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="/home" element={<HomePage />} />
 
+            {/* MxRep Module - Educational production simulator */}
             <Route path="/mxrep/*" element={<MxRepRouter />} />
 
+            {/* New Unified Dashboard - Main product */}
+            <Route path="/dashboard/*" element={<Dashboard />} />
+
+            {/* Excel Templates Module - Template selection and upload */}
+            <Route path="/templates/*" element={<ExcelTemplates />} />
+
+            {/* Legacy TECBooks routes - kept for reference */}
             <Route path="/tecbooks/*" element={<TECBooks />} />
 
+            {/* Independent Simulators */}
             <Route path="/sims/*" element={<Simulators />} />
 
+            {/* FAQ */}
             <Route path="/faq" element={<FAQ />} />
-
-            {/* <Route path="/error" element={ <ErrorPage /> } /> */}
           </Routes>
         </div>
       </Router>

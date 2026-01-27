@@ -6,24 +6,20 @@ import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
 import Period from './Period'
-import Year from './Year'
-import { MdDashboard, MdCandlestickChart } from 'react-icons/md'
-import { FaFileInvoiceDollar, FaChartPie, FaRegChartBar  } from 'react-icons/fa'
+import { MdDashboard } from 'react-icons/md'
+import { FaFileInvoiceDollar, FaCalculator } from 'react-icons/fa'
 import { BiTrendingUp } from 'react-icons/bi'
-// import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 
-function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar, period, year, setPeriod, setYear }) {
-  // console.log("year passed: ", year)
-
+function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar, period, setPeriod }) {
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible)
   }
 
   const icons = {
+    0: <FaCalculator className="sidebar-icon" />,
     1: <MdDashboard className="sidebar-icon" />,
     2: <FaFileInvoiceDollar className="sidebar-icon" />,
-    3: <FaRegChartBar className="sidebar-icon" />,
-    4: <BiTrendingUp className="sidebar-icon" />
+    3: <BiTrendingUp className="sidebar-icon" />
   }
 
   return (
@@ -45,10 +41,9 @@ function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar, period, y
                 <div>{icons[activeSidebar]}</div>
             </div>
                 
-              {(activeSidebar == 1 || activeSidebar == 2 || activeSidebar == 3) ? (
+              {(activeSidebar === 1 || activeSidebar === 2 || activeSidebar === 3) ? (
                 <div className="header-icon-flex">
                   <Period period={period} setPeriod={setPeriod} />
-                  {/* <Year year={year} setYear={setYear} /> */}
                 </div>
               ) : ''}
 
