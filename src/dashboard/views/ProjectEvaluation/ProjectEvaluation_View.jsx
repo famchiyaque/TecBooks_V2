@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDashboard } from '@/core/store'
 import { Typography, Card, CardContent, Grid, Box, CircularProgress } from '@mui/material'
 import MetricsCards from './components/MetricsCards'
 import CashflowChart from './components/CashflowChart'
-import ManufacturingCashflowChart from './components/ManufacturingCashflowChart'
+import CashflowChartJS from './components/CashflowChartJS'
 import ProjectSummary from './components/ProjectSummary'
 import NPVByLifetimeChart from './components/NPVByLifetimeChart'
-import BestLifetimeBox from './components/BestLifetimeBox'
+import ProjectInfoStrip from './components/ProjectInfoStrip'
 import DemandProjectionMethodSelector from './components/DemandProjectionMethodSelector'
 import '@/styles/general.css'
 
@@ -52,12 +52,14 @@ function ProjectEvaluation_View() {
   // Manufacturing business view
   if (isManufacturing && manufacturingProjections) {
     const { bestLifetime, metricsByLifetime, cashflows } = manufacturingProjections;
+    const [maxYears, setMaxYears] = useState(10);
     const bestMetrics = metricsByLifetime.find(m => m.lifetime === bestLifetime.lifetime);
+    const trema = businessModel?.premises?.trema || 0;
 
     return (
-      <div className='view-child'>
+      <div className='view-child' style={{ paddingRight: 0 }}>
         {/* Header */}
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 3, pr: 3 }}>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={2}>
             <Box>
               <Typography variant='h4' sx={{ fontWeight: '600' }}>
@@ -77,30 +79,39 @@ function ProjectEvaluation_View() {
         </Box>
 
         {/* Key Metrics Cards (Best Lifetime) */}
-        <MetricsCards 
-          metrics={bestMetrics} 
-          lifetimeInfo={bestLifetime}
-        />
+        <Box sx={{ pr: 3 }}>
+          <MetricsCards 
+            metrics={bestMetrics} 
+            lifetimeInfo={bestLifetime}
+          />
 
-        {/* Best Lifetime Info Box */}
-        <BestLifetimeBox bestLifetime={bestLifetime} />
+          {/* Project Info Strip - Viability + Recommended Lifetime */}
+          <ProjectInfoStrip 
+            bestLifetime={bestLifetime}
+            irr={bestMetrics.irr}
+            trema={trema}
+          />
+        </Box>
 
         {/* Charts Grid */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 2, pr: 0 }}>
           {/* NPV by Lifetime Chart (25%) */}
           <Grid item xs={12} lg={3}>
             <NPVByLifetimeChart 
               metricsByLifetime={metricsByLifetime}
               bestLifetime={bestLifetime}
+              maxYears={maxYears}
             />
           </Grid>
 
           {/* Cashflow Chart (75%) */}
           <Grid item xs={12} lg={9}>
-            <ManufacturingCashflowChart 
+            <CashflowChartJS 
               cashflows={cashflows}
               bestLifetime={bestLifetime}
-              maxYears={10}
+              maxYears={maxYears}
+              onMaxYearsChange={setMaxYears}
+              businessName={businessModel?.metadata?.name || 'Business'}
             />
           </Grid>
         </Grid>

@@ -430,54 +430,75 @@ export function calculateAnnualCashflows(
 /**
  * 12. Calculate project metrics for a specific lifetime
  * @param {number} initialInvestment - Initial investment
- * @param {Array<number>} netCashflows - Net cashflows array
- * @param {number} trema - Discount rate (TREMA)
+ * @param {Array<number>} inflows - Array of annual inflows
+ * @param {Array<number>} outflows - Array of annual outflows
+ * @param {number} trema - Discount rate (TREMA as decimal, e.g., 0.15 for 15%)
  * @param {number} lifetime - Project lifetime in years
  * @returns {Object} { npv, irr, roi, breakEven, npvPerYear }
  */
-export function calculateProjectMetricsForLifetime(initialInvestment, netCashflows, trema, lifetime) {
-  // Only consider cashflows up to the specified lifetime (+ Year 0)
-  const relevantCashflows = netCashflows.slice(0, lifetime + 1);
+export function calculateProjectMetricsForLifetime(initialInvestment, inflows, outflows, trema, lifetime) {
+  // Only consider flows up to the specified lifetime
+  const relevantInflows = inflows.slice(0, lifetime);
+  const relevantOutflows = outflows.slice(0, lifetime);
   
-  // NPV calculation
+  // Calculate cashflows: Year 0 includes initial investment subtraction
+  const cashflows = relevantInflows.map((inflow, index) => {
+    if (index === 0) {
+      return inflow - relevantOutflows[index] - initialInvestment;
+    } else {
+      return inflow - relevantOutflows[index];
+    }
+  });
+
+  // NPV calculation - discount rate as percentage (trema is decimal, convert to %)
+  const discountRatePercent = trema * 100;
   let npv = 0;
-  for (let year = 0; year <= lifetime; year++) {
-    const discountFactor = Math.pow(1 + trema, year);
-    npv += relevantCashflows[year] / discountFactor;
+  for (let i = 0; i < lifetime; i++) {
+    npv += cashflows[i] / Math.pow(1 + (discountRatePercent / 100), i);
   }
 
-  // IRR calculation (Newton-Raphson method)
-  let irr = trema; // Start with TREMA as initial guess
-  const maxIterations = 100;
-  const tolerance = 0.0001;
-  
-  for (let i = 0; i < maxIterations; i++) {
+  // IRR calculation (binary search method matching the simulator)
+  let lowRate = npv > 0 ? 0 : -100;
+  let highRate = npv > 0 ? 200 : 0;
+  let irr = 0;
+  let iterations = 1000;
+  const tolerance = 0.01;
+
+  while (iterations--) {
+    let guessRate = (lowRate + highRate) / 2;
     let npvAtRate = 0;
-    let derivative = 0;
-    
-    for (let year = 0; year <= lifetime; year++) {
-      const cashflow = relevantCashflows[year];
-      const factor = Math.pow(1 + irr, year);
-      npvAtRate += cashflow / factor;
-      derivative -= (year * cashflow) / (factor * (1 + irr));
+
+    for (let t = 0; t < lifetime; t++) {
+      const cashFlow = relevantInflows[t] - relevantOutflows[t];
+      npvAtRate += cashFlow / Math.pow(1 + guessRate / 100, t);
     }
-    
-    if (Math.abs(npvAtRate) < tolerance) break;
-    
-    irr = irr - npvAtRate / derivative;
+    npvAtRate -= initialInvestment;
+
+    if (Math.abs(npvAtRate) < tolerance) {
+      irr = guessRate;
+      break;
+    }
+
+    if (npvAtRate > 0) {
+      lowRate = guessRate;
+    } else {
+      highRate = guessRate;
+    }
   }
 
   // ROI calculation
-  const totalCashflows = relevantCashflows.reduce((sum, cf) => sum + cf, 0);
-  const roi = ((totalCashflows - initialInvestment) / initialInvestment) * 100;
+  const totalInflows = relevantInflows.reduce((sum, val) => sum + val, 0);
+  const totalOutflows = relevantOutflows.reduce((sum, val) => sum + val, 0);
+  const roi = ((totalInflows - totalOutflows - initialInvestment) / (totalOutflows + initialInvestment)) * 100;
 
-  // Break-even calculation (find when cumulative becomes positive)
+  // Break-even calculation (accumulated cashflows method)
   let breakEven = -1;
-  let cumulative = 0;
-  for (let year = 0; year <= lifetime; year++) {
-    cumulative += relevantCashflows[year];
-    if (cumulative >= 0 && breakEven === -1) {
-      breakEven = year + (cumulative - relevantCashflows[year]) / relevantCashflows[year];
+  let accumulated = 0;
+  
+  for (let i = 0; i < lifetime; i++) {
+    accumulated += cashflows[i];
+    if (accumulated >= 0 && breakEven === -1) {
+      breakEven = i + Math.abs(relevantOutflows[i - 1] / relevantInflows[i]);
       break;
     }
   }
@@ -486,11 +507,11 @@ export function calculateProjectMetricsForLifetime(initialInvestment, netCashflo
   const npvPerYear = npv / lifetime;
 
   return {
-    npv,
-    irr: irr * 100, // Convert to percentage
-    roi,
-    breakEven,
-    npvPerYear,
+    npv: parseFloat(npv.toFixed(2)),
+    irr: parseFloat(irr.toFixed(1)),
+    roi: parseFloat(roi.toFixed(2)),
+    breakEven: breakEven >= 0 ? parseFloat(breakEven.toFixed(1)) : -1,
+    npvPerYear: parseFloat(npvPerYear.toFixed(2)),
   };
 }
 
@@ -591,7 +612,8 @@ export function calculateManufacturingProjections(businessModel, maxYears = 10, 
   for (let lifetime = 1; lifetime <= maxYears; lifetime++) {
     const metrics = calculateProjectMetricsForLifetime(
       financing.initialInvestment,
-      cashflows.netCashflows,
+      cashflows.inflows,
+      cashflows.outflows,
       premises.trema,
       lifetime
     );

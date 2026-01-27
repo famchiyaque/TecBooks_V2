@@ -13,10 +13,10 @@ import {
 } from 'recharts';
 
 /**
- * NPV by Lifetime Chart
+ * NPV by Lifetime Chart (Horizontal)
  * Shows how NPV changes across different project lifetimes
  */
-function NPVByLifetimeChart({ metricsByLifetime, bestLifetime }) {
+function NPVByLifetimeChart({ metricsByLifetime, bestLifetime, maxYears }) {
   if (!metricsByLifetime || metricsByLifetime.length === 0) {
     return (
       <Card sx={{ height: '100%' }}>
@@ -32,8 +32,11 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime }) {
     );
   }
 
+  // Filter to only show up to maxYears
+  const filteredMetrics = metricsByLifetime.slice(0, maxYears);
+  
   // Prepare chart data
-  const chartData = metricsByLifetime.map((metric) => ({
+  const chartData = filteredMetrics.map((metric) => ({
     lifetime: `${metric.lifetime}Y`,
     npv: Math.round(metric.npv),
     npvPerYear: Math.round(metric.npvPerYear),
@@ -51,7 +54,7 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime }) {
           backgroundColor: 'white',
           padding: '10px',
           border: '1px solid #ccc',
-          borderRadius: '4px',
+          borderRadius: '8px',
         }}
       >
         <Typography variant="body2" fontWeight="bold">
@@ -73,43 +76,42 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime }) {
   };
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 2 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          NPV by Project Lifetime
-        </Typography>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Net Present Value across different project durations
+        <Typography variant="subtitle2" gutterBottom fontWeight={600}>
+          NPV by Lifetime
         </Typography>
         
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+            layout="horizontal"
+            margin={{ top: 10, right: 30, left: 60, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="lifetime" 
-              label={{ value: 'Project Lifetime', position: 'insideBottom', offset: -10 }}
-            />
-            <YAxis 
-              label={{ value: 'NPV ($)', angle: -90, position: 'insideLeft' }}
+              type="number"
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
             />
+            <YAxis 
+              type="category"
+              dataKey="lifetime"
+              width={40}
+            />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="npv" name="Net Present Value">
+            <Bar dataKey="npv" name="Net Present Value" radius={[0, 8, 8, 0]}>
               {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.isBest ? '#4caf50' : entry.npv >= 0 ? '#2196f3' : '#f44336'}
+                  fill={entry.isBest ? '#66bb6a' : entry.npv >= 0 ? '#42a5f5' : '#ef5350'}
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          Green bar indicates optimal lifetime based on NPV/year ratio
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', fontSize: '0.7rem' }}>
+          Green = optimal lifetime
         </Typography>
       </CardContent>
     </Card>
