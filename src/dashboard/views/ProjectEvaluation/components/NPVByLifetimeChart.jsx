@@ -43,6 +43,14 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime, maxYears }) {
     isBest: metric.lifetime === bestLifetime?.lifetime,
   }));
 
+  // Debug: Log chart data to help diagnose issues
+  console.log('[NPVByLifetimeChart] Chart data:', chartData);
+  console.log('[NPVByLifetimeChart] NPV values:', chartData.map(d => d.npv));
+  
+  // Calculate domain for XAxis to handle negative values properly
+  // Use 'auto' to let Recharts handle it, which works well with negative values
+  const xAxisDomain = ['auto', 'auto'];
+
   // Custom tooltip
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
@@ -82,24 +90,35 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime, maxYears }) {
           NPV by Lifetime
         </Typography>
         
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={400} minWidth={300}>
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 10, right: 30, left: 60, bottom: 10 }}
+            margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               type="number"
-              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
+              domain={xAxisDomain}
+              tickFormatter={(value) => {
+                if (value === 0) return '$0';
+                return `$${(value / 1000).toFixed(0)}K`;
+              }}
+              allowDataOverflow={false}
             />
             <YAxis 
               type="category"
               dataKey="lifetime"
-              width={40}
+              width={60}
+              tick={{ fontSize: 12 }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="npv" name="Net Present Value" radius={[0, 8, 8, 0]}>
+            <Bar 
+              dataKey="npv" 
+              name="Net Present Value" 
+              radius={[0, 8, 8, 0]}
+              minPointSize={2}
+            >
               {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
