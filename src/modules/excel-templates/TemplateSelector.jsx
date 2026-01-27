@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, CardContent, Typography, Grid, Button, Box, Chip } from '@mui/material'
+import { Card, CardContent, Typography, Grid, Button, Box, Chip, CircularProgress } from '@mui/material'
 import { Download, Business, Factory, Store, Restaurant } from '@mui/icons-material'
+import { generateTemplate, downloadBlob } from './api/templateGenerator'
 import '@/styles/general.css'
 
 /**
@@ -59,8 +60,9 @@ const templates = [
   },
 ]
 
-function TemplateCard({ template, onDownload, onUpload }) {
+function TemplateCard({ template, onDownload, downloading }) {
   const Icon = template.icon
+  const isDownloading = downloading === template.id
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -101,11 +103,12 @@ function TemplateCard({ template, onDownload, onUpload }) {
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="contained"
-              startIcon={<Download />}
+              startIcon={isDownloading ? <CircularProgress size={20} color="inherit" /> : <Download />}
               onClick={() => onDownload(template)}
+              disabled={isDownloading}
               fullWidth
             >
-              Download Template
+              {isDownloading ? 'Generating...' : 'Download Template'}
             </Button>
           </Box>
         ) : (
@@ -120,18 +123,36 @@ function TemplateCard({ template, onDownload, onUpload }) {
 
 function TemplateSelector() {
   const navigate = useNavigate()
+  const [downloading, setDownloading] = useState(null)
 
-  const handleDownload = (template) => {
-    // TODO: Implement template download with real-time data fetching
-    console.log('Downloading template:', template.id)
+  const handleDownload = async (template) => {
+    console.log('[TemplateSelector] Downloading template:', template.id)
+    setDownloading(template.id)
     
-    // For now, just trigger a download of the static file
-    const link = document.createElement('a')
-    link.href = `/templates/${template.fileName}`
-    link.download = template.fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      // Generate template with real-time data
+      const blob = await generateTemplate(template.id)
+      
+      // Trigger download
+      const timestamp = new Date().toISOString().split('T')[0]
+      const filename = `${template.id}-${timestamp}.xlsx`
+      downloadBlob(blob, filename)
+      
+      console.log('[TemplateSelector] Template downloaded successfully')
+    } catch (error) {
+      console.error('[TemplateSelector] Error downloading template:', error)
+      
+      // Fallback to static file
+      console.log('[TemplateSelector] Falling back to static template')
+      const link = document.createElement('a')
+      link.href = `/templates/${template.fileName}`
+      link.download = template.fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } finally {
+      setDownloading(null)
+    }
   }
 
   const handleGoToUpload = () => {
@@ -155,7 +176,11 @@ function TemplateSelector() {
       <Grid container spacing={3}>
         {templates.map((template) => (
           <Grid item xs={12} md={6} lg={4} key={template.id}>
-            <TemplateCard template={template} onDownload={handleDownload} />
+            <TemplateCard 
+              template={template} 
+              onDownload={handleDownload}
+              downloading={downloading}
+            />
           </Grid>
         ))}
       </Grid>

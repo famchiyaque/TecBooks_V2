@@ -35,8 +35,12 @@ function App() {
             {/* Excel Templates Module - Template selection and upload */}
             <Route path="/templates/*" element={<ExcelTemplates />} />
 
-            {/* Legacy TECBooks routes - kept for reference */}
-            <Route path="/tecbooks/*" element={<TECBooks />} />
+            {/* Legacy Routes - Old implementations accessible at /legacy/ */}
+            <Route path="/legacy/tecbooks/*" element={<TECBooks />} />
+            <Route path="/legacy/mxrep/*" element={<MxRepRouter />} />
+
+            {/* Backward compatibility - redirect old paths to legacy */}
+            <Route path="/tecbooks/*" element={<Navigate to="/legacy/tecbooks" replace />} />
 
             {/* Independent Simulators */}
             <Route path="/sims/*" element={<Simulators />} />
