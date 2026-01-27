@@ -97,8 +97,8 @@ function ProjectEvaluation_View() {
 
         {/* Charts Grid */}
         <Grid container spacing={3} sx={{ mb: 2, pr: 0 }}>
-          {/* NPV by Lifetime Chart (35%) */}
-          <Grid item xs={12} lg={4}>
+          {/* NPV by Lifetime Chart (25%) */}
+          <Grid item xs={12} lg={3}>
             <NPVByLifetimeChart 
               metricsByLifetime={metricsByLifetime}
               bestLifetime={bestLifetime}
@@ -106,8 +106,8 @@ function ProjectEvaluation_View() {
             />
           </Grid>
 
-          {/* Cashflow Chart (65%) */}
-          <Grid item xs={12} lg={8}>
+          {/* Cashflow Chart (75%) */}
+          <Grid item xs={12} lg={9}>
             <CashflowChartJS 
               cashflows={cashflows}
               bestLifetime={bestLifetime}
