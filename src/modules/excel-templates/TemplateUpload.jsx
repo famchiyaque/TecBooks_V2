@@ -63,8 +63,12 @@ function TemplateUpload() {
 
       console.log('[TemplateUpload] Business model created:', businessModel)
 
-      // Navigate to dashboard with the business model
-      navigate('/dashboard', { state: { businessModel } })
+      // Store business model in sessionStorage for reliable transfer
+      sessionStorage.setItem('currentBusinessModel', JSON.stringify(businessModel))
+      console.log('[TemplateUpload] Business model stored in sessionStorage')
+
+      // Navigate to dashboard
+      navigate('/dashboard/project-evaluation')
     } catch (err) {
       console.error('[TemplateUpload] Error processing file:', err)
       setError(`Error processing file: ${err.message}`)
