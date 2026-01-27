@@ -53,8 +53,13 @@ function ProjectEvaluation_View() {
   if (isManufacturing && manufacturingProjections) {
     const { bestLifetime, metricsByLifetime, cashflows } = manufacturingProjections;
     const [maxYears, setMaxYears] = useState(10);
-    // Use metrics for maxYears instead of bestLifetime to match the chart
-    const displayMetrics = metricsByLifetime.find(m => m.lifetime === maxYears) || metricsByLifetime[metricsByLifetime.length - 1];
+    
+    // Ensure maxYears doesn't exceed available metrics
+    const maxAvailableYears = metricsByLifetime.length;
+    const effectiveMaxYears = Math.min(maxYears, maxAvailableYears);
+    
+    // Use metrics for effectiveMaxYears instead of bestLifetime to match the chart
+    const displayMetrics = metricsByLifetime.find(m => m.lifetime === effectiveMaxYears) || metricsByLifetime[metricsByLifetime.length - 1];
     const trema = businessModel?.premises?.trema || 0;
 
     return (
@@ -79,11 +84,11 @@ function ProjectEvaluation_View() {
           </Box>
         </Box>
 
-        {/* Key Metrics Cards (Using maxYears to match chart) */}
+        {/* Key Metrics Cards (Using effectiveMaxYears to match chart) */}
         <Box sx={{ pr: 3 }}>
           <MetricsCards 
             metrics={displayMetrics} 
-            maxYears={maxYears}
+            maxYears={effectiveMaxYears}
             lifetimeInfo={bestLifetime}
           />
 
@@ -102,7 +107,7 @@ function ProjectEvaluation_View() {
             <NPVByLifetimeChart 
               metricsByLifetime={metricsByLifetime}
               bestLifetime={bestLifetime}
-              maxYears={maxYears}
+              maxYears={effectiveMaxYears}
             />
           </Grid>
 

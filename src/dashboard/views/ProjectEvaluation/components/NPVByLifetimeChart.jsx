@@ -32,8 +32,10 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime, maxYears }) {
     );
   }
 
-  // Filter to only show up to maxYears
-  const filteredMetrics = metricsByLifetime.slice(0, maxYears);
+  // Filter to only show up to maxYears (but don't exceed available metrics)
+  const availableYears = metricsByLifetime.length;
+  const effectiveMaxYears = Math.min(maxYears, availableYears);
+  const filteredMetrics = metricsByLifetime.slice(0, effectiveMaxYears);
   
   // Prepare chart data
   const chartData = filteredMetrics.map((metric) => ({
