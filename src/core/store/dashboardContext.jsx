@@ -28,6 +28,14 @@ export function DashboardProvider({ children, businessModel }) {
   const [error, setError] = useState(null);
   const [demandProjectionMethod, setDemandProjectionMethod] = useState('inflation');
 
+  // Update model when businessModel prop changes
+  useEffect(() => {
+    if (businessModel) {
+      console.log('[DashboardContext] Updating model from prop:', businessModel.metadata);
+      setModel(businessModel);
+    }
+  }, [businessModel]);
+
   // Validate model when it changes
   useEffect(() => {
     if (model) {

@@ -1,9 +1,26 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, CardContent, Typography, Grid, Button, Box, Chip, CircularProgress } from '@mui/material'
-import { Download, Business, Factory, Store, Restaurant } from '@mui/icons-material'
+import { 
+  Typography, 
+  Button, 
+  Box, 
+  Chip, 
+  CircularProgress, 
+  TextField, 
+  Select, 
+  MenuItem, 
+  FormControl, 
+  InputLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material'
+import { Download, Business, Factory, Store, Search, ArrowBack, HelpOutline, ExpandMore } from '@mui/icons-material'
 import { generateTemplate, downloadBlob } from './api/templateGenerator'
+import GenericHeader from '@/Global Components/GenericHeader'
+import GenericSubheader from '@/Global Components/GenericSubheader'
 import '@/styles/general.css'
+import '@/styles/survey.css'
 
 /**
  * Template Selector
@@ -20,6 +37,7 @@ const templates = [
     icon: Factory,
     country: 'Mexico',
     type: 'Manufacturing',
+    language: 'Spanish',
     features: [
       'Real-time inflation rate',
       'PTU (Profit Sharing) calculations',
@@ -37,6 +55,7 @@ const templates = [
     icon: Business,
     country: 'Mexico',
     type: 'Services',
+    language: 'Spanish',
     features: [
       'Service revenue tracking',
       'Professional fees',
@@ -51,6 +70,7 @@ const templates = [
     icon: Store,
     country: 'Mexico',
     type: 'Retail',
+    language: 'Spanish',
     features: [
       'Point of sale tracking',
       'Inventory management',
@@ -60,31 +80,89 @@ const templates = [
   },
 ]
 
-function TemplateCard({ template, onDownload, downloading }) {
+function TemplateBar({ template, onDownload, downloading, expanded, onChange }) {
   const Icon = template.icon
   const isDownloading = downloading === template.id
 
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Icon sx={{ fontSize: 40, color: '#0077b6', mr: 2 }} />
-          <Box>
-            <Typography variant="h6" component="div">
+    <Accordion 
+      expanded={expanded}
+      onChange={onChange}
+      sx={{
+        backgroundColor: '#fff',
+        borderRadius: '15px',
+        boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
+        border: 'solid #073a5a 1px',
+        mb: 2,
+        '&:before': {
+          display: 'none',
+        },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMore />}
+        sx={{
+          padding: '1rem 1.5rem',
+          minHeight: '72px',
+          '&.Mui-expanded': {
+            minHeight: '72px',
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
+          <Icon sx={{ fontSize: 32, color: '#0077b6' }} />
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: '600', mb: 0.5 }}>
               {template.name}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
               <Chip label={template.country} size="small" color="primary" />
               <Chip label={template.type} size="small" variant="outlined" />
+              <Chip label={template.language} size="small" variant="outlined" />
             </Box>
           </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {template.available ? (
+              <Button
+                variant="contained"
+                startIcon={isDownloading ? <CircularProgress size={20} color="inherit" /> : <Download />}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDownload(template)
+                }}
+                disabled={isDownloading}
+                sx={{
+                  backgroundColor: '#eec60a',
+                  color: '#073a5a',
+                  fontWeight: '600',
+                  padding: '0.5rem 1.5rem',
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    backgroundColor: '#d4b008',
+                  },
+                }}
+              >
+                {isDownloading ? 'Generating...' : 'Download'}
+              </Button>
+            ) : (
+              <Button 
+                variant="outlined" 
+                disabled
+                sx={{
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Coming Soon
+              </Button>
+            )}
+          </Box>
         </Box>
-
-        <Typography variant="body2" color="text.secondary" paragraph>
+      </AccordionSummary>
+      <AccordionDetails sx={{ padding: '0 1.5rem 1.5rem 1.5rem' }}>
+        <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 2 }}>
           {template.description}
         </Typography>
-
-        <Typography variant="subtitle2" gutterBottom>
+        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: '600', mb: 1 }}>
           Features:
         </Typography>
         <ul style={{ margin: 0, paddingLeft: 20 }}>
@@ -96,34 +174,20 @@ function TemplateCard({ template, onDownload, downloading }) {
             </li>
           ))}
         </ul>
-      </CardContent>
-
-      <Box sx={{ p: 2, pt: 0 }}>
-        {template.available ? (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              startIcon={isDownloading ? <CircularProgress size={20} color="inherit" /> : <Download />}
-              onClick={() => onDownload(template)}
-              disabled={isDownloading}
-              fullWidth
-            >
-              {isDownloading ? 'Generating...' : 'Download Template'}
-            </Button>
-          </Box>
-        ) : (
-          <Button variant="outlined" disabled fullWidth>
-            Coming Soon
-          </Button>
-        )}
-      </Box>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }
 
 function TemplateSelector() {
   const navigate = useNavigate()
   const [downloading, setDownloading] = useState(null)
+  const [selectedCountry, setSelectedCountry] = useState('All')
+  const [selectedType, setSelectedType] = useState('All')
+  const [selectedLanguage, setSelectedLanguage] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [expanded, setExpanded] = useState(null)
 
   const handleDownload = async (template) => {
     console.log('[TemplateSelector] Downloading template:', template.id)
@@ -156,46 +220,209 @@ function TemplateSelector() {
   }
 
   const handleGoToUpload = () => {
-    navigate('/tecbooks/template-upload')
+    navigate('/templates/upload')
   }
 
+  const handleGoHome = () => {
+    navigate('/home')
+  }
+
+  const handleExpand = (templateId) => (event, isExpanded) => {
+    setExpanded(isExpanded ? templateId : null)
+  }
+
+  // Filter templates based on selections
+  const filteredTemplates = templates.filter(template => {
+    const matchesCountry = selectedCountry === 'All' || template.country === selectedCountry
+    const matchesType = selectedType === 'All' || template.type === selectedType
+    const matchesLanguage = selectedLanguage === 'All' || template.language === selectedLanguage
+    const matchesSearch = searchQuery === '' || 
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    return matchesCountry && matchesType && matchesLanguage && matchesSearch
+  })
+
+  // Get unique values for dropdowns
+  const countries = ['All', ...new Set(templates.map(t => t.country))]
+  const types = ['All', ...new Set(templates.map(t => t.type))]
+  const languages = ['All', ...new Set(templates.map(t => t.language))]
+
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{ fontWeight: 600, mb: 1 }}>
-          Excel Templates
-        </Typography>
-        <Typography variant="h6" color="text.secondary" paragraph>
-          Download a template tailored to your business type and country
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Each template includes real-time data integration and is customized for local regulations and requirements.
-        </Typography>
-      </Box>
+    <div className="survey-page">
+      <GenericHeader pageName={"Excel Templates"} />
+      <GenericSubheader subheader={"Browse Templates"} onOpenSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      
+      <div style={{ display: 'flex', width: '100%', minHeight: 'calc(100vh - 11vh)', position: 'relative' }}>
+        {/* Sidebar - Narrower */}
+        <nav 
+          className={`sidebar ${sidebarOpen ? '' : 'sidebar-hidden'}`} 
+          style={{ 
+            position: sidebarOpen ? 'sticky' : 'absolute', 
+            top: '11vh', 
+            left: 0, 
+            zIndex: 100,
+            width: sidebarOpen ? '12rem' : '0',
+            minWidth: sidebarOpen ? '12rem' : '0',
+          }}
+        >
+          <div className="sidebar-title" style={{ padding: '0.75rem 1rem' }}>
+            <div className="title-icon" style={{ minWidth: '20px', height: '24px', fontSize: '0.9rem' }}>
+              <Factory />
+            </div>
+            <div className="title-content">
+              <div className="title-main" style={{ fontSize: '1rem' }}>Templates</div>
+              <div className="title-sub" style={{ fontSize: '0.65rem' }}>Browse</div>
+            </div>
+          </div>
+          
+          <div 
+            className="sidebar-entry" 
+            onClick={handleGoHome} 
+            style={{ cursor: 'pointer', padding: '0.5rem 0.75rem', margin: '0 0.25rem' }}
+          >
+            <ArrowBack className="sidebar-icon" style={{ fontSize: '1rem' }} />
+            <span style={{ fontSize: '0.85rem' }}>Back</span>
+          </div>
+          
+          <div 
+            className="sidebar-entry" 
+            style={{ cursor: 'pointer', padding: '0.5rem 0.75rem', margin: '0 0.25rem' }}
+          >
+            <HelpOutline className="sidebar-icon" style={{ fontSize: '1rem' }} />
+            <span style={{ fontSize: '0.85rem' }}>Help</span>
+          </div>
+        </nav>
 
-      <Grid container spacing={3}>
-        {templates.map((template) => (
-          <Grid item xs={12} md={6} lg={4} key={template.id}>
-            <TemplateCard 
-              template={template} 
-              onDownload={handleDownload}
-              downloading={downloading}
-            />
-          </Grid>
-        ))}
-      </Grid>
+        {/* Main Content */}
+        <div 
+          style={{ 
+            marginLeft: sidebarOpen ? '12rem' : '0', 
+            width: sidebarOpen ? 'calc(100vw - 12rem)' : '100vw',
+            height: 'calc(100vh - 11vh)',
+            overflowY: 'auto',
+            display: 'inline-block',
+            fontFamily: "'Roboto', sans-serif",
+            transition: 'margin-left 0.3s ease, width 0.3s ease',
+          }}
+        >
+          <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+            {/* Filters and Search */}
+            <Box sx={{ 
+              mb: 4, 
+              backgroundColor: '#fff',
+              borderRadius: '15px',
+              boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
+              border: 'solid #073a5a 1px',
+              padding: '1.5rem 2rem',
+            }}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                <TextField
+                  placeholder="Search templates..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: <Search sx={{ mr: 1, color: '#073a5a' }} />,
+                  }}
+                  sx={{ flexGrow: 1, minWidth: '200px' }}
+                />
+                
+                <FormControl sx={{ minWidth: 150 }}>
+                  <InputLabel>Country</InputLabel>
+                  <Select
+                    value={selectedCountry}
+                    onChange={(e) => setSelectedCountry(e.target.value)}
+                    label="Country"
+                  >
+                    {countries.map(country => (
+                      <MenuItem key={country} value={country}>{country}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                
+                <FormControl sx={{ minWidth: 150 }}>
+                  <InputLabel>Business Type</InputLabel>
+                  <Select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    label="Business Type"
+                  >
+                    {types.map(type => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                
+                <FormControl sx={{ minWidth: 150 }}>
+                  <InputLabel>Language</InputLabel>
+                  <Select
+                    value={selectedLanguage}
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    label="Language"
+                  >
+                    {languages.map(lang => (
+                      <MenuItem key={lang} value={lang}>{lang}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
 
-      <Box sx={{ mt: 4, p: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Already have a filled template?
-        </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          If you've already filled out your template, you can upload it directly to generate your dashboard.
-        </Typography>
-        <Button variant="outlined" onClick={handleGoToUpload}>
-          Go to Upload
-        </Button>
-      </Box>
+            {/* Templates List - Horizontal Bars */}
+            <Box>
+              {filteredTemplates.length > 0 ? (
+                filteredTemplates.map((template) => (
+                  <TemplateBar
+                    key={template.id}
+                    template={template}
+                    onDownload={handleDownload}
+                    downloading={downloading}
+                    expanded={expanded === template.id}
+                    onChange={handleExpand(template.id)}
+                  />
+                ))
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No templates found matching your criteria
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* Upload Section */}
+            <Box sx={{ 
+              mt: 4, 
+              p: 3, 
+              backgroundColor: '#fff',
+              borderRadius: '15px',
+              boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
+              border: 'solid #073a5a 1px',
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+                Already have a filled template?
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                If you've already filled out your template, you can upload it directly to generate your dashboard.
+              </Typography>
+              <Button 
+                variant="contained" 
+                onClick={handleGoToUpload}
+                sx={{
+                  backgroundColor: '#eec60a',
+                  color: '#073a5a',
+                  fontWeight: '600',
+                  '&:hover': {
+                    backgroundColor: '#d4b008',
+                  },
+                }}
+              >
+                Go to Upload
+              </Button>
+            </Box>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

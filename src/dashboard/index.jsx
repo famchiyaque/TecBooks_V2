@@ -39,20 +39,24 @@ function Dashboard({ businessModel: propBusinessModel }) {
         try {
           model = JSON.parse(storedModel)
           console.log('[Dashboard] Business model loaded from sessionStorage')
+          console.log('[Dashboard] Stored model metadata:', model?.metadata)
         } catch (err) {
           console.error('[Dashboard] Error parsing stored model:', err)
         }
+      } else {
+        console.log('[Dashboard] No model found in sessionStorage')
       }
     }
     
     console.log('[Dashboard] Final businessModel:', model ? 'Found' : 'Not found')
     if (model) {
       console.log('[Dashboard] Model metadata:', model.metadata)
+      console.log('[Dashboard] Model keys:', Object.keys(model))
     }
     
     setBusinessModel(model)
     setLoading(false)
-  }, [propBusinessModel, location.state])
+  }, [propBusinessModel, location.state, location.pathname])
 
   if (loading) {
     return (

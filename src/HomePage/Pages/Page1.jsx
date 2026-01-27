@@ -34,11 +34,11 @@ function Page1() {
                         Download an Excel template tailored to your business type and country
                     </Typography>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <img src={'/imgs/excel_icon.png'} style={{ boxShadow: 'none', width: '60%' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                    <img src={'/imgs/excel_icon.png'} style={{ boxShadow: 'none', width: '60%', display: 'block', margin: '0 auto' }} />
                 </div>
-                <div style={{ width: '100%', textAlign: 'left' }}>
-                    <button className='landing-btn smaller' style={{ marginLeft: '10%' }} onClick={goToTemplates}>
+                <div style={{ width: '100%', textAlign: 'center' }}>
+                    <button className='landing-btn' style={{ padding: '0.6rem 2rem', fontSize: '1rem' }} onClick={goToTemplates}>
                         Browse Templates
                     </button>
                 </div>
@@ -58,14 +58,14 @@ function Page1() {
                         your template with your business's financial data and projections
                     </Typography>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                    <img src={'/imgs/surveyor_landing.png'} style={{ boxShadow: 'none', width: '35%' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                    <img src={'/imgs/surveyor_landing.png'} style={{ boxShadow: 'none', width: '35%', display: 'block', margin: '0 auto' }} />
                 </div>
                 <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.secondary' }}>
                     Or use our in-app questionnaire
                 </Typography>
                 <div style={{ width: '100%', textAlign: 'center', mt: 1 }}>
-                    <button className='landing-btn smaller' style={{ fontSize: '0.8rem' }} onClick={goToSurvey}>
+                    <button className='landing-btn' style={{ padding: '0.6rem 2rem', fontSize: '1rem' }} onClick={goToSurvey}>
                         Start Questionnaire
                     </button>
                 </div>
@@ -77,16 +77,18 @@ function Page1() {
             </div> 
             
             <div className='template-3'>
-                <img src={'/imgs/submit_landing.png'} style={{ boxShadow: 'none', width: '35%', margin: '0 auto' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                    <img src={'/imgs/submit_landing.png'} style={{ boxShadow: 'none', width: '35%', display: 'block', margin: '0 auto' }} />
+                </div>
                 <div>
                     <Typography sx={{ fontWeight: '600', fontSize: '1.8rem' }}>Generate Dashboard</Typography>
                     <Typography sx={{ fontWeight: '600', fontSize: '0.8rem' }}>
                         Upload your template to generate IRR, NPV, ROI, cashflow projections, and financial statements
                     </Typography>
                 </div>
-                <div style={{ width: '100%', textAlign: 'right' }}>
-                    <button className='landing-btn smaller' 
-                        style={{ marginRight: '10%' }}
+                <div style={{ width: '100%', textAlign: 'center' }}>
+                    <button className='landing-btn' 
+                        style={{ padding: '0.6rem 2rem', fontSize: '1rem' }}
                         onClick={goToTemplateUpload}>
                         Upload Template
                     </button>
