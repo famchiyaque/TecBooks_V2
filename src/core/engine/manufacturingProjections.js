@@ -492,15 +492,42 @@ export function calculateProjectMetricsForLifetime(initialInvestment, inflows, o
   const roi = ((totalInflows - totalOutflows - initialInvestment) / (totalOutflows + initialInvestment)) * 100;
 
   // Break-even calculation (accumulated cashflows method)
+  // Exclude year 0 (initial investment period) - start from year 1
+  // Start with negative initial investment as the deficit to recover
   let breakEven = -1;
-  let accumulated = 0;
+  let accumulated = -initialInvestment;
   
-  for (let i = 0; i < lifetime; i++) {
+  // Start from year 1 (index 1), skip year 0
+  for (let i = 1; i < lifetime; i++) {
+    const previousAccumulated = accumulated;
     accumulated += cashflows[i];
+    
+    // Check if we've reached break-even point (cumulative >= 0)
     if (accumulated >= 0 && breakEven === -1) {
-      breakEven = i + Math.abs(relevantOutflows[i - 1] / relevantInflows[i]);
+      // If we were negative before and this period's cashflow is positive
+      if (previousAccumulated < 0 && cashflows[i] > 0) {
+        // Interpolate: how much of this period was needed to recover the deficit?
+        // We need to recover Math.abs(previousAccumulated) at rate cashflows[i]
+        const periodFraction = Math.abs(previousAccumulated) / cashflows[i];
+        // Return year number (i is already 1-based, so this gives us year 1, 2, etc.)
+        breakEven = i + periodFraction;
+      } else {
+        // If we're already at or above zero
+        // Break-even happened at the start of this period (year i)
+        breakEven = i;
+      }
       break;
     }
+  }
+  
+  // Debug logging
+  if (breakEven === -1 && lifetime > 1) {
+    console.log('[BreakEven] Never breaks even:', {
+      lifetime,
+      finalAccumulated: accumulated,
+      initialInvestment,
+      cashflows: cashflows.slice(1, Math.min(6, lifetime)),
+    });
   }
 
   // NPV per year (for optimization)
