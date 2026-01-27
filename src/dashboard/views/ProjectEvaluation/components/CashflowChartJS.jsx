@@ -233,7 +233,7 @@ function CashflowChartJS({ cashflows, bestLifetime, maxYears, onMaxYearsChange, 
           </Box>
         </Box>
 
-        <div style={{ position: 'relative', height: '400px', minWidth: '100%', width: '100%' }}>
+        <div style={{ position: 'relative', height: '400px', minWidth: '600px', width: '100%' }}>
           <canvas ref={canvasRef}></canvas>
         </div>
       </CardContent>

@@ -19,20 +19,20 @@ function MetricCard({ title, value, subtitle, icon: Icon, color, isPercentage = 
       boxShadow: 2,
       '&:hover': { boxShadow: 3 }
     }}>
-      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-          <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+      <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="body2" component="div" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
             {title}
           </Typography>
-          <Icon sx={{ color: color, fontSize: 16, opacity: 0.6 }} />
+          <Icon sx={{ color: color, fontSize: 24, opacity: 0.7 }} />
         </Box>
         
-        <Typography variant="h5" component="div" sx={{ fontWeight: 700, color: color, lineHeight: 1.2 }}>
+        <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: color, lineHeight: 1.2, mb: 0.5 }}>
           {displayValue}
         </Typography>
         
         {subtitle && (
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block', mt: 0.25 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', display: 'block' }}>
             {subtitle}
           </Typography>
         )}
@@ -41,7 +41,7 @@ function MetricCard({ title, value, subtitle, icon: Icon, color, isPercentage = 
   )
 }
 
-function MetricsCards({ metrics, lifetimeInfo = null, trema = null }) {
+function MetricsCards({ metrics, lifetimeInfo = null, maxYears = null, trema = null }) {
   const getBreakEvenText = (breakEven) => {
     if (breakEven < 0) return 'Never breaks even'
     if (breakEven < 1) return 'Less than 1 year'
@@ -60,8 +60,11 @@ function MetricsCards({ metrics, lifetimeInfo = null, trema = null }) {
     return '#d32f2f' // Red
   }
 
-  // Add lifetime info to subtitle if provided
+  // Add lifetime info to subtitle - use maxYears if provided, otherwise lifetimeInfo
   const getSubtitle = (base) => {
+    if (maxYears !== null) {
+      return `${base} (${maxYears}-year projection)`;
+    }
     if (lifetimeInfo) {
       return `${base} (${lifetimeInfo.lifetime}-year projection)`;
     }
@@ -69,7 +72,7 @@ function MetricsCards({ metrics, lifetimeInfo = null, trema = null }) {
   };
 
   return (
-    <Grid container spacing={2} sx={{ mb: 2 }}>
+    <Grid container spacing={2.5} sx={{ mb: 2 }}>
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
           title="NPV"
@@ -113,19 +116,19 @@ function MetricsCards({ metrics, lifetimeInfo = null, trema = null }) {
           boxShadow: 2,
           '&:hover': { boxShadow: 3 }
         }}>
-          <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-              <Typography variant="caption" component="div" color="text.secondary" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body2" component="div" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                 Break-even
               </Typography>
-              <Timeline sx={{ color: '#9c27b0', fontSize: 16, opacity: 0.6 }} />
+              <Timeline sx={{ color: '#9c27b0', fontSize: 24, opacity: 0.7 }} />
             </Box>
             
-            <Typography variant="h5" component="div" sx={{ fontWeight: 700, color: '#9c27b0', lineHeight: 1.2 }}>
+            <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#9c27b0', lineHeight: 1.2, mb: 0.5 }}>
               {metrics.breakEven < 0 ? '∞' : metrics.breakEven.toFixed(1)}
             </Typography>
             
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block', mt: 0.25 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', display: 'block' }}>
               {getBreakEvenText(metrics.breakEven)}
             </Typography>
           </CardContent>

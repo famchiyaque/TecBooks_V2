@@ -53,7 +53,8 @@ function ProjectEvaluation_View() {
   if (isManufacturing && manufacturingProjections) {
     const { bestLifetime, metricsByLifetime, cashflows } = manufacturingProjections;
     const [maxYears, setMaxYears] = useState(10);
-    const bestMetrics = metricsByLifetime.find(m => m.lifetime === bestLifetime.lifetime);
+    // Use metrics for maxYears instead of bestLifetime to match the chart
+    const displayMetrics = metricsByLifetime.find(m => m.lifetime === maxYears) || metricsByLifetime[metricsByLifetime.length - 1];
     const trema = businessModel?.premises?.trema || 0;
 
     return (
@@ -78,17 +79,18 @@ function ProjectEvaluation_View() {
           </Box>
         </Box>
 
-        {/* Key Metrics Cards (Best Lifetime) */}
+        {/* Key Metrics Cards (Using maxYears to match chart) */}
         <Box sx={{ pr: 3 }}>
           <MetricsCards 
-            metrics={bestMetrics} 
+            metrics={displayMetrics} 
+            maxYears={maxYears}
             lifetimeInfo={bestLifetime}
           />
 
           {/* Project Info Strip - Viability + Recommended Lifetime */}
           <ProjectInfoStrip 
             bestLifetime={bestLifetime}
-            irr={bestMetrics.irr}
+            irr={displayMetrics.irr}
             trema={trema}
           />
         </Box>

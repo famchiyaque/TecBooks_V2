@@ -7,6 +7,7 @@ function CashflowChart({ chartData, stats }) {
   const options = {
     chart: {
       height: 400,
+      minWidth: 800,
     },
     title: {
       text: 'Cashflow Projection',

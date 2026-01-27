@@ -24,9 +24,9 @@ function ProjectInfoStrip({ bestLifetime, irr, trema }) {
       }}
     >
       <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} sx={{ justifyContent: 'space-between' }}>
           {/* Viability - Left Half */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={5.9}>
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Box display="flex" alignItems="center" gap={1.5}>
                 {isViable ? (
@@ -59,7 +59,7 @@ function ProjectInfoStrip({ bestLifetime, irr, trema }) {
           </Grid>
 
           {/* Recommended Lifetime - Right Half */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={5.9}>
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Box display="flex" alignItems="center" gap={1.5}>
                 <Star sx={{ color: isPositive ? '#66bb6a' : '#ffa726', fontSize: 18 }} />

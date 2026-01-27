@@ -85,7 +85,7 @@ function NPVByLifetimeChart({ metricsByLifetime, bestLifetime, maxYears }) {
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
             data={chartData}
-            layout="horizontal"
+            layout="vertical"
             margin={{ top: 10, right: 30, left: 60, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
