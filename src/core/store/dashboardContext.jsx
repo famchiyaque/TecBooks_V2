@@ -10,6 +10,7 @@ import { validateBusinessModel } from '../models/BusinessModel.js';
 import { calculateAllProjectMetrics } from '../engine/projectMetrics.js';
 import { calculateAllStatements } from '../engine/statements.js';
 import { prepareCashflowChartData, calculateCashflowStats } from '../engine/cashflow.js';
+import { calculateManufacturingProjections } from '../engine/manufacturingProjections.js';
 
 const DashboardContext = createContext();
 
@@ -25,6 +26,7 @@ export function DashboardProvider({ children, businessModel }) {
   const [model, setModel] = useState(businessModel);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [demandProjectionMethod, setDemandProjectionMethod] = useState('inflation');
 
   // Validate model when it changes
   useEffect(() => {
@@ -77,6 +79,34 @@ export function DashboardProvider({ children, businessModel }) {
     }
   }, [model]);
 
+  // Compute manufacturing projections (for manufacturing businesses)
+  const manufacturingProjections = useMemo(() => {
+    if (!model) return null;
+    
+    // Check if this is a manufacturing business
+    const isManufacturing = 
+      model.metadata?.type?.toLowerCase() === 'manufacturing' ||
+      model.metadata?.source === 'mexico-manufacturing-excel';
+    
+    if (!isManufacturing) {
+      console.log('[DashboardContext] Not a manufacturing business, skipping projections');
+      return null;
+    }
+    
+    setLoading(true);
+    
+    try {
+      console.log('[DashboardContext] Calculating manufacturing projections...');
+      const projections = calculateManufacturingProjections(model, 10, demandProjectionMethod);
+      setLoading(false);
+      return projections;
+    } catch (err) {
+      console.error('[DashboardContext] Error calculating manufacturing projections:', err);
+      setLoading(false);
+      return null;
+    }
+  }, [model, demandProjectionMethod]);
+
   // Update business model
   const updateModel = (newModel) => {
     setModel(newModel);
@@ -100,6 +130,11 @@ export function DashboardProvider({ children, businessModel }) {
     projectMetrics,
     statements,
     cashflowData,
+    manufacturingProjections,
+    
+    // Demand projection settings
+    demandProjectionMethod,
+    setDemandProjectionMethod,
     
     // Actions
     updateModel,

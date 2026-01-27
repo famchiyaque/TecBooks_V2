@@ -38,6 +38,9 @@ export function createEmptyBusinessModel() {
       inflationRate: 0,
       businessIncomeTax: 0,
       employeeShareOfProfit: 0, // PTU
+      cetes: 0, // CETES rate (Mexico)
+      rewardMargin: 0, // Reward margin for TREMA calculation
+      trema: 0, // Calculated: CETES + Reward Margin + Inflation
       inventoryPercentage: 0,
       providerPercentage: 0,
       shortTermPassive: 0,

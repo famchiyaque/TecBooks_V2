@@ -33,11 +33,11 @@ function MetricCard({ title, value, subtitle, icon: Icon, color, isPercentage = 
   )
 }
 
-function MetricsCards({ metrics }) {
+function MetricsCards({ metrics, lifetimeInfo = null }) {
   const getBreakEvenText = (breakEven) => {
     if (breakEven < 0) return 'Never breaks even'
-    if (breakEven < 1) return 'Less than 1 period'
-    return `${breakEven.toFixed(1)} periods`
+    if (breakEven < 1) return 'Less than 1 year'
+    return `${breakEven.toFixed(1)} years`
   }
 
   const getIRRColor = (irr) => {
@@ -52,24 +52,21 @@ function MetricsCards({ metrics }) {
     return '#d32f2f' // Red
   }
 
+  // Add lifetime info to subtitle if provided
+  const getSubtitle = (base) => {
+    if (lifetimeInfo) {
+      return `${base} (${lifetimeInfo.lifetime}-year projection)`;
+    }
+    return base;
+  };
+
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
-          title="IRR"
-          value={metrics.irr}
-          subtitle="Internal Rate of Return"
-          icon={TrendingUp}
-          color={getIRRColor(metrics.irr)}
-          isPercentage={true}
-        />
-      </Grid>
-
-      <Grid item xs={12} sm={6} md={3}>
-        <MetricCard
           title="NPV"
           value={metrics.npv}
-          subtitle="Net Present Value"
+          subtitle={getSubtitle("Net Present Value")}
           icon={AttachMoney}
           color={getNPVColor(metrics.npv)}
           isCurrency={true}
@@ -78,9 +75,20 @@ function MetricsCards({ metrics }) {
 
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
+          title="IRR"
+          value={metrics.irr}
+          subtitle={getSubtitle("Internal Rate of Return")}
+          icon={TrendingUp}
+          color={getIRRColor(metrics.irr)}
+          isPercentage={true}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3}>
+        <MetricCard
           title="ROI"
           value={metrics.roi}
-          subtitle="Return on Investment"
+          subtitle={getSubtitle("Return on Investment")}
           icon={TrendingUp}
           color="#1976d2"
           isPercentage={true}

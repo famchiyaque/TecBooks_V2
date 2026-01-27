@@ -34,39 +34,44 @@ function extractMetadata(welcomeSheet) {
  */
 function extractPremises(premisesSheet) {
   // Premises data starts at row 10 (index 9)
-  // B10/C10 through B34/C34
+  // B10/C10 through B36/C36 (added CETES and Reward Margin at B15/C15 and B16/C16)
   const premises = {
     interestRate: sanitizeNumber(premisesSheet[9]?.[2]), // C10
     inflationRate: sanitizeNumber(premisesSheet[10]?.[2]), // C11
     businessIncomeTax: sanitizeNumber(premisesSheet[11]?.[2]), // C12
     employeeShareOfProfit: sanitizeNumber(premisesSheet[12]?.[2]), // C13 (PTU)
-    inventoryPercentage: sanitizeNumber(premisesSheet[13]?.[2]), // C14
-    providerPercentage: sanitizeNumber(premisesSheet[14]?.[2]), // C15
-    shortTermPassive: sanitizeNumber(premisesSheet[15]?.[2]), // C16
-    directProductCosts: sanitizeNumber(premisesSheet[16]?.[2]), // C17
-    indirectProductCosts: sanitizeNumber(premisesSheet[17]?.[2]), // C18
-    salesExpenses: sanitizeNumber(premisesSheet[18]?.[2]), // C19
-    administrationPercentage: sanitizeNumber(premisesSheet[19]?.[2]), // C20
+    cetes: sanitizeNumber(premisesSheet[14]?.[2]), // C15 - NEW
+    rewardMargin: sanitizeNumber(premisesSheet[15]?.[2]), // C16 - NEW
+    inventoryPercentage: sanitizeNumber(premisesSheet[16]?.[2]), // C17 (shifted down)
+    providerPercentage: sanitizeNumber(premisesSheet[17]?.[2]), // C18 (shifted down)
+    shortTermPassive: sanitizeNumber(premisesSheet[18]?.[2]), // C19 (shifted down)
+    directProductCosts: sanitizeNumber(premisesSheet[19]?.[2]), // C20 (shifted down)
+    indirectProductCosts: sanitizeNumber(premisesSheet[20]?.[2]), // C21 (shifted down)
+    salesExpenses: sanitizeNumber(premisesSheet[21]?.[2]), // C22 (shifted down)
+    administrationPercentage: sanitizeNumber(premisesSheet[22]?.[2]), // C23 (shifted down)
     depreciationRates: {
-      building: sanitizeNumber(premisesSheet[20]?.[2]), // C21
-      machinery: sanitizeNumber(premisesSheet[21]?.[2]), // C22
-      vehicle: sanitizeNumber(premisesSheet[22]?.[2]), // C23
-      computerEquipment: sanitizeNumber(premisesSheet[23]?.[2]), // C24
+      building: sanitizeNumber(premisesSheet[23]?.[2]), // C24 (shifted down)
+      machinery: sanitizeNumber(premisesSheet[24]?.[2]), // C25 (shifted down)
+      vehicle: sanitizeNumber(premisesSheet[25]?.[2]), // C26 (shifted down)
+      computerEquipment: sanitizeNumber(premisesSheet[26]?.[2]), // C27 (shifted down)
     },
-    machineryInstallationRate: sanitizeNumber(premisesSheet[24]?.[2]), // C25
-    qualityImprovementRate: sanitizeNumber(premisesSheet[25]?.[2]), // C26
-    utilizationRate: sanitizeNumber(premisesSheet[26]?.[2]), // C27
+    machineryInstallationRate: sanitizeNumber(premisesSheet[27]?.[2]), // C28 (shifted down)
+    qualityImprovementRate: sanitizeNumber(premisesSheet[28]?.[2]), // C29 (shifted down)
+    utilizationRate: sanitizeNumber(premisesSheet[29]?.[2]), // C30 (shifted down)
     laborBenefits: {
-      imss: sanitizeNumber(premisesSheet[27]?.[2]), // C28
-      infonavit: sanitizeNumber(premisesSheet[28]?.[2]), // C29
-      valesDespensa: sanitizeNumber(premisesSheet[29]?.[2]), // C30
-      aguinaldo: sanitizeNumber(premisesSheet[30]?.[2]), // C31
-      fondoAhorro: sanitizeNumber(premisesSheet[31]?.[2]), // C32
-      comedor: sanitizeNumber(premisesSheet[32]?.[2]), // C33
+      imss: sanitizeNumber(premisesSheet[30]?.[2]), // C31 (shifted down)
+      infonavit: sanitizeNumber(premisesSheet[31]?.[2]), // C32 (shifted down)
+      valesDespensa: sanitizeNumber(premisesSheet[32]?.[2]), // C33 (shifted down)
+      aguinaldo: sanitizeNumber(premisesSheet[33]?.[2]), // C34 (shifted down)
+      fondoAhorro: sanitizeNumber(premisesSheet[34]?.[2]), // C35 (shifted down)
+      comedor: sanitizeNumber(premisesSheet[35]?.[2]), // C36 (shifted down)
     },
   };
   
-  console.log('[MexicoManufacturingAdapter] Premises extracted');
+  // Calculate TREMA (discount rate): CETES + Reward Margin + Inflation
+  premises.trema = premises.cetes + premises.rewardMargin + premises.inflationRate;
+  
+  console.log('[MexicoManufacturingAdapter] Premises extracted, TREMA:', premises.trema);
   return premises;
 }
 
@@ -334,7 +339,7 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     
     // Set project parameters for compatibility with existing engine
     model.project.initialInvestment = model.financing.initialInvestment;
-    model.project.discountRate = model.premises.interestRate;
+    model.project.discountRate = model.premises.trema; // Use TREMA as discount rate
     
     console.log('[MexicoManufacturingAdapter] Transformation complete');
     console.log('[MexicoManufacturingAdapter] Summary:', getModelSummary(model));
