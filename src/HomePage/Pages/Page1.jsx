@@ -6,97 +6,125 @@ import { useNavigate } from 'react-router-dom'
 function Page1() {
     const navigate = useNavigate()
 
+    const goToTemplates = () => {
+        navigate("/templates")
+    }
+
     const goToSurvey = () => {
         navigate("/tecbooks/survey")
     }
 
     const goToTemplateUpload = () => {
-        navigate("/tecbooks/template-upload")
+        navigate("/templates/upload")
     }
 
-    const getTemplate = () => {
-        console.log("downloading template")
-    }
-
-    // const [isTight, setIsTight] = useState(false);
-    
-    //   useEffect(() => {
-    //     const checkOrientation = () => {
-    //       setIsPortrait(window.innerWidth < );
-    //     };
-    
-    //     checkOrientation();
-    //     window.addEventListener('resize', checkOrientation);
-    //     return () => window.removeEventListener('resize', checkOrientation);
-    //   }, []);
-
-  return (
-    <div className="page-container blue-page" id="tecbooks-page">
+    return (
+      <div className="page-container blue-page" id="tecbooks-page">
         <div className='page-topper'>for independent users and/or businesses</div>
         <Typography className='page-main-title'
             sx={{ fontWeight: '600', paddingLeft: '10vw', fontSize: '2.5rem' }}>
-                Make your own TECBooks!
+                Project Evaluation & Financial Dashboard
         </Typography>
+        
         <div className='template-flex'>
             <div className='template-1'>
                 <div>
-                    <Typography sx={{ fontWeight: '600', fontSize: '1.8rem' }}>Complete</Typography>
+                    <Typography sx={{ fontWeight: '600', fontSize: '1.8rem' }}>Choose Template</Typography>
                     <Typography sx={{ fontWeight: '600', fontSize: '0.8rem' }}>
-                        our business questionnaire with your business's details
+                        Download an Excel template tailored to your business type and country
                     </Typography>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <img src={'/imgs/surveyor_landing.png'} style={{ boxShadow: 'none', width: '35%' }}  />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                    <img src={'/imgs/excel_icon.png'} style={{ boxShadow: 'none', width: '60%', display: 'block', margin: '0 auto' }} />
                 </div>
-                <div style={{ width: '100%', textAlign: 'left' }}>
-                    <button className='landing-btn smaller' style={{ marginLeft: '10%' }} onClick={goToSurvey}>
-                        Start Cuestionare
+                <div style={{ width: '100%', textAlign: 'center' }}>
+                    <button className='landing-btn' style={{ padding: '0.6rem 2rem', fontSize: '1rem' }} onClick={goToTemplates}>
+                        Browse Templates
                     </button>
                 </div>
-                <a className='credits-a' href="https://www.freepik.com/icon/survey_2222295#fromView=search&page=1&position=20&uuid=1a015019-e55b-486d-9c01-558f612755a3">Icon by Freepik</a>    
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>
+                    Manufacturing, Services, Retail & more
+                </Typography>
             </div>
+            
             <div className='temp-arrow'>
                 <EastIcon sx={{ fontSize: '2rem' }} /> 
             </div>
+            
             <div className='template-2'>
                 <div>
                     <Typography sx={{ fontWeight: '600', fontSize: '1.8rem' }}>Fill Out</Typography>
                     <Typography sx={{ fontWeight: '600', fontSize: '0.8rem' }}>
-                        your excel template with your business's financial data
+                        your template with your business's financial data and projections
                     </Typography>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                    <img src={'/imgs/excel_icon.png'} style={{ boxShadow: 'none', width: '80%' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                    <img src={'/imgs/surveyor_landing.png'} style={{ boxShadow: 'none', width: '35%', display: 'block', margin: '0 auto' }} />
                 </div>
-                {/* <EastIcon sx={{ fontSize: '2rem' }} /> */}
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.secondary' }}>
+                    Or use our in-app questionnaire
+                </Typography>
+                <div style={{ width: '100%', textAlign: 'center', mt: 1 }}>
+                    <button className='landing-btn' style={{ padding: '0.6rem 2rem', fontSize: '1rem' }} onClick={goToSurvey}>
+                        Start Questionnaire
+                    </button>
+                </div>
+                <a className='credits-a' href="https://www.freepik.com/icon/survey_2222295">Icon by Freepik</a>    
             </div>
+            
             <div className='temp-arrow'>
                 <EastIcon sx={{ fontSize: '2rem' }} />
             </div> 
+            
             <div className='template-3'>
-                <img src={'/imgs/submit_landing.png'} style={{ boxShadow: 'none', width: '35%', margin: '0 auto' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                    <img src={'/imgs/submit_landing.png'} style={{ boxShadow: 'none', width: '35%', display: 'block', margin: '0 auto' }} />
+                </div>
                 <div>
-                    <Typography sx={{ fontWeight: '600', fontSize: '1.8rem' }}>Upload It</Typography>
+                    <Typography sx={{ fontWeight: '600', fontSize: '1.8rem' }}>Generate Dashboard</Typography>
                     <Typography sx={{ fontWeight: '600', fontSize: '0.8rem' }}>
-                        here to generate everything from income statements, 
-                        balance sheets, and forecasts.
+                        Upload your template to generate IRR, NPV, ROI, cashflow projections, and financial statements
                     </Typography>
                 </div>
-                <div style={{ width: '100%', textAlign: 'right' }}>
-                    <button className='landing-btn smaller' 
-                        style={{ marginRight: '10%' }}
+                <div style={{ width: '100%', textAlign: 'center' }}>
+                    <button className='landing-btn' 
+                        style={{ padding: '0.6rem 2rem', fontSize: '1rem' }}
                         onClick={goToTemplateUpload}>
                         Upload Template
                     </button>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                    <Typography sx={{  fontSize: 'x-small' }}>Already have your template? Skip the quiz and upload it here!</Typography>
+                    <Typography sx={{ fontSize: 'x-small' }}>Already filled your template? Upload it here!</Typography>
                 </div>
-                <a className='credits-a' href="https://www.freepik.com/icon/submit_2601814#fromView=search&page=1&position=32&uuid=d7849f54-aeb4-4ec8-ab89-0f2641d63a2a">Icon by Freepik</a>
+                <a className='credits-a' href="https://www.freepik.com/icon/submit_2601814">Icon by Freepik</a>
             </div>
         </div>
-    </div>
-  )
+
+        <div style={{ padding: '2rem 10vw', marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, textAlign: 'center' }}>
+                What You'll Get
+            </Typography>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                <div style={{ textAlign: 'center' }}>
+                    <Typography sx={{ fontWeight: 600 }}>📊 Project Evaluation</Typography>
+                    <Typography variant="body2">IRR, NPV, ROI, Break-even Analysis</Typography>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                    <Typography sx={{ fontWeight: 600 }}>💰 Cashflow Projections</Typography>
+                    <Typography variant="body2">Monthly cashflow tracking & forecasts</Typography>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                    <Typography sx={{ fontWeight: 600 }}>📈 Financial Statements</Typography>
+                    <Typography variant="body2">Income, Balance Sheet, Cash Flow</Typography>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                    <Typography sx={{ fontWeight: 600 }}>🔮 Forecasting</Typography>
+                    <Typography variant="body2">Statistical projections & trends</Typography>
+                </div>
+            </div>
+        </div>
+      </div>
+    )
 }
 
 export default Page1
