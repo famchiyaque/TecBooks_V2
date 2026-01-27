@@ -1,6 +1,6 @@
 import '../styles/general.css'
 import React from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import Survey from './Survey/Survey'
 import { createSurveyStore } from './Survey/store'
 import TempUpload from './TempUpload/TempUpload'
@@ -12,6 +12,7 @@ function Index() {
 
     return (
         <Routes>
+            <Route path="/" element={<Navigate to="survey" />}/>
             <Route path="survey" element={
                 <Provider store={surveyStore}>
                     <Survey />
