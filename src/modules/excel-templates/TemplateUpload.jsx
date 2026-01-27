@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, Typography, Button, Box, Alert } from '@mui/material'
 import { CloudUpload, CheckCircle } from '@mui/icons-material'
 import * as XLSX from 'xlsx'
-import { adaptExcelToBusinessModel } from '@/core/adapters/ExcelAdapter'
+import { adaptExcelToBusinessModel, adaptMexicoManufacturingToBusinessModel } from '@/core/adapters'
 import '@/styles/general.css'
 
 /**
@@ -48,8 +48,18 @@ function TemplateUpload() {
 
       console.log('[TemplateUpload] Excel data loaded:', Object.keys(excelData))
 
-      // Transform to canonical business model using adapter
-      const businessModel = adaptExcelToBusinessModel(excelData)
+      // Detect template type and use appropriate adapter
+      let businessModel;
+      
+      // Check if this is the Mexico Manufacturing template (has Welcome sheet)
+      if (excelData.Welcome || excelData['Welcome']) {
+        console.log('[TemplateUpload] Detected Mexico Manufacturing template');
+        businessModel = adaptMexicoManufacturingToBusinessModel(excelData);
+      } else {
+        // Fallback to generic Excel adapter for other templates
+        console.log('[TemplateUpload] Using generic Excel adapter');
+        businessModel = adaptExcelToBusinessModel(excelData);
+      }
 
       console.log('[TemplateUpload] Business model created:', businessModel)
 

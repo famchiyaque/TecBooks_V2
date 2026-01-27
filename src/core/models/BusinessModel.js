@@ -32,13 +32,115 @@ export function createEmptyBusinessModel() {
       totalMonths: 0,
     },
 
-    // Revenue Streams
+    // Premises (Financial Assumptions & Rates)
+    premises: {
+      interestRate: 0,
+      inflationRate: 0,
+      businessIncomeTax: 0,
+      employeeShareOfProfit: 0, // PTU
+      inventoryPercentage: 0,
+      providerPercentage: 0,
+      shortTermPassive: 0,
+      directProductCosts: 0,
+      indirectProductCosts: 0,
+      salesExpenses: 0,
+      administrationPercentage: 0,
+      depreciationRates: {
+        building: 0,
+        machinery: 0,
+        vehicle: 0,
+        computerEquipment: 0,
+      },
+      machineryInstallationRate: 0,
+      qualityImprovementRate: 0,
+      utilizationRate: 0,
+      laborBenefits: {
+        imss: 0,
+        infonavit: 0,
+        valesDespensa: 0,
+        aguinaldo: 0,
+        fondoAhorro: 0,
+        comedor: 0,
+      },
+    },
+
+    // Bills of Materials (Products and their components)
+    boms: [
+      // {
+      //   name: 'Product Name',
+      //   salesPrice: 0,
+      //   parts: [
+      //     { name: 'Part 1', quantity: 0, cost: 0, subtotal: 0 }
+      //   ]
+      // }
+    ],
+
+    // Assets
+    assets: {
+      machinery: [], // [{ name: 'Machine 1', cost: 0 }]
+      vehicles: [], // [{ name: 'Vehicle 1', cost: 0 }]
+      buildings: [], // [{ name: 'Building 1', cost: 0 }]
+      computerEquipment: [], // [{ name: 'Computer 1', cost: 0 }]
+      depreciation: [], // Monthly depreciation values (calculated)
+      totalMachinery: 0,
+      totalVehicles: 0,
+      totalBuildings: 0,
+      totalComputerEquipment: 0,
+      totalAssets: 0,
+    },
+
+    // Production Parameters
+    production: {
+      qualityYield: 0,
+      unitsPerHour: 0,
+      hoursPerShift: 0,
+      numberOfShifts: 0,
+      numberOfLines: 0,
+      daysPerWeek: 0,
+      weeksPerMonth: 0,
+      monthsPerYear: 0,
+      // Demand
+      firstYearDemand: {
+        units: 0,
+        months: 0, // Number of months (incomplete year)
+      },
+      firstFullYearDemand: {
+        units: 0,
+        months: 12,
+      },
+    },
+
+    // Workforce
+    workforce: {
+      directLaborSalaries: 0, // Monthly
+      indirectLaborSalaries: 0, // Monthly
+      engineeringSalaries: 0, // Monthly
+      administrativeSalaries: 0, // Monthly
+      totalMonthlySalaries: 0,
+    },
+
+    // Operating Expenses
+    expenses: [
+      // { name: 'Expense 1', monthlyCost: 0 }
+    ],
+
+    // Financing
+    financing: {
+      initialInvestment: 0,
+      loan: {
+        amount: 0,
+        periods: 0,
+        interestRate: 0,
+      },
+    },
+
+    // Revenue Streams (for compatibility with existing engine)
     revenue: {
       productsAndServices: {}, // { 'product1': [month1Val, month2Val, ...], 'service1': [...] }
       totals: [], // Total revenue per month
     },
 
-    // Cost Structure
+    // Cost Structure (for compatibility with existing engine)
     costs: {
       salaries: {}, // { 'employee1': [month1Val, ...], ... }
       fixedCosts: {}, // { 'rent': [month1Val, ...], 'utilities': [...], ... }
@@ -46,14 +148,14 @@ export function createEmptyBusinessModel() {
       totals: [], // Total costs per month
     },
 
-    // Operating Expenses
-    expenses: {
+    // Operating Expenses (for compatibility with existing engine)
+    operatingExpenses: {
       salaries: {}, // Administrative salaries
       expenses: {}, // Other operating expenses
       totals: [], // Total expenses per month
     },
 
-    // Capital Structure & Project Parameters
+    // Capital Structure & Project Parameters (for compatibility)
     project: {
       initialInvestment: 0,
       discountRate: 0, // Percentage (e.g., 10 for 10%)
@@ -62,17 +164,7 @@ export function createEmptyBusinessModel() {
       equity: 0,
     },
 
-    // Assets & Depreciation
-    assets: {
-      property: [], // { name, value, depreciationRate, ... }
-      machinery: [],
-      technology: [],
-      fixtures: [],
-      inventory: [],
-      depreciation: [], // Monthly depreciation values
-    },
-
-    // Accounts
+    // Accounts (optional)
     accounts: {
       receivables: {}, // { 'client1': [month1Val, ...], ... }
       payables: {}, // { 'supplier1': [month1Val, ...], ... }
@@ -80,7 +172,7 @@ export function createEmptyBusinessModel() {
       shouldDisregard: false,
     },
 
-    // Additional context data (for specialized dashboards like MxRep)
+    // Additional context data (for specialized dashboards)
     additionalData: {
       // MxRep production data
       production: null,
@@ -101,26 +193,23 @@ export function validateBusinessModel(model) {
     errors.push('Business name is required');
   }
 
-  if (!model.timeline?.months || model.timeline.months.length === 0) {
-    errors.push('Timeline must have at least one month');
+  if (!model.metadata?.type) {
+    errors.push('Business type is required');
   }
 
-  if (!model.revenue?.totals || model.revenue.totals.length === 0) {
-    errors.push('Revenue data is required');
+  if (!model.metadata?.country) {
+    errors.push('Country is required');
   }
 
-  // Check that arrays are consistent lengths
-  const expectedLength = model.timeline?.months?.length || 0;
-  if (model.revenue?.totals?.length !== expectedLength) {
-    errors.push('Revenue totals length must match timeline length');
-  }
+  // For manufacturing templates, validate manufacturing-specific fields
+  if (model.metadata?.type === 'manufacturing') {
+    if (!model.boms || model.boms.length === 0) {
+      errors.push('Manufacturing business must have at least one BOM');
+    }
 
-  if (model.costs?.totals?.length !== expectedLength) {
-    errors.push('Costs totals length must match timeline length');
-  }
-
-  if (model.expenses?.totals?.length !== expectedLength) {
-    errors.push('Expenses totals length must match timeline length');
+    if (!model.production?.qualityYield) {
+      errors.push('Production parameters are required for manufacturing');
+    }
   }
 
   return {
@@ -154,11 +243,13 @@ export function getModelSummary(model) {
   return {
     businessName: model.metadata?.name,
     type: model.metadata?.type,
+    country: model.metadata?.country,
     source: model.metadata?.source,
     months: model.timeline?.totalMonths || model.timeline?.months?.length || 0,
-    hasRevenue: (model.revenue?.totals?.length || 0) > 0,
-    hasCosts: (model.costs?.totals?.length || 0) > 0,
-    hasExpenses: (model.expenses?.totals?.length || 0) > 0,
-    hasProjectData: model.project?.initialInvestment > 0,
+    hasBOMs: (model.boms?.length || 0) > 0,
+    hasAssets: model.assets?.totalAssets > 0,
+    hasFinancing: model.financing?.initialInvestment > 0,
+    numberOfProducts: model.boms?.length || 0,
+    totalAssets: model.assets?.totalAssets || 0,
   };
 }
