@@ -138,6 +138,23 @@
   font-weight: 600;
 }
 
+.sidebar-spacer {
+  flex: 1;
+  min-height: 20px;
+}
+
+.sidebar-exit {
+  margin-top: auto;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem !important;
+  color: #64748b;
+}
+
+.sidebar-exit:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
 .sidebar-icon {
   font-size: 1.2rem;
   min-width: 20px;

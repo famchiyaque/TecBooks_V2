@@ -18,11 +18,11 @@ function MainLayout() {
     const routeToSidebarMap = {
         'project-evaluation': 0,
         'overview': 1,
-        'statements': 2,
-        'forecasts': 3,
-        'finance-kpis': 4,
-        'financial-statement': 5,
-        'productivity': 6,
+        'financial-statement': 2,
+        'finance-kpis': 3,
+        'productivity': 4,
+        'statements': 5,
+        'forecasts': 6,
     }
 
     useEffect(() => {

@@ -24,7 +24,7 @@ function BalanceSheet({ period, year }) {
               {/* Header */}
               <div className="text-center mb-8 page-header">
                 <h1 className="text-2xl font-bold mb-2">Balance Sheet</h1>
-                <p className="text-gray-600">{simData.teamName}</p>
+                <p className="text-gray-600">Bumble Bees</p>
               </div>
 
               <div className='balance-contents'>
@@ -35,7 +35,7 @@ function BalanceSheet({ period, year }) {
                         <p className='double-indent'>Cash and Banks</p>
                         <p className='double-indent'>Customers</p>
                         <p className='double-indent'>Accounts Receivable</p>
-                        <p className='double-indent'>Inventory</p>
+                        <p className='double-indent'><i>Inventory</i></p>
                           <p className='triple-indent'>Raw Material</p>
                           <p className='triple-indent'>Good in Process</p>
                           <p className='triple-indent'>Finished Goods</p>
@@ -50,7 +50,7 @@ function BalanceSheet({ period, year }) {
                         <p className='double-indent'>Others</p>
                       <p className='single-indent'>Total Fixed Assets</p>
                     <br></br>
-                        <p className='double-indent'>Total Assets</p>
+                    <p className='font-bold'>Total Assets</p>
                     <br></br>
                     <p>Liabilites</p>
                       <p className='single-indent'><i>Current Liabilites</i></p>
@@ -58,24 +58,24 @@ function BalanceSheet({ period, year }) {
                         <p className='double-indent'>Accounts Payable</p>
                       <p className='single-indent'>Total Current Liabilities</p>
                     <br></br>
-                      <p className='single-indent'>Long-Term Liabilities</p>
+                      <p className='single-indent'><i>Long-Term Liabilities</i></p>
                         <p className='double-indent'>Long-Term Accounts Payable</p>
                       <p className='single-indent'>Total Long-Term Liabilities</p>
                     <br></br>
-                      <p className='single-indent'>Total Liabilities</p>
+                    <p className='font-bold'>Total Liabilities</p>
                     <br></br>
                     <p>Equity</p>
                       <p className='single-indent'>Capital</p>
                       <p className='single-indent'>Period Earnings</p>
                       <p className='single-indent'>Retain Earnings</p>
-                      <p className='single-indent'>Total Equity</p>
+                    <p className='font-bold'>Total Equity</p>
                     <br></br>
-                        <p className='double-indent'>Liabilities + Equity</p>
+                    <p className='font-bold'>Liabilities + Equity</p>
                     <br></br>
                 </div>
 
                 <div className='balance-data'>
-                      {balanceSheetArray.map((obj) => {
+                      {balanceSheetArray.slice(0, 1).map((obj) => {
                             return <div className='data-column'>
                                       <p>{obj.month}</p>
                                       <br></br>
@@ -83,10 +83,10 @@ function BalanceSheet({ period, year }) {
                                       <p>${obj.cashAndBanks}</p>
                                       <p>${obj.customers}</p>
                                       <p>${obj.accountsReceivable}</p>
+                                      <br></br>
                                       <p>${obj.inventory.rawMaterial}</p>
                                       <p>${obj.inventory.goodsInProcess}</p>
                                       <p>${obj.inventory.finishedGoods}</p>
-                                      <p>${obj.accountsReceivable}</p>
                                       <p className='font-bold'>${obj.totalCurrentAssets}</p>
                                       <br></br>
                                       <br></br>
@@ -96,17 +96,30 @@ function BalanceSheet({ period, year }) {
                                       <p>${obj.fixedAssets.equipment}</p>
                                       <p>${obj.fixedAssets.netAccumulatedDepreciation}</p>
                                       <p>${obj.fixedAssets.others}</p>
-                                      <p>${obj.totalFixedAssets}</p>
+                                      <p className='font-bold'>${obj.totalFixedAssets}</p>
                                       <br></br>
                                       <p className='font-bold'>${obj.totalAssets}</p>
                                       <br></br>
                                       <br></br>
                                       <br></br>
-                                          <p>Total Assets</p>
+                                      <p>${obj.liabilities.suppliers}</p>
+                                      <p>${obj.liabilities.accountsPayable}</p>
+                                      <p className='font-bold'>${obj.liabilities.totalCurrentLiabilities}</p>
                                       <br></br>
-                                      
                                       <br></br>
-                                        
+                                      <p>${obj.liabilities.longtermAccountsPayable}</p>
+                                      <p className='font-bold'>${obj.liabilities.totalLongTermLiabilities}</p>
+                                      <br></br>
+                                      <p className='font-bold'>${obj.liabilities.totalLiabilities}</p>
+                                      <br></br>
+                                      <br></br>
+                                      <p>${obj.equity.capital}</p>
+                                      <p>${obj.equity.periodEarnings}</p>
+                                      <p>${obj.equity.retainedEarnings}</p>
+                                      <p className='font-bold'>${obj.equity.totalEquity}</p>
+                                      <br></br>
+                                      <p className='font-bold'>${obj.totalLiabilitiesAndEquity}</p>
+                                      <br></br>
                                     </div>
                         })}
                 </div>

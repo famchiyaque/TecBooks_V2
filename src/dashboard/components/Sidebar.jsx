@@ -56,6 +56,15 @@ function Sidebar({ activeSidebar, setActiveSidebar }) {
                     <MdDashboard className="sidebar-icon" />
                     <span>Overview</span>
             </div>
+            <div 
+                className={`sidebar-entry ${activeSidebar === 2 ? 'active' : ''}`}
+                onClick={() => {
+                    setActiveSidebar(2)
+                    navigate('financial-statement')
+                }}>
+                    <FaRegChartBar className="sidebar-icon" />
+                    <span>Financial Statement</span>
+            </div>
             {/* <div 
                 className={`sidebar-entry ${activeSidebar === 2 ? 'active' : ''}`}
                 onClick={() => {
@@ -75,31 +84,29 @@ function Sidebar({ activeSidebar, setActiveSidebar }) {
                     <span>Forecasts</span>
             </div> */}
             <div 
-                className={`sidebar-entry ${activeSidebar === 4 ? 'active' : ''}`}
+                className={`sidebar-entry ${activeSidebar === 3 ? 'active' : ''}`}
                 onClick={() => {
-                    setActiveSidebar(4)
+                    setActiveSidebar(3)
                     navigate('finance-kpis')
                 }}>
                     <FaChartPie className="sidebar-icon" />
                     <span>Finance KPIs</span>
             </div>
-            <div 
-                className={`sidebar-entry ${activeSidebar === 5 ? 'active' : ''}`}
+            {/* <div 
+                className={`sidebar-entry ${activeSidebar === 4 ? 'active' : ''}`}
                 onClick={() => {
-                    setActiveSidebar(5)
-                    navigate('financial-statement')
-                }}>
-                    <FaRegChartBar className="sidebar-icon" />
-                    <span>Financial Statement</span>
-            </div>
-            <div 
-                className={`sidebar-entry ${activeSidebar === 6 ? 'active' : ''}`}
-                onClick={() => {
-                    setActiveSidebar(6)
+                    setActiveSidebar(4)
                     navigate('productivity')
                 }}>
                     <GiFactory className="sidebar-icon" />
                     <span>Productivity</span>
+            </div> */}
+            <div className="sidebar-spacer"></div>
+            <div 
+                className="sidebar-entry sidebar-exit"
+                onClick={() => navigate('/home')}>
+                    <FaRegChartBar className="sidebar-icon" />
+                    <span>Exit Dashboard</span>
             </div>
         </nav>
     )

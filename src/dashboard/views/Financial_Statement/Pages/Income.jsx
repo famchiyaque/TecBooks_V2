@@ -48,8 +48,7 @@ function Income({ period, year }) {
                 {/* Header */}
                 <div className="text-center mb-8 page-header">
                     <h1 className="text-2xl font-bold mb-2">Income Statement</h1>
-                    {/* <p className="text-gray-600">{simData.teamName}</p> */}
-                    <p className="text-gray-600">Cookie World</p>
+                    <p className="text-gray-600">Bumble Bees</p>
                 </div>
 
                 <div id="income-contents" className='income-contents'>
@@ -59,9 +58,8 @@ function Income({ period, year }) {
                         <p>Cost of Goods Sold (COGS)</p>
                         <p className='left-indent'>Gross Profit</p>
                         <br></br>
-                        <p>Administrative Expenes</p>
+                        <p>Administrative Expenses</p>
                         <p>Selling and Operating Expenses</p>
-                        <p>Total Operating Expenses</p>
                         <p className='left-indent'>Operating Profit (EBITDA)</p>
                         <br></br>
                         <p>Depreciation</p>
@@ -76,16 +74,15 @@ function Income({ period, year }) {
                     </div>
 
                     <div className='income-data'>
-                        {incomeDataArray.map((obj) => {
+                        {incomeDataArray.slice(0, 1).map((obj) => {
                             return <div className='data-column'>
                                         <p>{obj.month}</p>
                                         <p>{obj.sales}</p>
-                                        <p>{obj.cogs}</p>
+                                        <p>${obj.cogs}</p>
                                         <p className='font-bold'>${obj.gross}</p>
                                         <br></br>
                                         <p>${obj.adminExp}</p>
                                         <p>${obj.sellingAndOperating}</p>
-                                        <p>${obj.totalOperating}</p>
                                         <p className='font-bold'>${obj.ebitda}</p>
                                         <br></br>
                                         <p>${obj.depreciation}</p>
