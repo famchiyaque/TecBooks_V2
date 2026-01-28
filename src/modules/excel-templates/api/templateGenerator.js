@@ -31,10 +31,55 @@ function updateCell(worksheet, cellAddress, value) {
 }
 
 /**
+ * Quick fix: Download pre-built template file
+ * @returns {Promise<Blob>}
+ */
+async function downloadPreBuiltTemplate() {
+  try {
+    // Try to fetch from public folder first (if copied there)
+    const response = await fetch('/templates/manufacturing.mexico.xlsx');
+    if (response.ok) {
+      return await response.blob();
+    }
+  } catch (error) {
+    console.log('[TemplateGenerator] Template not in public folder, trying alternative path');
+  }
+  
+  // Fallback: try relative path from template-builders
+  try {
+    const response = await fetch('/template-builders/manufacturing.mexico.xlsx');
+    if (response.ok) {
+      return await response.blob();
+    }
+  } catch (error) {
+    console.log('[TemplateGenerator] Template not found in alternative path');
+  }
+  
+  throw new Error('Pre-built template file not found');
+}
+
+/**
  * Generate Manufacturing Mexico template with real-time data
  * @returns {Promise<Blob>}
  */
 export async function generateManufacturingMexicoTemplate() {
+  console.log('[TemplateGenerator] Downloading pre-built Manufacturing Mexico template...');
+  
+  // Quick fix: Use pre-built template
+  try {
+    return await downloadPreBuiltTemplate();
+  } catch (error) {
+    console.error('[TemplateGenerator] Error downloading pre-built template:', error);
+    // Fallback to original generation logic
+    return await generateManufacturingMexicoTemplateOriginal();
+  }
+}
+
+/**
+ * Generate Manufacturing Mexico template with real-time data (ORIGINAL LOGIC - KEPT FOR REFERENCE)
+ * @returns {Promise<Blob>}
+ */
+async function generateManufacturingMexicoTemplateOriginal() {
   console.log('[TemplateGenerator] Generating Manufacturing Mexico template...');
   
   try {
@@ -84,9 +129,24 @@ export async function generateManufacturingMexicoTemplate() {
     
     // Convert to blob
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
-    console.log('[TemplateGenerator] Template generated successfully');
+    // Validate that we have valid data
+    if (!excelBuffer || excelBuffer.length === 0) {
+      throw new Error('Failed to generate Excel file: empty buffer');
+    }
+    
+    // Ensure we have a proper Uint8Array for the blob
+    const uint8Array = excelBuffer instanceof Uint8Array ? excelBuffer : new Uint8Array(excelBuffer);
+    const blob = new Blob([uint8Array], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    
+    // Validate blob was created successfully
+    if (!blob || blob.size === 0) {
+      throw new Error('Failed to create blob: empty blob');
+    }
+    
+    console.log('[TemplateGenerator] Template generated successfully', { size: blob.size });
     return blob;
     
   } catch (error) {
@@ -131,8 +191,12 @@ export function downloadBlob(blob, filename) {
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  // Small delay to ensure download starts before cleanup
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
