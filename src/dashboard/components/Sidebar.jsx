@@ -1,9 +1,10 @@
 import { React, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MdDashboard, MdCandlestickChart } from 'react-icons/md'
-import { FaFileInvoiceDollar, FaChartPie, FaRegChartBar, FaCalculator } from 'react-icons/fa'
+import { FaFileInvoiceDollar, FaChartPie, FaRegChartBar, FaCalculator, FaIndustry } from 'react-icons/fa'
 import { RiBankFill } from "react-icons/ri"
 import { BiTrendingUp } from 'react-icons/bi'
+import { GiFactory } from 'react-icons/gi'
 import '@/styles/general.css'
 
 function Sidebar({ activeSidebar, setActiveSidebar }) {
@@ -55,7 +56,7 @@ function Sidebar({ activeSidebar, setActiveSidebar }) {
                     <MdDashboard className="sidebar-icon" />
                     <span>Overview</span>
             </div>
-            <div 
+            {/* <div 
                 className={`sidebar-entry ${activeSidebar === 2 ? 'active' : ''}`}
                 onClick={() => {
                     setActiveSidebar(2)
@@ -63,8 +64,8 @@ function Sidebar({ activeSidebar, setActiveSidebar }) {
                 }}>
                     <FaFileInvoiceDollar className="sidebar-icon" />
                     <span>Financial Statements</span>
-            </div>
-            <div 
+            </div> */}
+            {/* <div 
                 className={`sidebar-entry ${activeSidebar === 3 ? 'active' : ''}`}
                 onClick={() => {
                     setActiveSidebar(3)
@@ -72,6 +73,33 @@ function Sidebar({ activeSidebar, setActiveSidebar }) {
                 }}>
                     <BiTrendingUp className="sidebar-icon" />
                     <span>Forecasts</span>
+            </div> */}
+            <div 
+                className={`sidebar-entry ${activeSidebar === 4 ? 'active' : ''}`}
+                onClick={() => {
+                    setActiveSidebar(4)
+                    navigate('finance-kpis')
+                }}>
+                    <FaChartPie className="sidebar-icon" />
+                    <span>Finance KPIs</span>
+            </div>
+            <div 
+                className={`sidebar-entry ${activeSidebar === 5 ? 'active' : ''}`}
+                onClick={() => {
+                    setActiveSidebar(5)
+                    navigate('financial-statement')
+                }}>
+                    <FaRegChartBar className="sidebar-icon" />
+                    <span>Financial Statement</span>
+            </div>
+            <div 
+                className={`sidebar-entry ${activeSidebar === 6 ? 'active' : ''}`}
+                onClick={() => {
+                    setActiveSidebar(6)
+                    navigate('productivity')
+                }}>
+                    <GiFactory className="sidebar-icon" />
+                    <span>Productivity</span>
             </div>
         </nav>
     )

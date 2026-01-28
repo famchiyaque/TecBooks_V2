@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { DashboardProvider } from '@/core/store'
+import { LegacySimDataProvider } from './contexts/LegacySimDataContext'
 import MainLayout from './MainLayout'
 import ProjectEvaluation_View from './views/ProjectEvaluation/ProjectEvaluation_View'
 import Overview_View from './views/OverView/Overview_View'
 import FinancialStatements_View from './views/FinancialStatements/FinancialStatements_View'
 import Forecasts_View from './views/Forecasts/Forecasts_View'
+import Finance_KPI_View from './views/Finance_KPIs/Finance_KPI_View'
+import Financial_Statement_View from './views/Financial_Statement/Finance_Statement_View'
+import Productivity_View from './views/Productivity/Productivity_View'
 import { Typography, Box, CircularProgress } from '@mui/material'
 import '@/styles/homepage.css'
 import '@/styles/general.css'
@@ -102,15 +106,20 @@ function Dashboard({ businessModel: propBusinessModel }) {
 
   return (
     <DashboardProvider businessModel={businessModel}>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="project-evaluation" />} />
-          <Route path="project-evaluation" element={<ProjectEvaluation_View />} />
-          <Route path="overview" element={<Overview_View />} />
-          <Route path="statements" element={<FinancialStatements_View />} />
-          <Route path="forecasts" element={<Forecasts_View />} />
-        </Route>
-      </Routes>
+      <LegacySimDataProvider>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Navigate to="project-evaluation" />} />
+            <Route path="project-evaluation" element={<ProjectEvaluation_View />} />
+            <Route path="overview" element={<Overview_View />} />
+            <Route path="statements" element={<FinancialStatements_View />} />
+            <Route path="forecasts" element={<Forecasts_View />} />
+            <Route path="finance-kpis" element={<Finance_KPI_View />} />
+            <Route path="financial-statement" element={<Financial_Statement_View />} />
+            <Route path="productivity" element={<Productivity_View />} />
+          </Route>
+        </Routes>
+      </LegacySimDataProvider>
     </DashboardProvider>
   )
 }

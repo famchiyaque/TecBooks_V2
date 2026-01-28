@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BarChart } from '@mui/x-charts/BarChart'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import { getProcessProductivity } from '../Calcs/bottlenecks'
 
 function BottleneckChart({ period, year }) {

@@ -1,9 +1,9 @@
 import React from 'react'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData } from '@/dashboard/contexts/LegacySimDataContext'
 import Typography from '@mui/material/Typography'
 
 function Sales({ period, year }) {
-  const { simData } = useSimData()
+  const { simData } = useLegacySimData()
   const sales = simData?simData.salesThisMonth:0
 
   return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import { Typography } from '@mui/material'
 import Gauge from '@/MxRep/Components/Dashboard/Gauge'
 import { useNavigate } from 'react-router-dom'

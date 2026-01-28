@@ -1,6 +1,6 @@
 import React from 'react'
 import { Typography } from '@mui/material'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 
 function Gross() {
   const { simData } = useSimData()

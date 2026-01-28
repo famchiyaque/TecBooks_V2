@@ -13,13 +13,14 @@ import Capital from './Margins/Capital'
 import AssetTurnover from './Graphs/AssetBullet'
 import InventoryTurnover from './Graphs/InventoryBullet'
 import { Typography } from '@mui/material'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData } from '@/dashboard/contexts/LegacySimDataContext'
 import Loader from '@/Global Components/Loader'
 import { useNavigate } from 'react-router-dom'
 
 function Financial_Health_View() {
-  const { period, year } = useOutletContext()
-  const { isLoading, error } = useSimData()
+  const { period } = useOutletContext()
+  const year = 2024 // Static for legacy view
+  const { isLoading, error } = useLegacySimData()
   const navigate = useNavigate()
 
   const months = [

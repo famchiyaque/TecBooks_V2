@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import { getXTimeline, getOutputData } from '../Calcs/outputData'
 import Loader from '@/Global Components/Loader'
 import { useNavigate } from 'react-router-dom'

@@ -3,7 +3,7 @@ import FusionCharts from 'fusioncharts'
 import Widgets from 'fusioncharts/fusioncharts.widgets'
 import ReactFC from 'react-fusioncharts'
 import FusionTheme from 'fusioncharts/themes/fusioncharts.theme.fusion'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import { Typography } from '@mui/material'
 
 ReactFC.fcRoot(FusionCharts, Widgets, FusionTheme)

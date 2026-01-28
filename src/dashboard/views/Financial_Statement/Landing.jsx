@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import "@/styles/statement.css"
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 // import { PDFDocument, StandardFonts, rgb } from "@react-pdf/renderer"; // already commented since Leo
 // import Card from "@mui/material/Card"
 import Loader from "@/Global Components/Loader"
@@ -28,9 +28,11 @@ function FinancialStatement() {
 
   return (
     <div className="financial-statement">
+      <div className="statement-navigation">
+        <Left activePaper={activePaper} handlePageChange={handlePageChange} />
+        <Right activePaper={activePaper} handlePageChange={handlePageChange} />
+      </div>
       <div className="statement-container">
-          <Left activePaper={activePaper} handlePageChange={handlePageChange} />
-          <Right activePaper={activePaper} handlePageChange={handlePageChange} />
           {activePaper === 1 ? <Cashflows period={period} year={year} /> : ''}
           {activePaper === 2 ? <Income period={period} year={year} /> : ''}
           {activePaper === 3 ? <BalanceSheet period={period} year={year} /> : ''}

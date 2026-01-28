@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Gauge from '@/MxRep/Components/Dashboard/Gauge'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import Loader from '@/Global Components/Loader'
 import { useNavigate } from 'react-router-dom'
 import { getOee } from '../Calcs/kpi-calcs'

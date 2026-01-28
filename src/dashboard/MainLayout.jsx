@@ -20,6 +20,9 @@ function MainLayout() {
         'overview': 1,
         'statements': 2,
         'forecasts': 3,
+        'finance-kpis': 4,
+        'financial-statement': 5,
+        'productivity': 6,
     }
 
     useEffect(() => {

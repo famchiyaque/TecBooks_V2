@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import Typography from '@mui/material/Typography'
 import Part from './Part' 
 

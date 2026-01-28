@@ -1,6 +1,6 @@
 import React from 'react'
 import WaterfallChart from '@keyvaluesystems/react-waterfall-chart'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 
 function Waterfall({ period, year }) {
   const { simData } = useSimData()

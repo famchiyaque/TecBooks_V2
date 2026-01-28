@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import { getProcessProductivity } from '../Calcs/bottlenecks'
 
 const Bottlenex = ({ period, year }) => {

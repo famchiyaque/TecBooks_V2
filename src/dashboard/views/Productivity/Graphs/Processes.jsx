@@ -1,7 +1,7 @@
 import React from 'react'
 import Stack from '@mui/material/Stack'
 import { Gauge } from '@mui/x-charts/Gauge'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 import { Typography } from '@mui/material'
 
 function Processes() {

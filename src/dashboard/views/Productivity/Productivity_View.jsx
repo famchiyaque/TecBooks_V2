@@ -1,7 +1,7 @@
 import '@/styles/productivity.css'
 import { React, useEffect, useState } from 'react'
 // import Typography from '@mui/material/Typography'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData } from '@/dashboard/contexts/LegacySimDataContext'
 import PrimaryKPIs from './KPIS/PrimaryKPIs'
 import Capacity from './KPIS/Capacity'
 import OEE from './KPIS/OEE'
@@ -24,17 +24,17 @@ function Productivity_View() {
         setView(value)
     }
 
-    const { period, year } = useOutletContext()
-    const { simData, isLoading, error } = useSimData()
+    const { period } = useOutletContext()
+    const year = 2024 // Static for legacy view
+    const { simData, isLoading, error } = useLegacySimData()
     const navigate = useNavigate()
 
     useEffect(() => {
+        // Don't navigate away on error for legacy views
         if (error) {
-            navigate('/error')
-        } else if (!simData && !isLoading) {
-            navigate('/novus-dashboard')
+            console.warn('[Productivity] Legacy sim data error:', error)
         }
-    }, [simData, error, isLoading, navigate])
+    }, [error])
 
     if (isLoading) return <Loader />
 

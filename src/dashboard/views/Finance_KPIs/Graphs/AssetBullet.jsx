@@ -1,7 +1,7 @@
 import React from 'react'
 import BulletGraph from '@/MxRep/Components/Dashboard/BulletGraph'
 import { Typography } from '@mui/material'
-import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
+import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 
 function AssetTurnover() {
   const { simData } = useSimData()
