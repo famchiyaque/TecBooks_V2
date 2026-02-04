@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Typography, 
@@ -248,6 +248,7 @@ function TemplateSelector() {
   const types = ['All', ...new Set(templates.map(t => t.type))]
   const languages = ['All', ...new Set(templates.map(t => t.language))]
 
+
   return (
     <div className="survey-page">
       <GenericHeader pageName={"Excel Templates"} />
@@ -297,13 +298,11 @@ function TemplateSelector() {
         {/* Main Content */}
         <div 
           style={{ 
-            marginLeft: sidebarOpen ? '12rem' : '0', 
-            width: sidebarOpen ? 'calc(100vw - 12rem)' : '100vw',
+            flex: 1,
             height: 'calc(100vh - 11vh)',
             overflowY: 'auto',
-            display: 'inline-block',
             fontFamily: "'Roboto', sans-serif",
-            transition: 'margin-left 0.3s ease, width 0.3s ease',
+            transition: 'all 0.3s ease',
           }}
         >
           <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
@@ -314,7 +313,7 @@ function TemplateSelector() {
               borderRadius: '15px',
               boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
               border: 'solid #073a5a 1px',
-              padding: '1.5rem 2rem',
+              padding: '0.75rem 1.5rem',
             }}>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                 <TextField
@@ -324,10 +323,11 @@ function TemplateSelector() {
                   InputProps={{
                     startAdornment: <Search sx={{ mr: 1, color: '#073a5a' }} />,
                   }}
+                  size="small"
                   sx={{ flexGrow: 1, minWidth: '200px' }}
                 />
                 
-                <FormControl sx={{ minWidth: 150 }}>
+                <FormControl sx={{ minWidth: 150 }} size="small">
                   <InputLabel>Country</InputLabel>
                   <Select
                     value={selectedCountry}
@@ -340,7 +340,7 @@ function TemplateSelector() {
                   </Select>
                 </FormControl>
                 
-                <FormControl sx={{ minWidth: 150 }}>
+                <FormControl sx={{ minWidth: 150 }} size="small">
                   <InputLabel>Business Type</InputLabel>
                   <Select
                     value={selectedType}
@@ -353,7 +353,7 @@ function TemplateSelector() {
                   </Select>
                 </FormControl>
                 
-                <FormControl sx={{ minWidth: 150 }}>
+                <FormControl sx={{ minWidth: 150 }} size="small">
                   <InputLabel>Language</InputLabel>
                   <Select
                     value={selectedLanguage}
