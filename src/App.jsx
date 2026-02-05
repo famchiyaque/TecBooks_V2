@@ -1,14 +1,14 @@
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import React from "react";
-import RotateMessage from "./Global Components/RotateMessage";
+import RotateMessage from "./components/global/RotateMessage";
 import HomePage from "./HomePage/HomePage";
 import MxRepRouter from "./MxRep/Routing/Router";
 import TECBooks from "./TECBooks/Index";
 import Simulators from "./Sims/Index";
 import FAQ from "./faq/index";
 import { Navigate } from "react-router-dom";
-import { OrientationProvider } from "./Global Components/PortraitContext";
+import { OrientationProvider } from "./components/global/PortraitContext";
 
 // New unified architecture imports
 import Dashboard from "./dashboard/index";

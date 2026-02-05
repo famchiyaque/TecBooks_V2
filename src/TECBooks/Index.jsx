@@ -20,7 +20,7 @@ function Index() {
                 }  
             />
             <Route path="/template-upload" element={ <TempUpload />} />
-            <Route path="/dashboard" element={ <Dashboard /> } />
+            <Route path="/dashboard/*" element={ <Dashboard /> } />
         </Routes>
     )
 }

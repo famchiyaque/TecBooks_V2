@@ -17,8 +17,8 @@ import {
 } from '@mui/material'
 import { Download, Business, Factory, Store, Search, ArrowBack, ArrowUpward, HelpOutline, ExpandMore } from '@mui/icons-material'
 import { generateTemplate, downloadBlob } from './api/templateGenerator'
-import GenericHeader from '@/Global Components/GenericHeader'
-import GenericSubheader from '@/Global Components/GenericSubheader'
+import GenericHeader from '@/components/global/GenericHeader'
+import GenericSubheader from '@/components/global/GenericSubheader'
 import '@/styles/general.css'
 import '@/styles/survey.css'
 

@@ -4,8 +4,8 @@ import { Card, CardContent, Typography, Button, Box, Alert } from '@mui/material
 import { CloudUpload, CheckCircle } from '@mui/icons-material'
 import * as XLSX from 'xlsx'
 import { adaptExcelToBusinessModel, adaptMexicoManufacturingToBusinessModel } from '@/core/adapters'
-import GenericHeader from '@/Global Components/GenericHeader'
-import GenericSubheader from '@/Global Components/GenericSubheader'
+import GenericHeader from '@/components/global/GenericHeader'
+import GenericSubheader from '@/components/global/GenericSubheader'
 import '@/styles/general.css'
 import '@/styles/survey.css'
 

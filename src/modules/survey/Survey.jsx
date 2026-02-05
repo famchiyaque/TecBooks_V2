@@ -9,8 +9,8 @@ import Expenses from './Cords/Expenses'
 import Accounts from './Cords/Accounts'
 import Report from './Cords/Report'
 import '@/styles/survey.css'
-import GenericHeader from '@/Global Components/GenericHeader'
-import GenericSubheader from '@/Global Components/GenericSubheader'
+import GenericHeader from '@/components/global/GenericHeader'
+import GenericSubheader from '@/components/global/GenericSubheader'
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 // import Accordian from './Pages/Accordian'
