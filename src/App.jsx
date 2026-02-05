@@ -12,8 +12,8 @@ import { OrientationProvider } from "./components/global/PortraitContext";
 // New unified architecture imports
 import Dashboard from "./dashboard/index";
 import ExcelTemplates from "./modules/excel-templates/index";
-import CustomExcelBuilder from "./modules/survey/Survey";
-import { createSurveyStore } from "./modules/survey/store";
+import CustomExcelBuilder from "./modules/custom-excel-builder/CustomExcelBuilder";
+import { createCustomExcelStore } from "./modules/custom-excel-builder/store";
 import { Provider } from "react-redux";
 
 // Global Navigation
@@ -23,7 +23,7 @@ import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   console.log("app loaded");
-  const customExcelStore = createSurveyStore();
+  const customExcelStore = createCustomExcelStore();
 
   return (
     <OrientationProvider>

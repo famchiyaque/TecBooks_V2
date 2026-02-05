@@ -163,10 +163,10 @@ function Page1() {
                     <TouchAppIcon sx={{ fontSize: '4rem', color: '#666' }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: '700', mb: 1, textAlign: 'center' }}>
-                    In-App ERP Simulator
+                    ERP Simulator
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2, textAlign: 'center', minHeight: '80px' }}>
-                    Full enterprise resource planning simulator. Input and manage all business data directly in the app with no Excel required.
+                    Full in-app ERP simulator. Register transactions, manage inventory, track accounts - all within the application with no Excel files.
                 </Typography>
                 <Box sx={{ 
                     backgroundColor: 'rgba(255,255,255,0.5)', 
@@ -176,13 +176,13 @@ function Page1() {
                     minHeight: '100px'
                 }}>
                     <Typography variant="caption" sx={{ fontWeight: '600', display: 'block', mb: 1 }}>
-                        ✓ Complete ERP experience
+                        ✓ Full ERP functionality
                     </Typography>
                     <Typography variant="caption" sx={{ fontWeight: '600', display: 'block', mb: 1 }}>
-                        ✓ Real-time data management
+                        ✓ Transaction-level control
                     </Typography>
                     <Typography variant="caption" sx={{ fontWeight: '600', display: 'block' }}>
-                        ✓ No Excel needed
+                        ✓ Completely Excel-free
                     </Typography>
                 </Box>
                 <button className='landing-btn' style={{ width: '100%', padding: '0.8rem', opacity: 0.5, marginBottom: '0.5rem' }} disabled>

@@ -1,0 +1,105 @@
+.custom-excel-builder-page {
+    width: 100%;
+    background: linear-gradient(20deg, #28a1ed 0%, #73c2f3 30%, #bee3f9 70%, #fff 100%);
+    color: #073a5a;
+    padding: 0 0 4rem 0;
+    min-height: 100vh;
+}
+
+.custom-excel-builder-card {
+  background-color: #e4f1fe;
+  border-radius: 15px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;;
+  border: solid #073a5a 1px;
+  padding: 1rem 2rem;
+  width: 50%;
+  min-width: 700px;
+  margin: 1rem auto 0 auto;
+  min-height: 600px;
+}
+
+.icon-title {
+    display: flex;
+    justify-content: left;
+    gap: 2rem;
+}
+
+.custom-excel-builder-icon {
+    max-width: 60px;
+}
+
+.card-desc {
+    padding: 0 2rem 1rem 2rem;
+}
+
+.accordions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.continue-btn {
+    margin-left: auto;
+    padding-right: 10%;
+}
+
+.accord-deets {
+    text-align: left;
+    padding-left: 10%;
+}
+
+.help-icon {
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+    color: #FFA500;
+}
+
+.help-icon:hover {
+    transform: scale(1.1);
+}
+
+.modal-pop-up {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    min-width: 400px;
+    background-color: #fff;
+    border: 2px solid #000;
+    box-shadow: 24;
+    padding: 40px;
+}
+
+.modal-option {
+    padding: 5px 10px;
+    border: solid lightgray 1px;
+    border-radius: 10px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+.modal-back-arrow {
+    position: 'absolute';
+    top: '1rem';
+    left: '1rem';
+    cursor: 'pointer';
+    display: 'flex';
+    align-items: 'center';
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.modal-option:hover {
+    border: solid black 1px;
+    background-color: lightgray;
+}
+
+.report-span {
+    font-weight: 400;
+    color: #352f44;
+}
+
+.report-ul {
+    margin-left: 1rem;
+}
