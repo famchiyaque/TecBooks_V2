@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { 
   ArrowLeft, 
   Edit3, 

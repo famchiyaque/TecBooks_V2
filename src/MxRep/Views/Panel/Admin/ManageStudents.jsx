@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { Filter, Settings, AlertCircle, GraduationCap } from 'lucide-react'
 
 function ManageStudents() {

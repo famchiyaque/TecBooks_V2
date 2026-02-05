@@ -3,7 +3,7 @@ import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 import { getXTimeline, getOutputData } from '../Calcs/outputData'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { Typography } from '@mui/material'
 

@@ -29,7 +29,7 @@ import {
 import { Gamepad2, DollarSign, Calendar, Package, Building2, Users, Wrench, Factory, Receipt, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { useGetProfessorGroups, useGetTemplates, useGetDefaultConfigs } from '@/MxRep/utils/hooks/professor.hooks'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
 

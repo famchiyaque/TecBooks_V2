@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Popover from '@mui/material/Popover';
-import Loader from "@/Global Components/Loader";
+import Loader from "@/components/global/Loader";
 import { Box, Typography } from "@mui/material";
 import { parseUploadedCSVData, parseUploadedJSONData, parseUploadedXLSXData } from '../Calcs/parseUploadData';
 import { useSelector, useDispatch } from "react-redux";

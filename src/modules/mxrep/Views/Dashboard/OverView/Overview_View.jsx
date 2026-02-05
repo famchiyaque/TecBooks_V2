@@ -1,7 +1,7 @@
 import '@/styles/overview.css'
 import { React, useEffect, useState } from 'react'
 import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { Navigate } from 'react-router-dom'
 import Capital from './Small/Capital'
 import Sales from './Small/Sales'

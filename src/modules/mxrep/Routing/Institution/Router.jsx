@@ -7,7 +7,7 @@ import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import DashboardRouter from './Dashboard/Router'
 import { SimDataProvider } from '@/MxRep/utils/contexts/SimDataContext'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 
 function InstitutionRouter() {
     const navigate = useNavigate()

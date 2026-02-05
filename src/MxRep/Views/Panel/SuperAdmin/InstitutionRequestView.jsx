@@ -4,7 +4,7 @@ import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import fetchWithAuth from '@/MxRep/utils/apis/api.service'
 import { 
   ArrowLeft, 

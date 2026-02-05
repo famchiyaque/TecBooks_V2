@@ -4,7 +4,7 @@ import { useGetAllInstitutions } from '@/MxRep/utils/hooks/superadmin.hooks'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import CardInstitution from '@/MxRep/Components/Panels/SuperAdmin/CardInstitution'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { Filter, Settings, AlertCircle, Building2 } from 'lucide-react'
 

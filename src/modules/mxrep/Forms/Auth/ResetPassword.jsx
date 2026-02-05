@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/ui/form'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { useParams } from 'react-router-dom'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { newPasswordSchema } from '@/MxRep/utils/schemas/form.schemas';
 import FAQHelpButton from '@/faq/components/FAQHelpButton'
 

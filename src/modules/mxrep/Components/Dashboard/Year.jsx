@@ -5,7 +5,7 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 import { useNavigate } from 'react-router-dom'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 
 function Year({ year, setYear }) {
   const { simData, isLoading, error } = useSimData()

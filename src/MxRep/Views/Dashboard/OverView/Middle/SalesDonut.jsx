@@ -3,7 +3,7 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
 import { getSalesData } from '../Calcs/calcs';
-import Loader from '@/Global Components/Loader';
+import Loader from '@/components/global/Loader';
 
 function SalesDonut({ period, year }) {
   const { simData, isLoading } = useSimData();

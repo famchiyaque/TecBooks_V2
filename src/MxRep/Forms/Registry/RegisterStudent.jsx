@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { registerStudentSchema } from '@/MxRep/utils/schemas/form.schemas'
 import { defaultRegisterStudent } from '@/MxRep/utils/schemas/form.defaults'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'

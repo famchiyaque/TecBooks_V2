@@ -4,7 +4,7 @@ import { useGetInstitutionProfessors } from '@/MxRep/utils/hooks/admin.hooks'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import CardProfessor from '@/MxRep/Components/Panels/Admin/CardProfessor'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { UserPlus, Filter, Settings, AlertCircle } from 'lucide-react'
 

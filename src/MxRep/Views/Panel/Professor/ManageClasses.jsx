@@ -4,7 +4,7 @@ import { useGetProfessorClasses } from '@/MxRep/utils/hooks/professor.hooks'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent } from '@/components/ui/card'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Filter, Settings, AlertCircle, BookOpen, Calendar, Users } from 'lucide-react'
 

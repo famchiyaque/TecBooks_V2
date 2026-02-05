@@ -5,7 +5,7 @@ import DiscountRate from '../GraphComponents/DiscountRate'
 import Inflows from '../GraphComponents/Inflows'
 import Outflows from '../GraphComponents/Outflows'
 import ProjectType from '../GraphComponents/ProjectType'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import axios from 'axios'
 
 function AllInputs({ inputs, funcs }) {

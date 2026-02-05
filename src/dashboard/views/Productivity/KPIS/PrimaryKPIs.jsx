@@ -3,7 +3,7 @@ import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDa
 import { Typography } from '@mui/material'
 import Gauge from '@/MxRep/Components/Dashboard/Gauge'
 import { useNavigate } from 'react-router-dom'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { styled } from '@mui/material/styles'
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip'
 import { getKPIData } from '../Calcs/kpi-calcs'

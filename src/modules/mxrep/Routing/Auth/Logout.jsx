@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 
 function Logout() {

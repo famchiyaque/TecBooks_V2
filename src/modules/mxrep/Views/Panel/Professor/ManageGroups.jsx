@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CardGroup from '@/MxRep/Components/Panels/Professor/CardGroup'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Filter, Settings, AlertCircle, Users } from 'lucide-react'
 

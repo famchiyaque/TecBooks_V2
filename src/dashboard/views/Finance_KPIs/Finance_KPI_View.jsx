@@ -14,7 +14,7 @@ import AssetTurnover from './Graphs/AssetBullet'
 import InventoryTurnover from './Graphs/InventoryBullet'
 import { Typography } from '@mui/material'
 import { useLegacySimData } from '@/dashboard/contexts/LegacySimDataContext'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 
 function Financial_Health_View() {

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import FormAlert from "@/MxRep/Components/General/FormAlert";
 import { loginSchema } from "@/MxRep/utils/schemas/form.schemas";
-import Loader from "@/Global Components/Loader";
+import Loader from "@/components/global/Loader";
 import { useLogin } from "@/MxRep/utils/hooks/auth.hooks";
 import FAQHelpButton from "@/faq/components/FAQHelpButton";
 

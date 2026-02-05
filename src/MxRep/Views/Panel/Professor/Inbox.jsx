@@ -3,7 +3,7 @@ import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import CardInbox from '@/MxRep/Components/Panels/Common/CardInbox'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { Filter, Settings, AlertCircle, Inbox as InboxIcon } from 'lucide-react'
 
 function Inbox() {

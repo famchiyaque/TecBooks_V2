@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/ui/form'

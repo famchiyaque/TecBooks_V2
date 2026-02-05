@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Gauge from '@/MxRep/Components/Dashboard/Gauge'
 import { useSimData } from '@/MxRep/utils/contexts/SimDataContext'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { getOee } from '../Calcs/kpi-calcs'
 

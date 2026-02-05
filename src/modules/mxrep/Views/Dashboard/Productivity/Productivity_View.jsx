@@ -9,7 +9,7 @@ import Inventory from './Inventory/Inventory'
 import Output from './Graphs/Output'
 import Bottlenex from './Graphs/Bottlenex'
 import { useOutletContext } from 'react-router-dom'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import ViewTabs from './ViewTabs'
 

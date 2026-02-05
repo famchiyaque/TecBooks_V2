@@ -3,7 +3,7 @@ import "@/styles/statement.css"
 import { useLegacySimData as useSimData } from '@/dashboard/contexts/LegacySimDataContext'
 // import { PDFDocument, StandardFonts, rgb } from "@react-pdf/renderer"; // already commented since Leo
 // import Card from "@mui/material/Card"
-import Loader from "@/Global Components/Loader"
+import Loader from "@/components/global/Loader"
 import Income from "./Pages/Income"
 import BalanceSheet from "./Pages/BalanceSheet"
 import { useNavigate } from "react-router-dom"

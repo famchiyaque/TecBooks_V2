@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { registerInstitution } from '@/MxRep/utils/schemas/form.schemas'
 import { defaultRegisterInstitution } from '@/MxRep/utils/schemas/form.defaults'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { AlertCircle, CheckCircle, Building2, Mail, Phone, MapPin, User, Briefcase } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { useRegisterInstitution } from '@/MxRep/utils/hooks/register.hooks'

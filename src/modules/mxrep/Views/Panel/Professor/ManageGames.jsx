@@ -4,7 +4,7 @@ import { useGetProfessorGames } from '@/MxRep/utils/hooks/professor.hooks'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import CardGame from '@/MxRep/Components/Panels/Professor/CardGame'
-import Loader from '@/Global Components/Loader'
+import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Filter, Settings, AlertCircle, Gamepad2 } from 'lucide-react'
 
