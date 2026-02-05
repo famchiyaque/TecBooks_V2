@@ -1,0 +1,319 @@
+/* ============================================
+   GLOBAL NAVIGATION STYLES
+   ============================================ */
+
+/* Backdrop overlay - only visible when sidebar is open */
+.global-nav-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  animation: fadeIn 0.3s ease;
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Main sidebar container */
+.global-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: #073a5a;
+  color: #ffffff;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, transform 0.3s ease;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.global-sidebar.open {
+  width: 280px;
+  transform: translateX(0);
+}
+
+.global-sidebar.closed {
+  width: 280px;
+  transform: translateX(-100%);
+}
+
+/* Header section */
+.global-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 64px;
+}
+
+.global-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.brand-logo {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.nav-toggle-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nav-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-toggle-btn svg {
+  font-size: 24px;
+}
+
+/* Content section */
+.global-nav-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem 0;
+}
+
+/* Custom scrollbar */
+.global-nav-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.global-nav-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.global-nav-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.global-nav-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Navigation items */
+.nav-item-container {
+  width: 100%;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #ffffff;
+  text-decoration: none;
+  position: relative;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background-color: rgba(238, 198, 10, 0.1);
+}
+
+.nav-item.active {
+  background-color: rgba(238, 198, 10, 0.2);
+  border-left: 3px solid #eec60a;
+}
+
+.nav-item.active .nav-label {
+  font-weight: 600;
+  color: #eec60a;
+}
+
+.nav-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-item.disabled:hover {
+  background-color: transparent;
+}
+
+/* Icon styling */
+.nav-icon {
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+.nav-item.active .nav-icon {
+  color: #eec60a;
+}
+
+/* Label styling */
+.nav-label {
+  flex: 1;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Expand icon */
+.nav-expand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.nav-expand-icon svg {
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+/* Children container */
+.nav-children {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Level-based styling */
+.nav-item.level-0 {
+  font-weight: 500;
+}
+
+.nav-item.level-1 {
+  font-size: 0.9rem;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+.nav-item.level-2 {
+  font-size: 0.85rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Divider */
+.nav-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 1rem;
+}
+
+/* Footer section */
+.global-nav-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.keyboard-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.keyboard-hint kbd {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet and below */
+@media (max-width: 1024px) {
+  .global-sidebar.open {
+    width: 280px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .global-sidebar.open {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+.nav-item {
+  animation: itemFadeIn 0.2s ease;
+}
+
+@keyframes itemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.nav-item:focus-visible,
+.nav-toggle-btn:focus-visible {
+  outline: 2px solid #eec60a;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .global-sidebar,
+  .nav-item,
+  .nav-expand-icon svg,
+  .brand-name {
+    animation: none;
+    transition: none;
+  }
+}

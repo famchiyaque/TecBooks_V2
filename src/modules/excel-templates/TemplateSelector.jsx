@@ -15,7 +15,7 @@ import {
   AccordionSummary,
   AccordionDetails
 } from '@mui/material'
-import { Download, Business, Factory, Store, Search, ArrowBack, HelpOutline, ExpandMore } from '@mui/icons-material'
+import { Download, Business, Factory, Store, Search, ArrowBack, ArrowUpward, HelpOutline, ExpandMore } from '@mui/icons-material'
 import { generateTemplate, downloadBlob } from './api/templateGenerator'
 import GenericHeader from '@/Global Components/GenericHeader'
 import GenericSubheader from '@/Global Components/GenericSubheader'
@@ -186,7 +186,7 @@ function TemplateSelector() {
   const [selectedType, setSelectedType] = useState('All')
   const [selectedLanguage, setSelectedLanguage] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [expanded, setExpanded] = useState(null)
 
   const handleDownload = async (template) => {
@@ -284,6 +284,15 @@ function TemplateSelector() {
           >
             <ArrowBack className="sidebar-icon" style={{ fontSize: '1rem' }} />
             <span style={{ fontSize: '0.85rem' }}>Back</span>
+          </div>
+
+          <div 
+            className="sidebar-entry" 
+            onClick={handleGoToUpload} 
+            style={{ cursor: 'pointer', padding: '0.5rem 0.75rem', margin: '0 0.25rem' }}
+          >
+            <ArrowUpward className="sidebar-icon" style={{ fontSize: '1rem' }} />
+            <span style={{ fontSize: '0.85rem' }}>Upload Template</span>
           </div>
           
           <div 

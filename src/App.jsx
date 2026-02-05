@@ -13,42 +13,60 @@ import { OrientationProvider } from "./Global Components/PortraitContext";
 // New unified architecture imports
 import Dashboard from "./dashboard/index";
 import ExcelTemplates from "./modules/excel-templates/index";
+import Survey from "./modules/survey/Survey";
+import { createSurveyStore } from "./modules/survey/store";
+import { Provider } from "react-redux";
+
+// Global Navigation
+import { NavigationProvider } from "./components/GlobalNavigation/NavigationContext";
+import GlobalSidebar from "./components/GlobalNavigation/GlobalSidebar";
 
 function App() {
   console.log("app loaded");
+  const surveyStore = createSurveyStore();
 
   return (
     <OrientationProvider>
       <Router>
-        <div className="App blue-to-white">
-          <RotateMessage />
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" />} />
-            <Route path="/home" element={<HomePage />} />
+        <NavigationProvider>
+          <GlobalSidebar />
+          <div className="App blue-to-white">
+            <RotateMessage />
+            <Routes>
+              <Route path="/" element={<Navigate to="/home" />} />
+              <Route path="/home" element={<HomePage />} />
 
-            {/* MxRep Module - Educational production simulator */}
-            <Route path="/mxrep/*" element={<MxRepRouter />} />
+              {/* MxRep Module - Educational production simulator */}
+              <Route path="/mxrep/*" element={<MxRepRouter />} />
 
-            {/* New Unified Dashboard - Main product */}
-            <Route path="/dashboard/*" element={<Dashboard />} />
+              {/* New Unified Dashboard - Main product */}
+              <Route path="/dashboard/*" element={<Dashboard />} />
 
-            {/* Excel Templates Module - Template selection and upload */}
-            <Route path="/templates/*" element={<ExcelTemplates />} />
+              {/* Excel Templates Module - Template selection and upload */}
+              <Route path="/templates/*" element={<ExcelTemplates />} />
 
-            {/* Legacy Routes - Old implementations accessible at /legacy/ */}
-            <Route path="/legacy/tecbooks/*" element={<TECBooks />} />
-            <Route path="/legacy/mxrep/*" element={<MxRepRouter />} />
+              {/* Survey Module - In-app questionnaire */}
+              <Route path="/survey" element={
+                <Provider store={surveyStore}>
+                  <Survey />
+                </Provider>
+              } />
 
-            {/* Backward compatibility - redirect old paths to legacy */}
-            <Route path="/tecbooks/*" element={<Navigate to="/legacy/tecbooks" replace />} />
+              {/* Legacy Routes - Old implementations accessible at /legacy/ */}
+              <Route path="/legacy/tecbooks/*" element={<TECBooks />} />
+              <Route path="/legacy/mxrep/*" element={<MxRepRouter />} />
 
-            {/* Independent Simulators */}
-            <Route path="/sims/*" element={<Simulators />} />
+              {/* Backward compatibility - redirect old paths to legacy */}
+              <Route path="/tecbooks/*" element={<Navigate to="/legacy/tecbooks" replace />} />
 
-            {/* FAQ */}
-            <Route path="/faq" element={<FAQ />} />
-          </Routes>
-        </div>
+              {/* Independent Simulators */}
+              <Route path="/sims/*" element={<Simulators />} />
+
+              {/* FAQ */}
+              <Route path="/faq" element={<FAQ />} />
+            </Routes>
+          </div>
+        </NavigationProvider>
       </Router>
     </OrientationProvider>
   );
