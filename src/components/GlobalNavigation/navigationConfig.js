@@ -32,30 +32,31 @@ export const navigationConfig = [
     children: [
       {
         id: 'templates',
-        label: 'Templates',
+        label: 'Pre-Built Templates',
         icon: 'Description',
         type: 'subsection',
         children: [
           {
             id: 'browse-templates',
             label: 'Browse Templates',
-            path: '/templates',
+            path: '/modules/templates',
             type: 'link'
           },
           {
             id: 'upload-template',
-            label: 'Upload Template',
-            path: '/templates/upload',
+            label: 'Upload Excel File',
+            path: '/modules/templates/upload',
             type: 'link'
           }
         ]
       },
       {
-        id: 'in-app',
-        label: 'In-App Survey',
+        id: 'custom-excel',
+        label: 'Custom Excel Builder',
         icon: 'Assessment',
-        path: '/survey',
-        type: 'link'
+        path: '/modules/custom-excel',
+        type: 'link',
+        description: 'Build a custom Excel file for your business'
       },
       {
         id: 'from-mxrep',

@@ -43,18 +43,18 @@ function Survey() {
   return (
     <div className='survey-page'>
       {/* {pages[currPage]} */}
-      <GenericHeader pageName={"Business Accounting"} />
-      <GenericSubheader subheader={"Questionnaire"} />
+      <GenericHeader pageName={"Custom Excel Builder"} />
+      <GenericSubheader subheader={"Define Your Business Structure"} />
       <div style={progressBarFixed ? { position: 'fixed', top: 0, width: '100%', zIndex: 1000 } : {}}>
         <Progress />
       </div>
       <div className='survey-card'>
           <div className='icon-title'>
             <img src={'/imgs/site-icon-hd.png'} className='survey-icon' />
-            <Typography variant="h4" sx={{ fontWeight: '600' }}>KYC Questionnaire</Typography>
+            <Typography variant="h4" sx={{ fontWeight: '600' }}>Business Structure Questionnaire</Typography>
           </div>
           <div className='card-desc'>
-            <Typography variant='h6'>Answer the questions below</Typography>
+            <Typography variant='h6'>Define your business accounts and structure</Typography>
           </div>
           <div className='accordions'>
             <TypeBiz />
@@ -80,21 +80,22 @@ function Survey() {
           aria-describedby="modal-modal-description"
         >
           <Box className='modal-pop-up' sx={{ width: '70%', minWidth: '500px' }}>
-            <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ textAlign: 'center' }}>
-              You are about to start the KYC (Know Your Client) Questionnaire.
+            <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ textAlign: 'center', fontWeight: '700' }}>
+              Custom Excel Builder
             </Typography><br/>
             <div id="modal-modal-description" sx={{ mt: 2 }}>
               <ol style={{ padding: '0 2rem' }}>
                 <li>
-                  This survey is designed to gather all the information about your business
-                  involved in its finances and accounting.
+                  This questionnaire will help you define your business's financial structure
+                  by identifying your revenue streams, assets, expenses, and accounts.
                 </li><br/>
                 <li>
-                  There will be <b>no numbers</b> involved throughout this survey.
+                  You will <b>not need to enter any numbers</b> during this process - just define
+                  what accounts and categories your business uses.
                 </li><br/>
                 <li>
-                  Upon completion, you will be able to download an excel file tailored to 
-                  your business where you will then need to input the numbers.
+                  Upon completion, you'll download a custom Excel file tailored specifically to 
+                  your business structure. You'll then fill in the numbers and upload it to generate your dashboard.
                 </li><br/>
               </ol>
               {/* 1. This survey is designed to gather all the information about your business

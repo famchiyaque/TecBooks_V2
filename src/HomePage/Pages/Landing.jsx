@@ -40,18 +40,19 @@ function Landing() {
             <div className='landing-main'>
                 {/* <img src={`${process.env.PUBLIC_URL}/graph-gif.gif`}></img> */}
                 <div className='landing-titles'>
-                    <Typography sx={{ fontWeight: '600', fontSize: '15vh' }}>TECBooks</Typography>
-                    <Typography variant='h4' sx={{ fontWeight: '600'}}>Financial Education and Accounting</Typography>
+                    <Typography sx={{ fontWeight: '700', fontSize: '15vh', lineHeight: '1' }}>TECBooks</Typography>
+                    <Typography variant='h4' sx={{ fontWeight: '600', mt: 1 }}>Financial Education Platform</Typography>
                 </div>
-                <Typography variant='h6' className='landing-desc'>
-                    Generate your business's financial dashboard and documents, play with 
-                    our available educational simulators, and more with TECBooks.
+                <Typography variant='h6' className='landing-desc' sx={{ lineHeight: '1.6' }}>
+                    Learn business accounting and project evaluation. Generate comprehensive 
+                    dashboards, explore educational simulators, and master financial decision-making.
                 </Typography>
                 <div className='landing-btn-group' style={{ flexBasis: '20%' }}>
-                    <button className='landing-btn' onClick={scrollTecbooks}>Make Your TECBooks</button>
-                    {/* <button className='learn-more' onClick={goToDashboard}> */}
+                    <button className='landing-btn' onClick={scrollTecbooks}>
+                        Get Your Dashboard
+                    </button>
                     <button className='learn-more' onClick={scrollMxRep}>
-                        Go to MxRep
+                        Explore Simulators
                         <EastIcon className='landing-learn-btn' sx={{ height: '100%' }} />  
                     </button>
                 </div>
