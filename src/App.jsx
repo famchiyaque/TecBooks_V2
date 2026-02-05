@@ -20,6 +20,7 @@ import { Provider } from "react-redux";
 // Global Navigation
 import { NavigationProvider } from "./components/GlobalNavigation/NavigationContext";
 import GlobalSidebar from "./components/GlobalNavigation/GlobalSidebar";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   console.log("app loaded");
@@ -28,6 +29,7 @@ function App() {
   return (
     <OrientationProvider>
       <Router>
+        <ScrollToTop />
         <NavigationProvider>
           <GlobalSidebar />
           <div className="App blue-to-white">
