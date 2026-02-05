@@ -13,9 +13,9 @@ import { setCurrQuestion, setNameBiz, setStartMonth, selectTypeBizComplete } fro
 function TypeBiz() {
   const dispatch = useDispatch()
 
-  const currQuestion = useSelector((state) => state.survey.currQuestion)
-  const nameBiz = useSelector((state) => state.survey.nameBiz)
-  const startMonth = useSelector((state) => state.survey.startMonth)
+  const currQuestion = useSelector((state) => state.customExcel.currQuestion)
+  const nameBiz = useSelector((state) => state.customExcel.nameBiz)
+  const startMonth = useSelector((state) => state.customExcel.startMonth)
   const isComplete = useSelector(selectTypeBizComplete);
 
   const handleSetPage1 = () => {

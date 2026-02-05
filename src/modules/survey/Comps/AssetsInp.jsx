@@ -14,8 +14,8 @@ import { setAssets } from '../store'
 function AssetsInp() {
     const dispatch = useDispatch()
 
-    const assets = useSelector((state) => state.survey.assets)
-    const startMonth = useSelector((state) => state.survey.startMonth)
+    const assets = useSelector((state) => state.customExcel.assets)
+    const startMonth = useSelector((state) => state.customExcel.startMonth)
 
     const handleAssetChange = (index, field, value) => {
         let isMonthError = false;

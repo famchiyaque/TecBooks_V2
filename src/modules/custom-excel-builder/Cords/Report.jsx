@@ -11,15 +11,15 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux';
-import { selectAllSurveyInfo, selectSurveyComplete, setCurrQuestion } from '../store';
+import { selectAllCustomExcelInfo, selectCustomExcelComplete, setCurrQuestion } from '../store';
 
 function Expenses() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const currQuestion = useSelector((state) => state.survey.currQuestion);
-  const surveyInfo = useSelector(selectAllSurveyInfo);
-  const isComplete = useSelector(selectSurveyComplete);
+  const currQuestion = useSelector((state) => state.customExcel.currQuestion);
+  const surveyInfo = useSelector(selectAllCustomExcelInfo);
+  const isComplete = useSelector(selectCustomExcelComplete);
 
   const bizInfo = surveyInfo.bizInfo;
   const revenueInfo = surveyInfo.revenueInfo;

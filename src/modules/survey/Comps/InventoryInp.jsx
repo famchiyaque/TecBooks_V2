@@ -10,9 +10,9 @@ import { setHasRW, setHasWIPG, setHasFG } from '../store';
 function InventoryInp() {
     const dispatch = useDispatch();
 
-    const hasRawMaterials = useSelector((state) => state.survey.hasRawMaterials);
-    const hasWorkInProgressGoods = useSelector((state) => state.survey.hasWorkInProgressGoods);
-    const hasFinishedGoods = useSelector((state) => state.survey.hasFinishedGoods);
+    const hasRawMaterials = useSelector((state) => state.customExcel.hasRawMaterials);
+    const hasWorkInProgressGoods = useSelector((state) => state.customExcel.hasWorkInProgressGoods);
+    const hasFinishedGoods = useSelector((state) => state.customExcel.hasFinishedGoods);
 
     const handleChange = (type) => (event) => {
         const value = event.target.checked;

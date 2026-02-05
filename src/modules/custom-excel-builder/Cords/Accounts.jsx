@@ -23,13 +23,13 @@ import { setCurrQuestion, setHasAccsPayable, setHasAccsReceivable, setAccsPayabl
 function Accounts() {
   const dispatch = useDispatch()
 
-  const currQuestion = useSelector((state) => state.survey.currQuestion)
-  const hasAccsPayable = useSelector((state) => state.survey.hasAccsPayable)
-  const hasAccsReceivable = useSelector((state) => state.survey.hasAccsReceivable)
-  const accsPayable = useSelector((state) => state.survey.accsPayable)
-  const accsReceivable = useSelector((state) => state.survey.accsReceivable)
+  const currQuestion = useSelector((state) => state.customExcel.currQuestion)
+  const hasAccsPayable = useSelector((state) => state.customExcel.hasAccsPayable)
+  const hasAccsReceivable = useSelector((state) => state.customExcel.hasAccsReceivable)
+  const accsPayable = useSelector((state) => state.customExcel.accsPayable)
+  const accsReceivable = useSelector((state) => state.customExcel.accsReceivable)
   const isComplete = useSelector(selectAccountsComplete)
-  const startMonth = useSelector((state) => state.survey.startMonth)
+  const startMonth = useSelector((state) => state.customExcel.startMonth)
 
   const handleSetPage6 = () => {
     dispatch(setCurrQuestion(currQuestion === 6 ? null : 6))

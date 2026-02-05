@@ -22,11 +22,11 @@ import { setCurrQuestion, setHasEmployees, setNumEmployees, setEmpAdmin, setEmpP
 function Employees() {
   const dispatch = useDispatch()
 
-  const currQuestion = useSelector((state) => state.survey.currQuestion)
-  const hasEmployees = useSelector((state) => state.survey.hasEmployees)
-  const numEmployees = useSelector((state) => state.survey.numEmployees)
-  const empAdmin = useSelector((state) => state.survey.empAdmin)
-  const empProduction = useSelector((state) => state.survey.empProduction)
+  const currQuestion = useSelector((state) => state.customExcel.currQuestion)
+  const hasEmployees = useSelector((state) => state.customExcel.hasEmployees)
+  const numEmployees = useSelector((state) => state.customExcel.numEmployees)
+  const empAdmin = useSelector((state) => state.customExcel.empAdmin)
+  const empProduction = useSelector((state) => state.customExcel.empProduction)
   const isComplete = useSelector(selectEmployeesComplete)
 
   const [numError, setNumError] = useState(false)

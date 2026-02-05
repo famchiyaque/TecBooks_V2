@@ -22,8 +22,8 @@ import { setCurrQuestion, setRevenue, selectRevenueComplete } from '../store'
 function Revenue() {
   const dispatch = useDispatch()
 
-  const currQuestion = useSelector((state) => state.survey.currQuestion)
-  const revenue = useSelector((state) => state.survey.revenue)
+  const currQuestion = useSelector((state) => state.customExcel.currQuestion)
+  const revenue = useSelector((state) => state.customExcel.revenue)
   const isComplete = useSelector(selectRevenueComplete)
 
   const handleSetPage2 = () => {

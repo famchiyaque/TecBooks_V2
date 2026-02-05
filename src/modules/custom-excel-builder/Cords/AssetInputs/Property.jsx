@@ -16,8 +16,8 @@ import { setAssets } from '../../Store'
 function Property() {
     const dispatch = useDispatch()
 
-    const hasAssets = useSelector((state) => state.survey.hasAssets)
-    const assets = useSelector((state) => state.survey.assets)
+    const hasAssets = useSelector((state) => state.customExcel.hasAssets)
+    const assets = useSelector((state) => state.customExcel.assets)
 
     const [propertyVisible, setPropertyVisible] = useState(false);
     const [properties, setProperties] = useState([

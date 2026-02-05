@@ -24,9 +24,9 @@ import { setCurrQuestion, setHasExpenses, setExpenses, selectExpensesComplete } 
 function Expenses() {
     const dispatch = useDispatch()
 
-    const currQuestion = useSelector((state) => state.survey.currQuestion)
-    const hasExpenses = useSelector((state) => state.survey.hasExpenses)
-    const expenses = useSelector((state) => state.survey.expenses)
+    const currQuestion = useSelector((state) => state.customExcel.currQuestion)
+    const hasExpenses = useSelector((state) => state.customExcel.hasExpenses)
+    const expenses = useSelector((state) => state.customExcel.expenses)
     const isComplete = useSelector(selectExpensesComplete)
 
     const handleSetPage5 = () => {

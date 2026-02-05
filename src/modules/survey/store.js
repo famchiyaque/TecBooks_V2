@@ -82,25 +82,25 @@ export const createSurveyStore = () => configureStore({
 
 // store/surveySelectors.js
 export const selectTypeBizComplete = (state) => {
-  return state.survey.nameBiz !== '' && state.survey.startMonth !== '';
+  return state.customExcel.nameBiz !== '' && state.customExcel.startMonth !== '';
 };
 
 export const selectRevenueComplete = (state) => {
-  return state.survey.revenue.length > 0 && (
-    state.survey.revenue.every(rev => 
+  return state.customExcel.revenue.length > 0 && (
+    state.customExcel.revenue.every(rev => 
       rev.status !== "" && rev.name !== ""
     )
   );
 };
 
 export const selectEmployeesComplete = (state) => {
-  const ss = state.survey
+  const ss = state.customExcel
   return ss.hasEmployees === false || 
   (ss.numEmployees !== null && ss.numEmployees > 0 && ss.empAdmin + ss.empProduction === ss.numEmployees);
 };
 
 export const selectAssetsComplete = (state) => {
-  const ss = state.survey
+  const ss = state.customExcel
   const hasChecked = ss.hasAssets !== null && ss.hasInventory !== null
   const assetsGood = ss.hasAssets === false || (ss.assets.length > 0 && (
     ss.assets.every(asset => 
@@ -123,7 +123,7 @@ export const selectAssetsComplete = (state) => {
 };
 
 export const selectExpensesComplete = (state) => {
-  const ss = state.survey
+  const ss = state.customExcel
 
   return ss.hasExpenses === false || (
     ss.expenses.length > 0 && ss.expenses.every(exp => exp.name !== '')
@@ -131,7 +131,7 @@ export const selectExpensesComplete = (state) => {
 };
 
 export const selectAccountsComplete = (state) => {
-  const ss = state.survey
+  const ss = state.customExcel
 
   const accsPayableGood = ss.hasAccsPayable === false || (
     ss.hasAccsPayable === true && ss.accsPayable.length > 0 && ss.accsPayable.every(acc => acc.name !== '' && acc.date !== '')
@@ -144,8 +144,8 @@ export const selectAccountsComplete = (state) => {
   return accsPayableGood && accsReceivableGood
 };
 
-export const selectAllSurveyInfo = (state) => {
-  const ss = state.survey
+export const selectAllCustomExcelInfo = (state) => {
+  const ss = state.customExcel
 
   return {
     bizInfo: { name: ss.nameBiz, startMonth: ss.startMonth },    
@@ -174,7 +174,7 @@ export const selectAllSurveyInfo = (state) => {
   }
 }
 
-export const selectSurveyComplete = (state) => {
+export const selectCustomExcelComplete = (state) => {
   return selectTypeBizComplete(state) && 
          selectRevenueComplete(state) && 
          selectEmployeesComplete(state) &&

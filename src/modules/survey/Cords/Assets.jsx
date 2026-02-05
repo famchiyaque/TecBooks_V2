@@ -19,9 +19,9 @@ import InventoryInps from '../Comps/InventoryInp'
 function Assets() {
   const dispatch = useDispatch()
 
-  const currQuestion = useSelector((state) => state.survey.currQuestion)
-  const hasAssets = useSelector((state) => state.survey.hasAssets)
-  const hasInventory = useSelector((state) => state.survey.hasInventory)
+  const currQuestion = useSelector((state) => state.customExcel.currQuestion)
+  const hasAssets = useSelector((state) => state.customExcel.hasAssets)
+  const hasInventory = useSelector((state) => state.customExcel.hasInventory)
   const isComplete = useSelector(selectAssetsComplete)
 
   const handleSetPage4 = () => {

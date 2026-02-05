@@ -24,7 +24,7 @@ function Survey() {
   const [open, setOpen] = useState(true);
   const handleClose = () => setOpen(false);
 
-  const progressBarFixed = useSelector((state) => state.survey.progressBarFixed)
+  const progressBarFixed = useSelector((state) => state.customExcel.progressBarFixed)
 
   useEffect(() => {
     window.scrollTo(0, 0); // Scrolls to the top of the page
