@@ -1,3 +1,7 @@
+import { countries } from './countries.js';
+import { premises } from './premises.js';
+import { laborBenefits } from './employeeBenefits.js';
+
 /**
  * Canonical Business Model
  * 
@@ -12,13 +16,17 @@
  */
 export function createEmptyBusinessModel() {
   return {
+    //////////////////////////////////////////////////
+    //---------------- User Inputs -----------------//
+    //////////////////////////////////////////////////
+    
     // Business Metadata
     metadata: {
       name: '',
       type: '', // 'manufacturing', 'services', 'retail', etc.
-      country: '', // 'mexico', 'usa', etc.
-      startDate: null, // Date object or ISO string
-      currency: 'MXN',
+      country: '',
+      countryData: countries[model.metadata.country], // 'mexico', 'usa', etc.
+      startDate: null, // Date object or ISO string; start of operation
       createdAt: new Date().toISOString(),
       source: '', // 'excel', 'survey', 'mxrep', etc.
     },
@@ -34,111 +42,198 @@ export function createEmptyBusinessModel() {
 
     // Premises (Financial Assumptions & Rates)
     premises: {
-      interestRate: 0,
-      inflationRate: 0,
-      businessIncomeTax: 0,
-      employeeShareOfProfit: 0, // PTU
-      cetes: 0, // CETES rate (Mexico)
+      // universal fields
+      ...premises[model.metadata.country],
+
+      // user-based
+      initialInvestment: 0,
       rewardMargin: 0, // Reward margin for TREMA calculation
-      trema: 0, // Calculated: CETES + Reward Margin + Inflation
-      inventoryPercentage: 0,
-      providerPercentage: 0,
-      shortTermPassive: 0,
-      directProductCosts: 0,
-      indirectProductCosts: 0,
-      salesExpenses: 0,
-      administrationPercentage: 0,
-      depreciationRates: {
-        building: 0,
-        machinery: 0,
-        vehicle: 0,
-        computerEquipment: 0,
-      },
-      machineryInstallationRate: 0,
-      qualityImprovementRate: 0,
-      utilizationRate: 0,
-      laborBenefits: {
-        imss: 0,
-        infonavit: 0,
-        valesDespensa: 0,
-        aguinaldo: 0,
-        fondoAhorro: 0,
-        comedor: 0,
-      },
     },
 
     // Bills of Materials (Products and their components)
-    boms: [
-      // {
-      //   name: 'Product Name',
-      //   salesPrice: 0,
-      //   parts: [
-      //     { name: 'Part 1', quantity: 0, cost: 0, subtotal: 0 }
-      //   ]
-      // }
-    ],
+    boms: {
+      availableForecastingMethods: ['inflation'],
+      forecastingMethod: '', // 'inflation'
+      products: [
+        // {
+        //   name: 'Product Name',
+        //   salesPrice: 0,
+        //   parts: [
+        //     { name: 'Part 1', quantity: 0, cost: 0, subtotal: 0 }
+        //   ]
+        // }
+      ],
+    },
 
-    // Assets
-    assets: {
-      machinery: [], // [{ name: 'Machine 1', cost: 0 }]
-      vehicles: [], // [{ name: 'Vehicle 1', cost: 0 }]
-      buildings: [], // [{ name: 'Building 1', cost: 0 }]
-      computerEquipment: [], // [{ name: 'Computer 1', cost: 0 }]
-      depreciation: [], // Monthly depreciation values (calculated)
-      totalMachinery: 0,
-      totalVehicles: 0,
-      totalBuildings: 0,
-      totalComputerEquipment: 0,
-      totalAssets: 0,
+    // Demand
+    demand: {
+      availableForecastingMethods: ['slr', 'dlr', 'sma', 'dma', 'ses', 'des', 'winters'],
+      ordersForecastMethod: '', // 'slr', 'sma', 'ses', 'winters'
+      monthlyTendency: [], // [0.9, 1.1, 1.2, ...]
+      previousYearsDemand: [], // [{ year: 2025, month: 1, orders: 100 }]
+      yearZeroDemand: [], // [{ month: 1, orders: 100 }]
     },
 
     // Production Parameters
     production: {
-      qualityYield: 0,
-      unitsPerHour: 0,
-      hoursPerShift: 0,
-      numberOfShifts: 0,
-      numberOfLines: 0,
-      daysPerWeek: 0,
-      weeksPerMonth: 0,
-      monthsPerYear: 0,
-      // Demand
-      firstYearDemand: {
-        units: 0,
-        months: 0, // Number of months (incomplete year)
-      },
-      firstFullYearDemand: {
-        units: 0,
-        months: 12,
-      },
+      availableForecastingMethods: ['log'],
+      forecastingMethod: '', // 'log',
+      lines: [
+        // {
+        //   name: '',
+        //   qualityYield: 0,
+        //   productAssociated: '',
+        //   qualityImprovementRate: 0,
+        //   utilizationRate: 0,
+        //   processes: [
+        //     {
+        //       name: '',
+        //       durationMinutes: 0,
+        //       numberOfWorkers: 0,
+        //       unitsPerHour: 0,
+        //     }
+        //   ],
+        //   numberOfShifts: 0,
+        //   hoursPerShift: 0,
+        //   daysPerWeek: 0,
+        //   weeksPerYear: 0,
+        // }
+      ],
+    },
+
+    // Assets
+    assets: {
+      categories: [
+        'machinery', 'vehicles', 'buildings', 'computerEquipment', 'furniture'
+      ],
+      assets: [
+        {
+          name: '',
+          category: '',
+          cost: 0,
+          dateOfPurchase: null, // Date object or ISO string
+          amount: 0,
+        }
+      ],
     },
 
     // Workforce
     workforce: {
-      directLaborSalaries: 0, // Monthly
-      indirectLaborSalaries: 0, // Monthly
-      engineeringSalaries: 0, // Monthly
-      administrativeSalaries: 0, // Monthly
-      totalMonthlySalaries: 0,
+      categories: [
+        'direct', 'indirect', 'engineering', 'administrative'
+      ],
+      employees: [
+        {
+          title: '',
+          category: '',
+          amount: 0,
+          baseSalary: 0,
+          laborBenefits: laborBenefits[model.metadata.country],
+        }
+      ]
     },
 
     // Operating Expenses
-    expenses: [
-      // { name: 'Expense 1', monthlyCost: 0 }
-    ],
+    expenses: {
+      availableForecastingMethods: ['inflation', 'static', 'production'],
+      forecastingMethod: '', // 
+      fixedExpenses: [
+        // {
+        //   name: '',
+        //   cost: 0,
+        // }
+      ],
+      variablesExpenses: [
+        // {
+        //   name: '',
+        //   cost: 0,
+        //   period: 0,
+        // }
+      ]
+    },
 
     // Financing
     financing: {
       initialInvestment: 0,
       loan: {
+        name: '',
+        period: 0,
         amount: 0,
         periods: 0,
-        interestRate: 0,
+        rate: 0,
       },
     },
 
+    ////////////////////////////////////////////////////////////
+    //-------------------- Derived Values --------------------//
+    ////////////////////////////////////////////////////////////
+
+    bomDerived: [
+      // {
+      //   name: '',
+      //   salesPrice: [], // forecasted sales by period prices using inflation
+      //   totalCost: [], // forecasted total costs by period using inflation
+      // }
+    ],
+
+    demandDerived: [
+      // {
+      //   product: '',
+      //   purchaseOrders: [], // forecasted purchase orders by period using chosen statistical method
+      // }
+    ],
+
+    productionDerived: [
+      // {
+      //   line: '',
+      //   qualityYield: [], // forecasted quality yield by period using quality improvement rate
+      //   capacity: [], // forecasted capacity by period using production parameters and quality yield
+      //   workOrders: [], // forecasted work orders by period using forecasted purchase orders and quality yield
+      // },
+    ],
+
+    workforceDerived: {
+      // directLaborSalaries: [], // forecasted direct labor salaries by period using inflation
+      // indirectLaborSalaries: [], // forecasted indirect labor salaries by period using inflation
+      // engineeringSalaries: [], // forecasted engineering salaries by period using inflation
+      // administrativeSalaries: [], // forecasted administrative salaries by period using inflation
+    },
+
+    assetsDerived: {
+      // machineryDepreciation: [], // forecasted machinery depreciation by period using depreciation rate
+      // machineryTotal: [], // calculated total machinery value by period  
+      // vehiclesDepreciation: [], // forecasted vehicles depreciation by period using depreciation rate
+      // vehiclesTotal: [], // calculated total vehicles value by period
+      // buildingsDepreciation: [], // forecasted buildings depreciation by period using depreciation rate
+      // buildingsTotal: [], // calculated total buildings value by period
+      // computerEquipmentDepreciation: [], // forecasted computer equipment depreciation by period using depreciation rate
+      // computerEquipmentTotal: [], // calculated total computer equipment value by period
+      // furnitureDepreciation: [], // forecasted furniture depreciation by period using depreciation rate
+      // furnitureTotal: [], // calculated total furniture value by period
+    },
+
+    expensesDerived: [
+      // {
+      //   name: '',
+      //   cost: [], // forecasted cost by period using inflation, static, or production forecasting method
+      // }
+    ],
+
+    financingDerived: [
+      // {
+      //   name: '',
+      //   amortization: [], // forecasted amortization by period using loan amount, periods, and rate
+      //   interest: [], // forecasted interest by period using loan amount, periods, and rate
+      // }
+    ],
+
+    ////////////////////////////////////////////////////////////
+    //-------------------- Final Values --------------------//
+    ////////////////////////////////////////////////////////////
+
     // Revenue Streams (for compatibility with existing engine)
     revenue: {
+
       productsAndServices: {}, // { 'product1': [month1Val, month2Val, ...], 'service1': [...] }
       totals: [], // Total revenue per month
     },
