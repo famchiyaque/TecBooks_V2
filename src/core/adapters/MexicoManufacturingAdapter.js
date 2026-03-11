@@ -7,6 +7,18 @@
 
 import { createEmptyBusinessModel } from '../models/BusinessModel.js';
 import { sanitizeNumber } from '../models/schemas.js';
+import {
+  deriveBOMSalesPriceAndCost,
+  deriveDemand,
+  deriveProduction,
+  deriveWorkforceSalaries,
+  deriveAssetsDepreciation,
+  deriveExpenses,
+  deriveFinancingPayments,
+  calculateRevenueFromDemandAndBOMs,
+  calculateCostsFromDerivedValues,
+  calculateOperatingExpenses,
+} from '../engine/index.js';
 
 /**
  * Extract metadata from Welcome sheet
@@ -36,10 +48,10 @@ function extractPremises(premisesSheet) {
   // Premises data starts at row 10 (index 9)
   // B10/C10 through B36/C36 (added CETES and Reward Margin at B15/C15 and B16/C16)
   const premises = {
-    interestRate: sanitizeNumber(premisesSheet[9]?.[2]), // C10
-    inflationRate: sanitizeNumber(premisesSheet[10]?.[2]), // C11
-    businessIncomeTax: sanitizeNumber(premisesSheet[11]?.[2]), // C12
-    employeeShareOfProfit: sanitizeNumber(premisesSheet[12]?.[2]), // C13 (PTU)
+    interestRate: sanitizeNumber(premisesSheet[10]?.[2]), // C11
+    inflationRate: sanitizeNumber(premisesSheet[11]?.[2]), // C12
+    businessIncomeTax: sanitizeNumber(premisesSheet[12]?.[2]), // C13
+    employeeShareOfProfit: sanitizeNumber(premisesSheet[13]?.[2]), // C14 (PTU)
     cetes: sanitizeNumber(premisesSheet[14]?.[2]), // C15 - NEW
     rewardMargin: sanitizeNumber(premisesSheet[15]?.[2]), // C16 - NEW
     inventoryPercentage: sanitizeNumber(premisesSheet[16]?.[2]), // C17 (shifted down)
@@ -89,8 +101,8 @@ function extractBOMs(bomsSheet) {
     
     // Check if this is the start of a BOM block (has data in column B)
     if (row && row[1]) {
-      const productName = bomsSheet[0]?.[2] || `Product ${boms.length + 1}`; // C1 has the name
-      const salesPrice = sanitizeNumber(bomsSheet[10]?.[4]); // E11 has sales price
+      const productName = bomsSheet[currentRow]?.[2] || `Product ${boms.length + 1}`; // C1 has the name
+      const salesPrice = sanitizeNumber(bomsSheet[currentRow]?.[4]); // E11 has sales price
       
       const parts = [];
       let partRow = currentRow + 2; // Parts start 2 rows after block start (B13)
@@ -146,8 +158,8 @@ function extractAssets(assetsSheet) {
     computerEquipment: [],
   };
   
-  // Machinery starts at B11/C11 (row 10, cols 1-2)
-  let row = 10;
+  // Machinery starts at B13/C13 (row 12, cols 1-2)
+  let row = 12;
   while (row < assetsSheet.length && assetsSheet[row]?.[1]) {
     assets.machinery.push({
       name: assetsSheet[row][1],
@@ -156,8 +168,8 @@ function extractAssets(assetsSheet) {
     row++;
   }
   
-  // Vehicles at E11/F11 (row 10, cols 4-5)
-  row = 10;
+  // Vehicles at E13/F13 (row 12, cols 4-5)
+  row = 12;
   while (row < assetsSheet.length && assetsSheet[row]?.[4]) {
     assets.vehicles.push({
       name: assetsSheet[row][4],
@@ -166,8 +178,8 @@ function extractAssets(assetsSheet) {
     row++;
   }
   
-  // Buildings at H11/I11 (row 10, cols 7-8)
-  row = 10;
+  // Buildings at H13/I13 (row 12, cols 7-8)
+  row = 12;
   while (row < assetsSheet.length && assetsSheet[row]?.[7]) {
     assets.buildings.push({
       name: assetsSheet[row][7],
@@ -176,8 +188,8 @@ function extractAssets(assetsSheet) {
     row++;
   }
   
-  // Computer Equipment at K11/L11 (row 10, cols 10-11)
-  row = 10;
+  // Computer Equipment at K13/L13 (row 12, cols 10-11)
+  row = 12;
   while (row < assetsSheet.length && assetsSheet[row]?.[10]) {
     assets.computerEquipment.push({
       name: assetsSheet[row][10],
@@ -240,10 +252,10 @@ function extractProduction(productionSheet) {
  */
 function extractWorkforce(workforceSheet) {
   const workforce = {
-    directLaborSalaries: sanitizeNumber(workforceSheet[40]?.[3]), // D41
-    indirectLaborSalaries: sanitizeNumber(workforceSheet[41]?.[3]), // D42
-    engineeringSalaries: sanitizeNumber(workforceSheet[42]?.[3]), // D43
-    administrativeSalaries: sanitizeNumber(workforceSheet[43]?.[3]), // D44
+    directLaborSalaries: Math.round(sanitizeNumber(workforceSheet[40]?.[3])), // D41
+    indirectLaborSalaries: Math.round(sanitizeNumber(workforceSheet[41]?.[3])), // D42
+    engineeringSalaries: Math.round(sanitizeNumber(workforceSheet[42]?.[3])), // D43
+    administrativeSalaries: Math.round(sanitizeNumber(workforceSheet[43]?.[3])), // D44
   };
   
   workforce.totalMonthlySalaries = 
@@ -287,8 +299,9 @@ function extractFinancing(financingSheet) {
     initialInvestment: sanitizeNumber(financingSheet[10]?.[2]), // C11
     loan: {
       amount: sanitizeNumber(financingSheet[12]?.[2]), // C13
-      periods: sanitizeNumber(financingSheet[12]?.[4]), // E13
+      period: sanitizeNumber(financingSheet[12]?.[4]), // E13
       interestRate: sanitizeNumber(financingSheet[13]?.[2]), // C14
+      periods: sanitizeNumber(financingSheet[13]?.[4]), // E14
     },
   };
   
@@ -308,6 +321,8 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
   const model = createEmptyBusinessModel();
   
   try {
+    // ===== PHASE 1: Extract Inputs =====
+    
     // Extract metadata from Welcome sheet
     const metadata = extractMetadata(excelData.Welcome || excelData['Welcome']);
     model.metadata.name = metadata.businessName;
@@ -315,31 +330,246 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     model.metadata.country = metadata.country;
     model.metadata.source = 'mexico-manufacturing-excel';
     model.metadata.currency = 'MXN';
+    model.metadata.startDate = new Date().toISOString(); // Default to now
     
     // Extract premises from 1_Premises sheet
     model.premises = extractPremises(excelData['1_Premises']);
     
     // Extract BOMs from 2_BOMs sheet
-    model.boms = extractBOMs(excelData['2_BOMs']);
-    
-    // Extract assets from 3_Assets sheet
-    model.assets = extractAssets(excelData['3_Assets']);
-    
+    const bomsData = extractBOMs(excelData['2_BOMs']);
+    model.boms = {
+      availableForecastingMethods: ['inflation'],
+      forecastingMethod: 'inflation',
+      products: bomsData,
+    };
+
     // Extract production from 4_Production sheet
-    model.production = extractProduction(excelData['4_Production']);
+    const productionData = extractProduction(excelData['4_Production']);
+    model.production = {
+      availableForecastingMethods: ['log'],
+      forecastingMethod: 'log',
+      lines: [{
+        name: 'Production Line',
+        qualityYield: productionData.qualityYield,
+        qualityImprovementRate: model.premises.qualityImprovementRate || 0,
+        utilizationRate: model.premises.utilizationRate || 0.85,
+        // processes: [{
+        //   name: 'Primary Process',
+        //   unitsPerHour: productionData.unitsPerHour,
+        // }],
+        unitsPerHour: productionData.unitsPerHour,
+        numberOfShifts: productionData.numberOfShifts,
+        hoursPerShift: productionData.hoursPerShift,
+        daysPerWeek: productionData.daysPerWeek,
+        weeksPerYear: productionData.weeksPerMonth * 12,
+      }],
+    };
+
+    // Set demand - distribute units across months using monthly tendency
+    const monthlyTendency = [0.02, 0.02, 0.04, 0.08, 0.1, 0.13, 0.15, 0.12, 0.11, 0.1, 0.06, 0.07];
+    
+    // Year Zero Demand: distribute units across the months they occur
+    const yearZeroMonths = productionData.firstYearDemand.months;
+    const yearZeroUnits = productionData.firstYearDemand.units;
+    const yearZeroTendencySum = monthlyTendency.slice(0, yearZeroMonths).reduce((sum, t) => sum + t, 0);
+    const yearZeroAnnualized = yearZeroUnits / yearZeroTendencySum;
+    
+    const yearZeroDemand = [];
+    for (let i = 0; i < yearZeroMonths; i++) {
+      yearZeroDemand.push({
+        month: i + 1,
+        orders: Math.round(yearZeroAnnualized * monthlyTendency[i])
+      });
+    }
+    
+    // First Full Year Demand: distribute across all 12 months
+    const firstFullYearUnits = productionData.firstFullYearDemand.units;
+    const firstFullYearDemand = [];
+    for (let i = 0; i < 12; i++) {
+      firstFullYearDemand.push({
+        month: i + 1,
+        orders: Math.round(firstFullYearUnits * monthlyTendency[i])
+      });
+    }
+    
+    model.demand = {
+      availableForecastingMethods: ['slr', 'dlr', 'sma', 'dma', 'ses', 'des', 'winters'],
+      ordersForecastMethod: 'slr',
+      monthlyTendency,
+      previousYearsDemand: firstFullYearDemand,
+      yearZeroDemand,
+      firstFullYearDemand: [],
+    };
+
+    // Extract assets from 3_Assets sheet
+    const assetsData = extractAssets(excelData['3_Assets']);
+    model.assets = {
+      categories: ['machinery', 'vehicles', 'buildings', 'computerEquipment', 'furniture'],
+      assets: [
+        ...assetsData.machinery.map(a => ({ ...a, category: 'machinery' })),
+        ...assetsData.vehicles.map(a => ({ ...a, category: 'vehicles' })),
+        ...assetsData.buildings.map(a => ({ ...a, category: 'buildings' })),
+        ...assetsData.computerEquipment.map(a => ({ ...a, category: 'computerEquipment' })),
+      ],
+      totalAssets: assetsData.totalAssets,
+    };
     
     // Extract workforce from 5_Workforce sheet
-    model.workforce = extractWorkforce(excelData['5_Workforce']);
+    const workforceData = extractWorkforce(excelData['5_Workforce']);
+    model.workforce = {
+      availableForecastingMethods: ['inflation'],
+      forecastingMethod: 'inflation',
+      categories: ['direct', 'indirect', 'engineering', 'administrative'],
+      directLaborSalaries: workforceData.directLaborSalaries,
+      indirectLaborSalaries: workforceData.indirectLaborSalaries,
+      engineeringSalaries: workforceData.engineeringSalaries,
+      administrativeSalaries: workforceData.administrativeSalaries,
+      totalMonthlySalaries: workforceData.totalMonthlySalaries,
+      // employees: [
+      //   { title: 'Direct Labor', category: 'direct', amount: 1, baseSalary: workforceData.directLaborSalaries, laborBenefits: model.premises.laborBenefits },
+      //   { title: 'Indirect Labor', category: 'indirect', amount: 1, baseSalary: workforceData.indirectLaborSalaries, laborBenefits: model.premises.laborBenefits },
+      //   { title: 'Engineering', category: 'engineering', amount: 1, baseSalary: workforceData.engineeringSalaries, laborBenefits: model.premises.laborBenefits },
+      //   { title: 'Administrative', category: 'administrative', amount: 1, baseSalary: workforceData.administrativeSalaries, laborBenefits: model.premises.laborBenefits },
+      // ],
+    };
     
     // Extract expenses from 6_Expenses sheet
-    model.expenses = extractExpenses(excelData['6_Expenses']);
+    const expensesData = extractExpenses(excelData['6_Expenses']);
+    model.expenses = {
+      availableForecastingMethods: ['inflation', 'static', 'production'],
+      forecastingMethod: 'inflation',
+      fixedExpenses: expensesData.map(e => ({ name: e.name, cost: e.monthlyCost })),
+      variableExpenses: [],
+    };
     
     // Extract financing from 7_Financing sheet
-    model.financing = extractFinancing(excelData['7_Financing']);
+    const financingData = extractFinancing(excelData['7_Financing']);
+    model.financing = {
+      initialInvestment: financingData.initialInvestment,
+      loan: {
+        name: 'Bank Loan',
+        period: financingData.loan.period,
+        amount: financingData.loan.amount,
+        periods: financingData.loan.periods,
+        rate: financingData.loan.interestRate,
+      },
+    };
+    
+    // ===== PHASE 2: Generate Timeline =====
+    
+    const projectYears = 10;
+    const totalMonths = projectYears * 12;
+    const startDate = new Date(model.metadata.startDate);
+    
+    model.timeline = {
+      months: [],
+      periods: [],
+      startMonth: 0,
+      endMonth: totalMonths - 1,
+      totalMonths: totalMonths,
+    };
+    
+    // Generate month labels and period numbers
+    for (let i = 0; i < totalMonths; i++) {
+      const monthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+      const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      model.timeline.months.push(monthLabel);
+      model.timeline.periods.push(i + 1);
+    }
+    
+    console.log('[MexicoManufacturingAdapter] Timeline generated:', totalMonths, 'months');
+    
+    // ===== PHASE 3: Calculate Derived Values =====
+    
+    console.log('[MexicoManufacturingAdapter] Calculating derived values...');
+    
+    // Derive BOMs (sales price and cost with inflation)
+    model.bomsDerived = deriveBOMSalesPriceAndCost(
+      model.boms.products,
+      totalMonths,
+      model.premises.inflationRate,
+      model.boms.forecastingMethod
+    );
+    
+    // Derive demand (purchase orders using forecasting method)
+    model.demandDerived = deriveDemand(
+      model.demand,
+      totalMonths
+    );
+    
+    // Derive production (capacity, quality, work orders)
+    model.productionDerived = deriveProduction(
+      model.production.lines,
+      totalMonths,
+      model.premises.qualityImprovementRate || 0
+    );
+    
+    // Derive workforce salaries
+    model.workforceDerived = deriveWorkforceSalaries(
+      model.workforce.employees,
+      totalMonths,
+      model.premises.inflationRate
+    );
+    
+    // Derive asset depreciation
+    model.assetsDerived = deriveAssetsDepreciation(
+      model.assets,
+      model.premises,
+      totalMonths,
+      startDate
+    );
+    
+    // Derive expenses
+    model.expensesDerived = deriveExpenses(
+      model.expenses.fixedExpenses,
+      model.expenses.variableExpenses,
+      model.expenses.forecastingMethod,
+      totalMonths,
+      model.premises.inflationRate,
+      null // No production scaling for now
+    );
+    
+    // Derive financing payments
+    model.financingDerived = deriveFinancingPayments(
+      model.financing.loan,
+      totalMonths
+    );
+    
+    console.log('[MexicoManufacturingAdapter] Derived values calculated');
+    
+    // ===== PHASE 4: Calculate Final Values =====
+    
+    console.log('[MexicoManufacturingAdapter] Calculating final values...');
+    
+    // Calculate revenue from demand and BOMs
+    model.revenue = calculateRevenueFromDemandAndBOMs(
+      model.demandDerived,
+      model.bomsDerived,
+      model.timeline.periods
+    );
+    
+    // Calculate costs from derived values
+    model.costs = calculateCostsFromDerivedValues(
+      model.bomsDerived,
+      model.demandDerived,
+      model.workforceDerived,
+      model.assetsDerived,
+      model.timeline.periods
+    );
+    
+    // Calculate operating expenses
+    model.operatingExpenses = calculateOperatingExpenses(
+      model.workforceDerived,
+      model.expensesDerived,
+      model.timeline.periods
+    );
+    
+    console.log('[MexicoManufacturingAdapter] Final values calculated');
     
     // Set project parameters for compatibility with existing engine
     model.project.initialInvestment = model.financing.initialInvestment;
     model.project.discountRate = model.premises.trema; // Use TREMA as discount rate
+    model.project.equity = model.financing.initialInvestment - (model.financing.loan?.amount || 0);
     
     console.log('[MexicoManufacturingAdapter] Transformation complete');
     console.log('[MexicoManufacturingAdapter] Summary:', getModelSummary(model));

@@ -25,7 +25,7 @@ export function createEmptyBusinessModel() {
       name: '',
       type: '', // 'manufacturing', 'services', 'retail', etc.
       country: '',
-      countryData: countries[model.metadata.country], // 'mexico', 'usa', etc.
+      countryData: null, // Will be set from countries lookup
       startDate: null, // Date object or ISO string; start of operation
       createdAt: new Date().toISOString(),
       source: '', // 'excel', 'survey', 'mxrep', etc.
@@ -42,10 +42,8 @@ export function createEmptyBusinessModel() {
 
     // Premises (Financial Assumptions & Rates)
     premises: {
-      // universal fields
-      ...premises[model.metadata.country],
-
-      // user-based
+      // Will be populated from countries[model.metadata.country]
+      // Plus user-based values:
       initialInvestment: 0,
       rewardMargin: 0, // Reward margin for TREMA calculation
     },
@@ -63,15 +61,6 @@ export function createEmptyBusinessModel() {
         //   ]
         // }
       ],
-    },
-
-    // Demand
-    demand: {
-      availableForecastingMethods: ['slr', 'dlr', 'sma', 'dma', 'ses', 'des', 'winters'],
-      ordersForecastMethod: '', // 'slr', 'sma', 'ses', 'winters'
-      monthlyTendency: [], // [0.9, 1.1, 1.2, ...]
-      previousYearsDemand: [], // [{ year: 2025, month: 1, orders: 100 }]
-      yearZeroDemand: [], // [{ month: 1, orders: 100 }]
     },
 
     // Production Parameters
@@ -101,6 +90,16 @@ export function createEmptyBusinessModel() {
       ],
     },
 
+    // Demand
+    demand: {
+      availableForecastingMethods: ['slr', 'dlr', 'sma', 'dma', 'ses', 'des', 'winters'],
+      ordersForecastMethod: '', // 'slr', 'sma', 'ses', 'winters'
+      monthlyTendency: [], // [0.9, 1.1, 1.2, ...]
+      previousYearsDemand: [], // [{ year: 2025, month: 1, orders: 100 }]
+      yearZeroDemand: [], // [{ month: 1, orders: 100 }]
+      firstFullYearDemand: [], // [{ month: 1, orders: 100 }]
+    },
+
     // Assets
     assets: {
       categories: [
@@ -119,6 +118,8 @@ export function createEmptyBusinessModel() {
 
     // Workforce
     workforce: {
+      availableForecastingMethods: ['inflation'],
+      forecastingMethod: '', // 'inflation',
       categories: [
         'direct', 'indirect', 'engineering', 'administrative'
       ],
@@ -128,9 +129,14 @@ export function createEmptyBusinessModel() {
           category: '',
           amount: 0,
           baseSalary: 0,
-          laborBenefits: laborBenefits[model.metadata.country],
+          laborBenefits: null, // Will be populated from laborBenefits[model.metadata.country]
         }
-      ]
+      ],
+      totalMonthlySalaries: 0,
+      directLaborSalaries: 0,
+      indirectLaborSalaries: 0,
+      engineeringSalaries: 0,
+      administrativeSalaries: 0,
     },
 
     // Operating Expenses
@@ -168,7 +174,7 @@ export function createEmptyBusinessModel() {
     //-------------------- Derived Values --------------------//
     ////////////////////////////////////////////////////////////
 
-    bomDerived: [
+    bomsDerived: [
       // {
       //   name: '',
       //   salesPrice: [], // forecasted sales by period prices using inflation

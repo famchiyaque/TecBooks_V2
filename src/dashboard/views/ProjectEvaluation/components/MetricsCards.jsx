@@ -73,7 +73,7 @@ function MetricsCards({ metrics, lifetimeInfo = null, maxYears = null, trema = n
 
   return (
     <Grid container spacing={2.5} sx={{ mb: 2 }}>
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} lg={3}>
         <MetricCard
           title="NPV"
           value={metrics.npv}
@@ -84,7 +84,7 @@ function MetricsCards({ metrics, lifetimeInfo = null, maxYears = null, trema = n
         />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} lg={3}>
         <MetricCard
           title="IRR"
           value={metrics.irr}
@@ -95,7 +95,7 @@ function MetricsCards({ metrics, lifetimeInfo = null, maxYears = null, trema = n
         />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} lg={3}>
         <MetricCard
           title="ROI"
           value={metrics.roi}
@@ -106,7 +106,7 @@ function MetricsCards({ metrics, lifetimeInfo = null, maxYears = null, trema = n
         />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} lg={3}>
         <Card sx={{ 
           height: '100%', 
           bgcolor: 'white',

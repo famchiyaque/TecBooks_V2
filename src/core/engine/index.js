@@ -33,3 +33,22 @@ export {
   calculateGrowthRate,
   forecastFuture,
 } from './forecasts.js';
+
+export {
+  deriveBOMSalesPriceAndCost,
+  deriveDemand,
+  deriveProduction,
+  deriveWorkforceSalaries,
+  deriveAssetsDepreciation,
+  deriveExpenses,
+  deriveFinancingPayments,
+} from './derivations.js';
+
+export {
+  calculateRevenueFromDemandAndBOMs,
+  calculateCostsFromDerivedValues,
+  calculateOperatingExpenses,
+  calculateTotalDepreciation,
+  getIncomeStatementForPeriods,
+  getCashFlowStatementForPeriods,
+} from './evaluations.js';
