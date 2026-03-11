@@ -195,6 +195,7 @@ export function createEmptyBusinessModel() {
       //   qualityYield: [], // forecasted quality yield by period using quality improvement rate
       //   capacity: [], // forecasted capacity by period using production parameters and quality yield
       //   workOrders: [], // forecasted work orders by period using forecasted purchase orders and quality yield
+      //   occupiedCapacity: [], // forecasted occupied capacity by period dividing capacity by work orders
       // },
     ],
 

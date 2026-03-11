@@ -494,21 +494,25 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     // Derive demand (purchase orders using forecasting method)
     model.demandDerived = deriveDemand(
       model.demand,
-      totalMonths
+      totalMonths,
+      model.demand.ordersForecastMethod
     );
     
     // Derive production (capacity, quality, work orders)
     model.productionDerived = deriveProduction(
       model.production.lines,
       totalMonths,
-      model.premises.qualityImprovementRate || 0
+      model.premises.qualityImprovementRate || 0,
+      model.production.forecastingMethod || 'log',
+      model.demandDerived
     );
     
     // Derive workforce salaries
     model.workforceDerived = deriveWorkforceSalaries(
-      model.workforce.employees,
+      model.workforce,
       totalMonths,
-      model.premises.inflationRate
+      model.premises.inflationRate,
+      model.workforce.forecastingMethod || 'inflation'
     );
     
     // Derive asset depreciation

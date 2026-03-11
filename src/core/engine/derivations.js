@@ -58,68 +58,86 @@ export function deriveBOMSalesPriceAndCost(bomsProducts, totalMonths, inflationR
  */
 export function deriveDemand(demandConfig, totalMonths) {
   const { 
-    ordersForecastMethod = 'slr', 
+    ordersForecastMethod = 'slr',
     previousYearsDemand = [], 
     yearZeroDemand = [],
     monthlyTendency = []
   } = demandConfig;
 
-  // Combine historical data: previousYears + yearZero
+  // Start with yearZero data (actual historical data from startup)
+  const purchaseOrders = yearZeroDemand.map(d => sanitizeNumber(d.orders));
+  
+  // Combine all historical data for forecasting: previousYears + yearZero
   const historicalOrders = [
     ...previousYearsDemand.map(d => sanitizeNumber(d.orders)),
     ...yearZeroDemand.map(d => sanitizeNumber(d.orders))
   ];
+
+  // Calculate how many months we still need to forecast
+  const monthsToForecast = totalMonths - purchaseOrders.length;
+  
+  if (monthsToForecast <= 0) {
+    // We already have enough data
+    return [{
+      product: 'default',
+      purchaseOrders: purchaseOrders.slice(0, totalMonths)
+    }];
+  }
 
   // If no historical data, use a default starting value
   const startingOrders = historicalOrders.length > 0 
     ? historicalOrders[historicalOrders.length - 1] 
     : 100;
 
-  const purchaseOrders = [];
-
-  // Use forecasting method
+  // Forecast the remaining months
+  const forecastedOrders = [];
+  
   switch (ordersForecastMethod) {
     case 'slr': // Simple Linear Regression
-      for (let month = 1; month <= totalMonths; month++) {
+      for (let month = 1; month <= monthsToForecast; month++) {
         const forecast = calculateLinearRegression(historicalOrders.length > 0 ? historicalOrders : [startingOrders], month);
-        purchaseOrders.push(Math.max(0, forecast));
+        forecastedOrders.push(Math.max(0, forecast));
       }
       break;
 
     case 'sma': // Simple Moving Average
-      for (let month = 1; month <= totalMonths; month++) {
+      for (let month = 1; month <= monthsToForecast; month++) {
         const forecast = forecastFuture(historicalOrders.length > 0 ? historicalOrders : [startingOrders], 1, 'moving_average', { periods: 3 });
-        purchaseOrders.push(Math.max(0, forecast[0]));
+        forecastedOrders.push(Math.max(0, forecast[0]));
       }
       break;
 
     case 'ses': // Simple Exponential Smoothing
-      for (let month = 1; month <= totalMonths; month++) {
+      for (let month = 1; month <= monthsToForecast; month++) {
         const forecast = forecastFuture(historicalOrders.length > 0 ? historicalOrders : [startingOrders], 1, 'exponential', { alpha: 0.3 });
-        purchaseOrders.push(Math.max(0, forecast[0]));
+        forecastedOrders.push(Math.max(0, forecast[0]));
       }
       break;
 
     case 'winters': // Winters method (simplified - using exponential)
-      for (let month = 1; month <= totalMonths; month++) {
+      for (let month = 1; month <= monthsToForecast; month++) {
         const forecast = forecastFuture(historicalOrders.length > 0 ? historicalOrders : [startingOrders], 1, 'exponential', { alpha: 0.3 });
         // Apply seasonal tendency if available
-        const tendencyFactor = monthlyTendency.length > 0 ? sanitizeNumber(monthlyTendency[month % monthlyTendency.length]) : 1;
-        purchaseOrders.push(Math.max(0, forecast[0] * tendencyFactor));
+        const monthIndex = (purchaseOrders.length + month - 1) % 12;
+        const tendencyFactor = monthlyTendency.length > 0 ? sanitizeNumber(monthlyTendency[monthIndex]) : 1;
+        forecastedOrders.push(Math.max(0, forecast[0] * tendencyFactor));
       }
       break;
 
     default:
       // Fallback: flat projection
-      for (let month = 0; month < totalMonths; month++) {
-        purchaseOrders.push(startingOrders);
+      for (let month = 0; month < monthsToForecast; month++) {
+        forecastedOrders.push(startingOrders);
       }
   }
+
+  // Combine yearZero data + forecasted data
+  const allOrders = [...purchaseOrders, ...forecastedOrders];
 
   // Return single product for now (can be expanded for multiple products)
   return [{
     product: 'default',
-    purchaseOrders
+    purchaseOrders: allOrders
   }];
 }
 
@@ -128,55 +146,69 @@ export function deriveDemand(demandConfig, totalMonths) {
  * @param {Array} productionLines - CBM.production.lines
  * @param {number} totalMonths - Total number of months to project
  * @param {number} qualityImprovementRate - Annual quality improvement rate (as decimal)
- * @returns {Array} Array of {line, qualityYield: [...], capacity: [...], workOrders: [...]}
+ * @param {string} forecastingMethod - Forecasting method ('log' for logarithmic)
+ * @param {Array} demandDerived - Derived demand data to calculate work orders
+ * @returns {Array} Array of {line, qualityYield: [...], capacity: [...], workOrders: [...], occupiedCapacity: [...]}
  */
-export function deriveProduction(productionLines, totalMonths, qualityImprovementRate = 0) {
+export function deriveProduction(productionLines, totalMonths, qualityImprovementRate = 0, forecastingMethod = 'log', demandDerived = []) {
   const derivedProduction = [];
-  const monthlyImprovementRate = qualityImprovementRate / 12;
 
   for (const line of productionLines) {
     const initialQuality = sanitizeNumber(line.qualityYield);
-    
-    // Calculate base capacity from processes if available, otherwise use line-level unitsPerHour
-    let baseCapacity;
-    if (line.processes && line.processes.length > 0) {
-      // Process-based: sum up units per hour from all processes
-      baseCapacity = line.processes.reduce((sum, proc) => {
-        const unitsPerHour = sanitizeNumber(proc.unitsPerHour);
-        return sum + unitsPerHour;
-      }, 0);
-    } else {
-      // High-level: use line-level unitsPerHour directly
-      baseCapacity = sanitizeNumber(line.unitsPerHour) || 0;
-    }
+    const unitsPerHour = sanitizeNumber(line.unitsPerHour) || 0;
+    const hoursPerShift = sanitizeNumber(line.hoursPerShift) || 0;
+    const numberOfShifts = sanitizeNumber(line.numberOfShifts) || 0;
+    const daysPerWeek = sanitizeNumber(line.daysPerWeek) || 0;
+    const weeksPerMonth = sanitizeNumber(line.weeksPerYear || 52) / 12;
 
     const qualityYieldArray = [];
     const capacityArray = [];
+    const workOrdersArray = [];
+    const occupiedCapacityArray = [];
+
+    // Get purchase orders from demand for work orders calculation
+    const purchaseOrders = demandDerived.length > 0 && demandDerived[0].purchaseOrders 
+      ? demandDerived[0].purchaseOrders 
+      : [];
 
     for (let month = 0; month < totalMonths; month++) {
-      // Quality improves logarithmically over time
-      const qualityYield = Math.min(1.0, initialQuality * Math.pow(1 + monthlyImprovementRate, month));
+      // Quality yield based on forecasting method
+      let qualityYield;
+      if (forecastingMethod === 'log') {
+        // Logarithmic improvement
+        const monthlyImprovementRate = qualityImprovementRate / 12;
+        qualityYield = Math.min(1.0, initialQuality * Math.pow(1 + monthlyImprovementRate, month));
+      } else {
+        // Default: static quality
+        qualityYield = initialQuality;
+      }
+      qualityYield = Math.round(qualityYield * 100) / 100; // Round to 2 decimals
       qualityYieldArray.push(qualityYield);
 
-      // Capacity = baseCapacity * hours/shift * shifts * days/week * weeks/month * utilization
-      const weeksPerMonth = (line.weeksPerYear || 52) / 12;
-      const utilizationRate = sanitizeNumber(line.utilizationRate) || 1.0;
-      
-      const effectiveCapacity = baseCapacity * 
-                                sanitizeNumber(line.hoursPerShift) * 
-                                sanitizeNumber(line.numberOfShifts) * 
-                                sanitizeNumber(line.daysPerWeek) * 
-                                weeksPerMonth *
-                                utilizationRate;
-      
-      capacityArray.push(effectiveCapacity * qualityYield);
+      // Capacity = unitsPerHour * hoursPerShift * shifts * daysPerWeek * weeksPerMonth
+      const capacity = unitsPerHour * hoursPerShift * numberOfShifts * daysPerWeek * weeksPerMonth;
+      const roundedCapacity = Math.round(capacity * 100) / 100; // Round to 2 decimals
+      capacityArray.push(roundedCapacity);
+
+      // Work orders = purchaseOrders / qualityYield (how many we need to produce to get desired output)
+      let workOrders = 0;
+      if (purchaseOrders[month]) {
+        workOrders = qualityYield > 0 ? purchaseOrders[month] / qualityYield : 0;
+      }
+      workOrders = Math.round(workOrders * 100) / 100; // Round to 2 decimals
+      workOrdersArray.push(workOrders);
+
+      // Occupied capacity = workOrders / capacity (percentage of capacity being used)
+      const occupiedCapacity = roundedCapacity > 0 ? (workOrders / roundedCapacity) : 0;
+      occupiedCapacityArray.push(Math.round(occupiedCapacity * 100) / 100); // Round to 2 decimals
     }
 
     derivedProduction.push({
       line: line.name || 'Production Line',
       qualityYield: qualityYieldArray,
       capacity: capacityArray,
-      workOrders: [], // Will be calculated from demand in evaluations
+      workOrders: workOrdersArray,
+      occupiedCapacity: occupiedCapacityArray,
     });
   }
 
@@ -184,13 +216,14 @@ export function deriveProduction(productionLines, totalMonths, qualityImprovemen
 }
 
 /**
- * Derive workforce salaries over time using inflation
- * @param {Array} employees - CBM.workforce.employees
+ * Derive workforce salaries over time using forecasting method
+ * @param {Object} workforceConfig - CBM.workforce configuration with initial salaries by category
  * @param {number} totalMonths - Total number of months to project
  * @param {number} inflationRate - Annual inflation rate (as decimal)
+ * @param {string} forecastingMethod - Forecasting method ('inflation', 'static', etc.)
  * @returns {Object} {directLaborSalaries: [...], indirectLaborSalaries: [...], engineeringSalaries: [...], administrativeSalaries: [...]}
  */
-export function deriveWorkforceSalaries(employees, totalMonths, inflationRate) {
+export function deriveWorkforceSalaries(workforceConfig, totalMonths, inflationRate, forecastingMethod = 'inflation') {
   const monthlyInflation = inflationRate / 12;
   
   const salariesByCategory = {
@@ -200,31 +233,29 @@ export function deriveWorkforceSalaries(employees, totalMonths, inflationRate) {
     administrativeSalaries: [],
   };
 
-  // Calculate initial salaries by category
+  // Get initial salaries by category from config
   const initialSalaries = {
-    direct: 0,
-    indirect: 0,
-    engineering: 0,
-    administrative: 0,
+    direct: sanitizeNumber(workforceConfig.directLaborSalaries) || 0,
+    indirect: sanitizeNumber(workforceConfig.indirectLaborSalaries) || 0,
+    engineering: sanitizeNumber(workforceConfig.engineeringSalaries) || 0,
+    administrative: sanitizeNumber(workforceConfig.administrativeSalaries) || 0,
   };
 
-  if (employees && employees.length > 0) {
-    for (const employee of employees) {
-      const monthlySalary = sanitizeNumber(employee.baseSalary) * sanitizeNumber(employee.amount);
-      const category = employee.category || 'administrative';
-      if (initialSalaries[category] !== undefined) {
-        initialSalaries[category] += monthlySalary;
-      }
-    }
-  }
-
-  // Project each category over time
+  // Project each category over time based on forecasting method
   for (let month = 0; month < totalMonths; month++) {
-    const inflationFactor = Math.pow(1 + monthlyInflation, month);
-    salariesByCategory.directLaborSalaries.push(initialSalaries.direct * inflationFactor);
-    salariesByCategory.indirectLaborSalaries.push(initialSalaries.indirect * inflationFactor);
-    salariesByCategory.engineeringSalaries.push(initialSalaries.engineering * inflationFactor);
-    salariesByCategory.administrativeSalaries.push(initialSalaries.administrative * inflationFactor);
+    let inflationFactor = 1;
+    
+    if (forecastingMethod === 'inflation') {
+      inflationFactor = Math.pow(1 + monthlyInflation, month);
+    } else if (forecastingMethod === 'static') {
+      inflationFactor = 1; // No growth
+    }
+    // Add more methods here as needed
+    
+    salariesByCategory.directLaborSalaries.push(Math.round(initialSalaries.direct * inflationFactor * 100) / 100);
+    salariesByCategory.indirectLaborSalaries.push(Math.round(initialSalaries.indirect * inflationFactor * 100) / 100);
+    salariesByCategory.engineeringSalaries.push(Math.round(initialSalaries.engineering * inflationFactor * 100) / 100);
+    salariesByCategory.administrativeSalaries.push(Math.round(initialSalaries.administrative * inflationFactor * 100) / 100);
   }
 
   return salariesByCategory;
