@@ -283,8 +283,8 @@ export function deriveAssetsDepreciation(assetsConfig, premises, totalMonths, st
     furnitureTotal: [],
   };
 
-  // Calculate total values by category
-  const totals = {
+  // Calculate total initial values by category
+  const initialTotals = {
     machinery: 0,
     vehicles: 0,
     buildings: 0,
@@ -292,41 +292,81 @@ export function deriveAssetsDepreciation(assetsConfig, premises, totalMonths, st
     furniture: 0,
   };
 
-  for (const asset of assetsConfig.assets) {
-    const cost = sanitizeNumber(asset.cost) * sanitizeNumber(asset.amount);
-    const category = asset.category;
-    if (totals[category] !== undefined) {
-      totals[category] += cost;
+  if (assetsConfig.assets && assetsConfig.assets.length > 0) {
+    for (const asset of assetsConfig.assets) {
+      const cost = sanitizeNumber(asset.cost) * sanitizeNumber(asset.amount);
+      const category = asset.category;
+      if (initialTotals[category] !== undefined) {
+        initialTotals[category] += cost;
+      }
     }
   }
 
   // Get depreciation rates (annual, as decimals)
   const rates = premises.depreciationRates || {};
   const monthlyRates = {
-    machinery: (rates.machinery || 0.1) / 12,
-    vehicles: (rates.vehicle || 0.25) / 12,
-    buildings: (rates.building || 0.05) / 12,
-    computerEquipment: (rates.computerEquipment || 0.3) / 12,
-    furniture: (rates.furniture || 0.1) / 12,
+    machinery: (sanitizeNumber(rates.machinery) || 0.1) / 12,
+    vehicles: (sanitizeNumber(rates.vehicle) || 0.25) / 12,
+    buildings: (sanitizeNumber(rates.building) || 0.05) / 12,
+    computerEquipment: (sanitizeNumber(rates.computerEquipment) || 0.3) / 12,
+    furniture: (sanitizeNumber(rates.furniture) || 0.1) / 12,
+  };
+
+  // Track remaining values for each category
+  const remainingValues = {
+    machinery: initialTotals.machinery,
+    vehicles: initialTotals.vehicles,
+    buildings: initialTotals.buildings,
+    computerEquipment: initialTotals.computerEquipment,
+    furniture: initialTotals.furniture,
   };
 
   // Calculate depreciation for each month
   for (let month = 0; month < totalMonths; month++) {
-    // Straight-line depreciation
-    depreciation.machineryDepreciation.push(totals.machinery * monthlyRates.machinery);
-    depreciation.machineryTotal.push(Math.max(0, totals.machinery - (totals.machinery * monthlyRates.machinery * month)));
+    // Machinery - constant monthly depreciation based on initial value
+    const machineryMonthlyDep = initialTotals.machinery * monthlyRates.machinery;
+    const machineryDepThisMonth = remainingValues.machinery > 0 
+      ? Math.min(remainingValues.machinery, machineryMonthlyDep)
+      : 0;
+    depreciation.machineryDepreciation.push(Math.round(machineryDepThisMonth * 100) / 100);
+    remainingValues.machinery = Math.max(0, remainingValues.machinery - machineryDepThisMonth);
+    depreciation.machineryTotal.push(Math.round(remainingValues.machinery * 100) / 100);
     
-    depreciation.vehiclesDepreciation.push(totals.vehicles * monthlyRates.vehicles);
-    depreciation.vehiclesTotal.push(Math.max(0, totals.vehicles - (totals.vehicles * monthlyRates.vehicles * month)));
+    // Vehicles
+    const vehiclesMonthlyDep = initialTotals.vehicles * monthlyRates.vehicles;
+    const vehiclesDepThisMonth = remainingValues.vehicles > 0 
+      ? Math.min(remainingValues.vehicles, vehiclesMonthlyDep)
+      : 0;
+    depreciation.vehiclesDepreciation.push(Math.round(vehiclesDepThisMonth * 100) / 100);
+    remainingValues.vehicles = Math.max(0, remainingValues.vehicles - vehiclesDepThisMonth);
+    depreciation.vehiclesTotal.push(Math.round(remainingValues.vehicles * 100) / 100);
     
-    depreciation.buildingsDepreciation.push(totals.buildings * monthlyRates.buildings);
-    depreciation.buildingsTotal.push(Math.max(0, totals.buildings - (totals.buildings * monthlyRates.buildings * month)));
+    // Buildings
+    const buildingsMonthlyDep = initialTotals.buildings * monthlyRates.buildings;
+    const buildingsDepThisMonth = remainingValues.buildings > 0 
+      ? Math.min(remainingValues.buildings, buildingsMonthlyDep)
+      : 0;
+    depreciation.buildingsDepreciation.push(Math.round(buildingsDepThisMonth * 100) / 100);
+    remainingValues.buildings = Math.max(0, remainingValues.buildings - buildingsDepThisMonth);
+    depreciation.buildingsTotal.push(Math.round(remainingValues.buildings * 100) / 100);
     
-    depreciation.computerEquipmentDepreciation.push(totals.computerEquipment * monthlyRates.computerEquipment);
-    depreciation.computerEquipmentTotal.push(Math.max(0, totals.computerEquipment - (totals.computerEquipment * monthlyRates.computerEquipment * month)));
+    // Computer Equipment
+    const computerEquipmentMonthlyDep = initialTotals.computerEquipment * monthlyRates.computerEquipment;
+    const computerEquipmentDepThisMonth = remainingValues.computerEquipment > 0 
+      ? Math.min(remainingValues.computerEquipment, computerEquipmentMonthlyDep)
+      : 0;
+    depreciation.computerEquipmentDepreciation.push(Math.round(computerEquipmentDepThisMonth * 100) / 100);
+    remainingValues.computerEquipment = Math.max(0, remainingValues.computerEquipment - computerEquipmentDepThisMonth);
+    depreciation.computerEquipmentTotal.push(Math.round(remainingValues.computerEquipment * 100) / 100);
     
-    depreciation.furnitureDepreciation.push(totals.furniture * monthlyRates.furniture);
-    depreciation.furnitureTotal.push(Math.max(0, totals.furniture - (totals.furniture * monthlyRates.furniture * month)));
+    // Furniture
+    const furnitureMonthlyDep = initialTotals.furniture * monthlyRates.furniture;
+    const furnitureDepThisMonth = remainingValues.furniture > 0 
+      ? Math.min(remainingValues.furniture, furnitureMonthlyDep)
+      : 0;
+    depreciation.furnitureDepreciation.push(Math.round(furnitureDepThisMonth * 100) / 100);
+    remainingValues.furniture = Math.max(0, remainingValues.furniture - furnitureDepThisMonth);
+    depreciation.furnitureTotal.push(Math.round(remainingValues.furniture * 100) / 100);
   }
 
   return depreciation;
@@ -352,21 +392,23 @@ export function deriveExpenses(fixedExpenses, variableExpenses, forecastMethod, 
     const costArray = [];
 
     for (let month = 0; month < totalMonths; month++) {
+      let cost;
       switch (forecastMethod) {
         case 'inflation':
-          costArray.push(initialCost * Math.pow(1 + monthlyInflation, month));
+          cost = initialCost * Math.pow(1 + monthlyInflation, month);
           break;
         case 'static':
-          costArray.push(initialCost);
+          cost = initialCost;
           break;
         case 'production':
           // Variable based on production volume
           const productionFactor = productionData && productionData[month] ? productionData[month] / (productionData[0] || 1) : 1;
-          costArray.push(initialCost * productionFactor);
+          cost = initialCost * productionFactor;
           break;
         default:
-          costArray.push(initialCost);
+          cost = initialCost;
       }
+      costArray.push(Math.round(cost * 100) / 100);
     }
 
     derivedExpenses.push({
@@ -382,18 +424,20 @@ export function deriveExpenses(fixedExpenses, variableExpenses, forecastMethod, 
     const costArray = [];
 
     for (let month = 0; month < totalMonths; month++) {
+      let cost;
       // Variable expenses always scale with some factor
       switch (forecastMethod) {
         case 'inflation':
-          costArray.push(initialCost * Math.pow(1 + monthlyInflation, month));
+          cost = initialCost * Math.pow(1 + monthlyInflation, month);
           break;
         case 'production':
           const productionFactor = productionData && productionData[month] ? productionData[month] / (productionData[0] || 1) : 1;
-          costArray.push(initialCost * productionFactor);
+          cost = initialCost * productionFactor;
           break;
         default:
-          costArray.push(initialCost);
+          cost = initialCost;
       }
+      costArray.push(Math.round(cost * 100) / 100);
     }
 
     derivedExpenses.push({
@@ -407,54 +451,79 @@ export function deriveExpenses(fixedExpenses, variableExpenses, forecastMethod, 
 }
 
 /**
- * Derive financing payments (amortization and interest) over time
- * @param {Object} loanConfig - CBM.financing.loan
+ * Derive financing payments (amortization and interest) over time for multiple loans
+ * @param {Array} loans - Array of loan objects from CBM.financing.loans
  * @param {number} totalMonths - Total number of months to project
- * @returns {Array} Array of {name, amortization: [...], interest: [...]}
+ * @returns {Array} Array of {name, amortization: [...], interest: [...], remaining: [...]}
  */
-export function deriveFinancingPayments(loanConfig, totalMonths) {
-  const { amount = 0, periods = 0, rate = 0, name = 'Loan' } = loanConfig;
-  
-  const loanAmount = sanitizeNumber(amount);
-  const loanPeriods = sanitizeNumber(periods);
-  const monthlyRate = sanitizeNumber(rate) / 12; // Convert annual to monthly
+export function deriveFinancingPayments(loans, totalMonths) {
+  const derivedLoans = [];
 
-  if (loanAmount === 0 || loanPeriods === 0) {
-    return [{
-      name,
-      amortization: Array(totalMonths).fill(0),
-      interest: Array(totalMonths).fill(0),
-    }];
-  }
+  for (const loan of loans) {
+    const { 
+      name = 'Loan', 
+      amount = 0, 
+      periods = 0, 
+      rate = 0,
+      period = 0 // Starting period for this loan
+    } = loan;
+    
+    const loanAmount = sanitizeNumber(amount);
+    const loanPeriods = sanitizeNumber(periods);
+    const monthlyRate = sanitizeNumber(rate) / 12; // Convert annual to monthly
+    const startPeriod = sanitizeNumber(period);
 
-  // Calculate monthly payment using amortization formula
-  const monthlyPayment = loanPeriods > 0 && monthlyRate > 0
-    ? (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanPeriods)) / 
-      (Math.pow(1 + monthlyRate, loanPeriods) - 1)
-    : loanAmount / loanPeriods;
+    // Initialize arrays with zeros
+    const amortizationArray = Array(totalMonths).fill(0);
+    const interestArray = Array(totalMonths).fill(0);
+    const remainingArray = Array(totalMonths).fill(0);
 
-  const amortizationArray = [];
-  const interestArray = [];
-  let remainingBalance = loanAmount;
-
-  for (let month = 0; month < totalMonths; month++) {
-    if (month < loanPeriods && remainingBalance > 0) {
-      const interestPayment = remainingBalance * monthlyRate;
-      const principalPayment = monthlyPayment - interestPayment;
-      
-      interestArray.push(interestPayment);
-      amortizationArray.push(principalPayment);
-      
-      remainingBalance -= principalPayment;
-    } else {
-      interestArray.push(0);
-      amortizationArray.push(0);
+    if (loanAmount === 0 || loanPeriods === 0) {
+      derivedLoans.push({
+        name,
+        amortization: amortizationArray,
+        interest: interestArray,
+        remaining: remainingArray,
+      });
+      continue;
     }
+
+    // Calculate monthly amortization (constant principal payment)
+    const monthlyAmortization = loanAmount / loanPeriods;
+    let remainingBalance = loanAmount;
+
+    // Fill arrays starting from the loan's start period
+    for (let month = 0; month < totalMonths; month++) {
+      if (month < startPeriod) {
+        // Loan hasn't started yet
+        remainingArray[month] = 0;
+        continue;
+      }
+
+      const monthsSinceLoanStart = month - startPeriod;
+
+      if (monthsSinceLoanStart < loanPeriods && remainingBalance > 0) {
+        // Loan is active
+        const interestPayment = remainingBalance * monthlyRate;
+        
+        interestArray[month] = Math.round(interestPayment * 100) / 100;
+        amortizationArray[month] = Math.round(monthlyAmortization * 100) / 100;
+        
+        remainingBalance = Math.max(0, remainingBalance - monthlyAmortization);
+        remainingArray[month] = Math.round(remainingBalance * 100) / 100;
+      } else {
+        // Loan is paid off
+        remainingArray[month] = 0;
+      }
+    }
+
+    derivedLoans.push({
+      name,
+      amortization: amortizationArray,
+      interest: interestArray,
+      remaining: remainingArray,
+    });
   }
 
-  return [{
-    name,
-    amortization: amortizationArray,
-    interest: interestArray,
-  }];
+  return derivedLoans;
 }

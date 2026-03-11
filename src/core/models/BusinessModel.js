@@ -161,13 +161,13 @@ export function createEmptyBusinessModel() {
     // Financing
     financing: {
       initialInvestment: 0,
-      loan: {
+      loans: [{
         name: '',
         period: 0,
         amount: 0,
         periods: 0,
         rate: 0,
-      },
+      }],
     },
 
     ////////////////////////////////////////////////////////////

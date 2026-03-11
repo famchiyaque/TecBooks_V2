@@ -164,6 +164,7 @@ function extractAssets(assetsSheet) {
     assets.machinery.push({
       name: assetsSheet[row][1],
       cost: sanitizeNumber(assetsSheet[row][2]),
+      amount: 1,
     });
     row++;
   }
@@ -174,6 +175,7 @@ function extractAssets(assetsSheet) {
     assets.vehicles.push({
       name: assetsSheet[row][4],
       cost: sanitizeNumber(assetsSheet[row][5]),
+      amount: 1,
     });
     row++;
   }
@@ -184,6 +186,7 @@ function extractAssets(assetsSheet) {
     assets.buildings.push({
       name: assetsSheet[row][7],
       cost: sanitizeNumber(assetsSheet[row][8]),
+      amount: 1,
     });
     row++;
   }
@@ -194,6 +197,7 @@ function extractAssets(assetsSheet) {
     assets.computerEquipment.push({
       name: assetsSheet[row][10],
       cost: sanitizeNumber(assetsSheet[row][11]),
+      amount: 1,
     });
     row++;
   }
@@ -446,13 +450,13 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     const financingData = extractFinancing(excelData['7_Financing']);
     model.financing = {
       initialInvestment: financingData.initialInvestment,
-      loan: {
+      loans: [{
         name: 'Bank Loan',
         period: financingData.loan.period,
         amount: financingData.loan.amount,
         periods: financingData.loan.periods,
         rate: financingData.loan.interestRate,
-      },
+      }],
     };
     
     // ===== PHASE 2: Generate Timeline =====
@@ -535,7 +539,7 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     
     // Derive financing payments
     model.financingDerived = deriveFinancingPayments(
-      model.financing.loan,
+      model.financing.loans || [],
       totalMonths
     );
     
