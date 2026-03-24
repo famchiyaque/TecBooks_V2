@@ -1,29 +1,29 @@
 import React, { useState } from 'react'
 import { useDashboard } from '@/core/store'
-import { Typography, Card, CardContent, Grid, Box, CircularProgress } from '@mui/material'
+import { Typography, Grid, Box, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import MetricsCards from './components/MetricsCards'
 import CashflowChart from './components/CashflowChart'
 import CashflowChartJS from './components/CashflowChartJS'
 import ProjectSummary from './components/ProjectSummary'
 import NPVByLifetimeChart from './components/NPVByLifetimeChart'
 import ProjectInfoStrip from './components/ProjectInfoStrip'
-import DemandProjectionMethodSelector from './components/DemandProjectionMethodSelector'
 import '@/styles/general.css'
 
 function ProjectEvaluation_View() {
+  const [maxYears, setMaxYears] = useState(10)
   const { 
     projectMetrics, 
     cashflowData, 
     businessModel, 
     loading, 
     error,
+    projectEvaluationProjections,
     manufacturingProjections,
-    demandProjectionMethod,
-    setDemandProjectionMethod,
+    forecastingMethods,
+    updateForecastingMethod,
   } = useDashboard()
 
-  // Check if this is a manufacturing business
-  const isManufacturing = manufacturingProjections !== null;
+  const projections = projectEvaluationProjections || manufacturingProjections
 
   if (loading) {
     return (
@@ -31,10 +31,7 @@ function ProjectEvaluation_View() {
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="60vh">
           <CircularProgress size={60} />
           <Typography variant="h6" sx={{ mt: 3 }}>
-            Calculating 10-year projections...
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Analyzing NPV optimization, cashflows, and project metrics
+            Loading dashboard...
           </Typography>
         </Box>
       </div>
@@ -49,22 +46,27 @@ function ProjectEvaluation_View() {
     )
   }
 
-  // Manufacturing business view
-  if (isManufacturing && manufacturingProjections) {
-    const { bestLifetime, metricsByLifetime, cashflows } = manufacturingProjections;
-    const [maxYears, setMaxYears] = useState(10);
+  if (projections) {
+    const { bestLifetime, metricsByLifetime, cashflows } = projections
     
-    // Ensure maxYears doesn't exceed available metrics
-    const maxAvailableYears = metricsByLifetime.length;
-    const effectiveMaxYears = Math.min(maxYears, maxAvailableYears);
+    const maxAvailableYears = metricsByLifetime?.length || 0
+    const effectiveMaxYears = Math.min(maxYears, maxAvailableYears || 1)
     
-    // Use metrics for effectiveMaxYears instead of bestLifetime to match the chart
-    const displayMetrics = metricsByLifetime.find(m => m.lifetime === effectiveMaxYears) || metricsByLifetime[metricsByLifetime.length - 1];
-    const trema = businessModel?.premises?.trema || 0;
+    const displayMetrics = metricsByLifetime?.find(m => m.lifetime === effectiveMaxYears) 
+      || metricsByLifetime?.[metricsByLifetime.length - 1]
+    const trema = businessModel?.premises?.trema || 0
+    const demandMethods = businessModel?.demand?.availableForecastingMethods || ['sma', 'slr']
+
+    if (!displayMetrics || !cashflows) {
+      return (
+        <div className='view-child'>
+          <Typography>Could not compute project metrics from cash flow data.</Typography>
+        </div>
+      )
+    }
 
     return (
       <div className='view-child' style={{ paddingRight: 0 }}>
-        {/* Header */}
         <Box sx={{ mb: 3, pr: 3 }}>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={2}>
             <Box>
@@ -72,19 +74,26 @@ function ProjectEvaluation_View() {
                 Project Evaluation
               </Typography>
               <Typography variant='subtitle1' color="text.secondary">
-                {businessModel?.metadata?.name || 'Manufacturing Business'} | NPV Optimization Analysis
+                {businessModel?.metadata?.name || 'Business'} | NPV optimization (from CBM cash flows)
               </Typography>
             </Box>
             
-            {/* Demand Projection Method Selector */}
-            <DemandProjectionMethodSelector 
-              value={demandProjectionMethod}
-              onChange={setDemandProjectionMethod}
-            />
+            <FormControl size="small" sx={{ minWidth: 220 }}>
+              <InputLabel id="demand-forecast-method">Demand forecast</InputLabel>
+              <Select
+                labelId="demand-forecast-method"
+                value={forecastingMethods?.demand || 'sma'}
+                label="Demand forecast"
+                onChange={(e) => updateForecastingMethod('demand', e.target.value)}
+              >
+                {demandMethods.map((method) => (
+                  <MenuItem key={method} value={method}>{method.toUpperCase()}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Box>
 
-        {/* Key Metrics Cards (Using effectiveMaxYears to match chart) */}
         <Box sx={{ pr: 3 }}>
           <MetricsCards 
             metrics={displayMetrics} 
@@ -92,7 +101,6 @@ function ProjectEvaluation_View() {
             lifetimeInfo={bestLifetime}
           />
 
-          {/* Project Info Strip - Viability + Recommended Lifetime */}
           <ProjectInfoStrip 
             bestLifetime={bestLifetime}
             irr={displayMetrics.irr}
@@ -100,9 +108,7 @@ function ProjectEvaluation_View() {
           />
         </Box>
 
-        {/* Charts Grid */}
         <Grid container spacing={3} sx={{ mb: 2, pr: 0 }}>
-          {/* NPV by Lifetime Chart (25%) */}
           <Grid item xs={12} lg={3}>
             <NPVByLifetimeChart 
               metricsByLifetime={metricsByLifetime}
@@ -111,7 +117,6 @@ function ProjectEvaluation_View() {
             />
           </Grid>
 
-          {/* Cashflow Chart (75%) */}
           <Grid item xs={12} lg={9}>
             <CashflowChartJS 
               cashflows={cashflows}
@@ -126,7 +131,6 @@ function ProjectEvaluation_View() {
     )
   }
 
-  // Legacy view (non-manufacturing or fallback)
   if (!projectMetrics || !cashflowData) {
     return (
       <div className='view-child'>
@@ -146,16 +150,13 @@ function ProjectEvaluation_View() {
         </Typography>
       </div>
 
-      {/* Key Metrics Cards - IRR, NPV, ROI, Break-even */}
       <MetricsCards metrics={projectMetrics} />
 
-      {/* Cashflow Chart */}
       <CashflowChart 
         chartData={cashflowData.chartData} 
         stats={cashflowData.stats}
       />
 
-      {/* Project Summary */}
       <ProjectSummary 
         metrics={projectMetrics}
         businessModel={businessModel}

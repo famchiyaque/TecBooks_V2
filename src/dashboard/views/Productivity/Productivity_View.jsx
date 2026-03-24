@@ -24,7 +24,7 @@ function Productivity_View() {
         setView(value)
     }
 
-    const { period } = useOutletContext()
+    const { period = 12 } = useOutletContext() || {}
     const year = 2024 // Static for legacy view
     const { simData, isLoading, error } = useLegacySimData()
     const navigate = useNavigate()

@@ -18,7 +18,7 @@ import Loader from '@/components/global/Loader'
 import { useNavigate } from 'react-router-dom'
 
 function Financial_Health_View() {
-  const { period } = useOutletContext()
+  const { period = 12 } = useOutletContext() || {}
   const year = 2024 // Static for legacy view
   const { isLoading, error } = useLegacySimData()
   const navigate = useNavigate()

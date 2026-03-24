@@ -10,7 +10,9 @@ import '@/styles/general.css'
  * This is currently a placeholder
  */
 function Forecasts_View() {
-  const { businessModel, loading, error } = useDashboard()
+  const { businessModel, loading, error, periodRange, getFilteredData, recalculatedDerived } = useDashboard()
+  const purchaseOrders = recalculatedDerived?.demandDerived?.[0]?.purchaseOrders
+  const filteredPO = getFilteredData(purchaseOrders || [])
 
   if (loading) {
     return (
@@ -41,6 +43,11 @@ function Forecasts_View() {
 
       <Card>
         <CardContent>
+          {periodRange && purchaseOrders?.length ? (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Subheader period range: periods {periodRange.start + 1}–{periodRange.end + 1} — showing {filteredPO.length} values (demand forecast slice).
+            </Typography>
+          ) : null}
           <Typography variant="h6" gutterBottom>
             Coming Soon
           </Typography>

@@ -1,1 +1,1 @@
-export { DashboardProvider, useDashboard } from './DashboardContext.jsx';
+export { DashboardProvider, useDashboard } from './dashboardContext.jsx';

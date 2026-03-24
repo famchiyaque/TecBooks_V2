@@ -1,16 +1,17 @@
-import React, { useState } from "react"
+import React from "react"
 import '@/styles/production.css'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
-import Period from './Period'
+import PeriodSelector from './PeriodSelector'
 import { MdDashboard } from 'react-icons/md'
 import { FaFileInvoiceDollar, FaCalculator } from 'react-icons/fa'
 import { BiTrendingUp } from 'react-icons/bi'
 
-function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar, period, setPeriod }) {
+/** Period selector: project-evaluation (0) and overview (1) excluded */
+function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar }) {
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible)
   }
@@ -41,11 +42,11 @@ function SubHeader({ sidebarVisible, setSidebarVisible, activeSidebar, period, s
                 <div>{icons[activeSidebar]}</div>
             </div>
                 
-              {(activeSidebar === 1 || activeSidebar === 2 || activeSidebar === 3) ? (
+              {activeSidebar >= 2 ? (
                 <div className="header-icon-flex">
-                  <Period period={period} setPeriod={setPeriod} />
+                  <PeriodSelector />
                 </div>
-              ) : ''}
+              ) : null}
 
         </Toolbar>
       </AppBar>

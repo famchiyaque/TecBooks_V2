@@ -54,9 +54,11 @@ export function deriveBOMSalesPriceAndCost(bomsProducts, totalMonths, inflationR
  * Derive demand (purchase orders) over time using statistical forecasting methods
  * @param {Object} demandConfig - CBM.demand configuration
  * @param {number} totalMonths - Total number of months to project
+ * @param {Array} bomsProducts - Array of BOM products to get product name
+ * @param {number} windowSize - Number of historical periods to use for forecasting
  * @returns {Array} Array of {product, purchaseOrders: [...]}
  */
-export function deriveDemand(demandConfig, totalMonths) {
+export function deriveDemand(demandConfig, totalMonths, bomsProducts = [], windowSize = 5) {
   const { 
     ordersForecastMethod = 'slr',
     previousYearsDemand = [], 
@@ -65,7 +67,7 @@ export function deriveDemand(demandConfig, totalMonths) {
   } = demandConfig;
 
   // Start with yearZero data (actual historical data from startup)
-  const purchaseOrders = yearZeroDemand.map(d => sanitizeNumber(d.orders));
+  const purchaseOrders = yearZeroDemand.map(d => Math.round(sanitizeNumber(d.orders)));
   
   // Combine all historical data for forecasting: previousYears + yearZero
   const historicalOrders = [
@@ -78,15 +80,19 @@ export function deriveDemand(demandConfig, totalMonths) {
   
   if (monthsToForecast <= 0) {
     // We already have enough data
+    const productName = bomsProducts.length > 0 ? bomsProducts[0].name : 'default';
     return [{
-      product: 'default',
+      product: productName,
       purchaseOrders: purchaseOrders.slice(0, totalMonths)
     }];
   }
 
+  // Use only the most recent data points (window size) for forecasting
+  const recentData = historicalOrders.slice(-windowSize);
+  
   // If no historical data, use a default starting value
-  const startingOrders = historicalOrders.length > 0 
-    ? historicalOrders[historicalOrders.length - 1] 
+  const startingOrders = recentData.length > 0 
+    ? recentData[recentData.length - 1] 
     : 100;
 
   // Forecast the remaining months
@@ -95,48 +101,51 @@ export function deriveDemand(demandConfig, totalMonths) {
   switch (ordersForecastMethod) {
     case 'slr': // Simple Linear Regression
       for (let month = 1; month <= monthsToForecast; month++) {
-        const forecast = calculateLinearRegression(historicalOrders.length > 0 ? historicalOrders : [startingOrders], month);
-        forecastedOrders.push(Math.max(0, forecast));
+        const forecast = calculateLinearRegression(recentData.length > 0 ? recentData : [startingOrders], month);
+        forecastedOrders.push(Math.round(Math.max(0, forecast)));
       }
       break;
 
     case 'sma': // Simple Moving Average
       for (let month = 1; month <= monthsToForecast; month++) {
-        const forecast = forecastFuture(historicalOrders.length > 0 ? historicalOrders : [startingOrders], 1, 'moving_average', { periods: 3 });
-        forecastedOrders.push(Math.max(0, forecast[0]));
+        const forecast = forecastFuture(recentData.length > 0 ? recentData : [startingOrders], 1, 'moving_average', { periods: Math.min(3, windowSize) });
+        forecastedOrders.push(Math.round(Math.max(0, forecast[0])));
       }
       break;
 
     case 'ses': // Simple Exponential Smoothing
       for (let month = 1; month <= monthsToForecast; month++) {
-        const forecast = forecastFuture(historicalOrders.length > 0 ? historicalOrders : [startingOrders], 1, 'exponential', { alpha: 0.3 });
-        forecastedOrders.push(Math.max(0, forecast[0]));
+        const forecast = forecastFuture(recentData.length > 0 ? recentData : [startingOrders], 1, 'exponential', { alpha: 0.3 });
+        forecastedOrders.push(Math.round(Math.max(0, forecast[0])));
       }
       break;
 
     case 'winters': // Winters method (simplified - using exponential)
       for (let month = 1; month <= monthsToForecast; month++) {
-        const forecast = forecastFuture(historicalOrders.length > 0 ? historicalOrders : [startingOrders], 1, 'exponential', { alpha: 0.3 });
+        const forecast = forecastFuture(recentData.length > 0 ? recentData : [startingOrders], 1, 'exponential', { alpha: 0.3 });
         // Apply seasonal tendency if available
         const monthIndex = (purchaseOrders.length + month - 1) % 12;
         const tendencyFactor = monthlyTendency.length > 0 ? sanitizeNumber(monthlyTendency[monthIndex]) : 1;
-        forecastedOrders.push(Math.max(0, forecast[0] * tendencyFactor));
+        forecastedOrders.push(Math.round(Math.max(0, forecast[0] * tendencyFactor)));
       }
       break;
 
     default:
       // Fallback: flat projection
       for (let month = 0; month < monthsToForecast; month++) {
-        forecastedOrders.push(startingOrders);
+        forecastedOrders.push(Math.round(startingOrders));
       }
   }
 
   // Combine yearZero data + forecasted data
   const allOrders = [...purchaseOrders, ...forecastedOrders];
 
+  // Get product name from BOMs
+  const productName = bomsProducts.length > 0 ? bomsProducts[0].name : 'default';
+
   // Return single product for now (can be expanded for multiple products)
   return [{
-    product: 'default',
+    product: productName,
     purchaseOrders: allOrders
   }];
 }
@@ -185,8 +194,11 @@ export function deriveProduction(productionLines, totalMonths, qualityImprovemen
       qualityYield = Math.round(qualityYield * 100) / 100; // Round to 2 decimals
       qualityYieldArray.push(qualityYield);
 
-      // Capacity = unitsPerHour * hoursPerShift * shifts * daysPerWeek * weeksPerMonth
-      const capacity = unitsPerHour * hoursPerShift * numberOfShifts * daysPerWeek * weeksPerMonth;
+      // Base capacity = unitsPerHour * hoursPerShift * shifts * daysPerWeek * weeksPerMonth
+      const baseCapacity = unitsPerHour * hoursPerShift * numberOfShifts * daysPerWeek * weeksPerMonth;
+      
+      // Actual capacity is limited by quality yield (only good units count as capacity)
+      const capacity = baseCapacity * qualityYield;
       const roundedCapacity = Math.round(capacity * 100) / 100; // Round to 2 decimals
       capacityArray.push(roundedCapacity);
 
@@ -195,7 +207,7 @@ export function deriveProduction(productionLines, totalMonths, qualityImprovemen
       if (purchaseOrders[month]) {
         workOrders = qualityYield > 0 ? purchaseOrders[month] / qualityYield : 0;
       }
-      workOrders = Math.round(workOrders * 100) / 100; // Round to 2 decimals
+      workOrders = Math.round(workOrders); // Round to whole numbers
       workOrdersArray.push(workOrders);
 
       // Occupied capacity = workOrders / capacity (percentage of capacity being used)
@@ -233,7 +245,7 @@ export function deriveWorkforceSalaries(workforceConfig, totalMonths, inflationR
     administrativeSalaries: [],
   };
 
-  // Get initial salaries by category from config
+  // Get initial salaries by category from config (already include labor benefits)
   const initialSalaries = {
     direct: sanitizeNumber(workforceConfig.directLaborSalaries) || 0,
     indirect: sanitizeNumber(workforceConfig.indirectLaborSalaries) || 0,

@@ -8,6 +8,8 @@ export {
   calculateDiscountedPaybackPeriod,
   calculateProfitabilityIndex,
   calculateAllProjectMetrics,
+  calculateProjectMetricsForLifetime,
+  calculateMetricsForAllLifetimes,
 } from './projectMetrics.js';
 
 export {
@@ -24,6 +26,7 @@ export {
   calculateCashflowStats,
   prepareCashflowChartData,
   calculateMonthlyCashflowBreakdown,
+  aggregateMonthlyToAnnual,
 } from './cashflow.js';
 
 export {

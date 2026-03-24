@@ -46,6 +46,7 @@ export function createEmptyBusinessModel() {
       // Plus user-based values:
       initialInvestment: 0,
       rewardMargin: 0, // Reward margin for TREMA calculation
+      forecastWindowSize: 5, // Number of periods to use for statistical forecasting methods
     },
 
     // Bills of Materials (Products and their components)
@@ -231,8 +232,20 @@ export function createEmptyBusinessModel() {
       //   name: '',
       //   amortization: [], // forecasted amortization by period using loan amount, periods, and rate
       //   interest: [], // forecasted interest by period using loan amount, periods, and rate
+      //   remaining: [], // remaining loan balance by period
       // }
     ],
+
+    ////////////////////////////////////////////////////////////
+    //-------------------- Cash Flows --------------------//
+    ////////////////////////////////////////////////////////////
+
+    cashFlows: {
+      inflows: [], // Total cash inflows per period (sales revenue + loan disbursements)
+      outflows: [], // Total cash outflows per period (costs + salaries + expenses + asset purchases + loan payments)
+      netCashFlow: [], // Net cash flow per period (inflows - outflows)
+      cumulativeCashFlow: [], // Cumulative cash flow over time
+    },
 
     ////////////////////////////////////////////////////////////
     //-------------------- Final Values --------------------//

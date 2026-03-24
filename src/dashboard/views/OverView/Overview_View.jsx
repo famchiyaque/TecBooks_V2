@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDashboard } from '@/core/store'
-import { Typography, Card, CardContent, Grid, Box, FormControl, InputLabel, Select, MenuItem, Divider } from '@mui/material'
+import { Typography, Card, CardContent, Grid, Box, FormControl, InputLabel, Select, MenuItem, Divider, TextField, Button } from '@mui/material'
 import { Settings, TrendingUp, Assessment } from '@mui/icons-material'
 import '@/styles/general.css'
 
@@ -11,7 +11,8 @@ import '@/styles/general.css'
  * and forecasting method controls
  */
 function Overview_View() {
-  const { businessModel, forecastingMethods, updateForecastingMethod, loading, error } = useDashboard()
+  const { businessModel, forecastingMethods, updateForecastingMethod, updateModelPartial, loading, error } = useDashboard()
+  const [premisesDraft, setPremisesDraft] = useState(null)
 
   if (loading) {
     return (
@@ -29,7 +30,23 @@ function Overview_View() {
     )
   }
 
-  const { premises, boms, demand, expenses, workforce } = businessModel || {}
+  const { boms, demand, expenses, workforce } = businessModel || {}
+  const premises = { ...businessModel?.premises, ...premisesDraft }
+
+  const applyPremises = () => {
+    if (!premisesDraft) return
+    updateModelPartial({ premises: { ...businessModel.premises, ...premisesDraft } })
+    setPremisesDraft(null)
+  }
+
+  const setPremiseField = (key, value) => {
+    const num = parseFloat(value)
+    setPremisesDraft((prev) => ({
+      ...businessModel?.premises,
+      ...prev,
+      [key]: Number.isFinite(num) ? num : 0,
+    }))
+  }
 
   // Format percentage for display
   const formatPercent = (value) => {
@@ -68,23 +85,48 @@ function Overview_View() {
               
               <Divider sx={{ mb: 2 }} />
 
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Discount Rate (TREMA)
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                    {formatPercent(premises?.trema)}
-                  </Typography>
-                </Grid>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                Edit rates as decimals (e.g. 0.12 = 12%). Apply saves to the model and session storage.
+              </Typography>
 
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Inflation Rate
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {formatPercent(premises?.inflationRate)}
-                  </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="TREMA (discount, decimal)"
+                    type="number"
+                    inputProps={{ step: 0.001 }}
+                    value={premises?.trema ?? ''}
+                    onChange={(e) => setPremiseField('trema', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Inflation (decimal)"
+                    type="number"
+                    inputProps={{ step: 0.001 }}
+                    value={premises?.inflationRate ?? ''}
+                    onChange={(e) => setPremiseField('inflationRate', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Forecast window (periods)"
+                    type="number"
+                    inputProps={{ min: 1, step: 1 }}
+                    value={premises?.forecastWindowSize ?? ''}
+                    onChange={(e) => setPremiseField('forecastWindowSize', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button variant="contained" size="small" onClick={applyPremises} disabled={!premisesDraft}>
+                    Apply premises
+                  </Button>
                 </Grid>
 
                 <Grid item xs={6}>

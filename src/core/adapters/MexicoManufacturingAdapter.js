@@ -15,9 +15,6 @@ import {
   deriveAssetsDepreciation,
   deriveExpenses,
   deriveFinancingPayments,
-  calculateRevenueFromDemandAndBOMs,
-  calculateCostsFromDerivedValues,
-  calculateOperatingExpenses,
 } from '../engine/index.js';
 
 /**
@@ -299,18 +296,34 @@ function extractExpenses(expensesSheet) {
  * @returns {Object}
  */
 function extractFinancing(financingSheet) {
-  const financing = {
-    initialInvestment: sanitizeNumber(financingSheet[10]?.[2]), // C11
-    loan: {
-      amount: sanitizeNumber(financingSheet[12]?.[2]), // C13
-      period: sanitizeNumber(financingSheet[12]?.[4]), // E13
-      interestRate: sanitizeNumber(financingSheet[13]?.[2]), // C14
-      periods: sanitizeNumber(financingSheet[13]?.[4]), // E14
-    },
-  };
+  const initialInvestment = sanitizeNumber(financingSheet[10]?.[2]); // C11
   
-  console.log('[MexicoManufacturingAdapter] Financing extracted:', financing.initialInvestment);
-  return financing;
+  // Extract loans (currently supporting one loan, can be extended to multiple)
+  const loans = [];
+  
+  // First loan at row 13-14
+  const loanAmount = sanitizeNumber(financingSheet[12]?.[2]); // C13
+  const loanPeriods = sanitizeNumber(financingSheet[13]?.[4]); // E13 - loan duration in months
+  const loanInterestRate = sanitizeNumber(financingSheet[13]?.[2]); // C14
+  const loanStartPeriod = sanitizeNumber(financingSheet[12]?.[4]) || 0; // E14 - period when loan starts
+  
+  if (loanAmount > 0) {
+    loans.push({
+      name: 'Bank Loan',
+      amount: loanAmount,
+      periods: loanPeriods,
+      rate: loanInterestRate,
+      period: loanStartPeriod,
+    });
+  }
+  
+  // Future: Can add more loans from additional rows if needed
+  
+  console.log('[MexicoManufacturingAdapter] Financing extracted:', { initialInvestment, loans: loans.length });
+  return {
+    initialInvestment,
+    loans,
+  };
 }
 
 /**
@@ -338,6 +351,7 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     
     // Extract premises from 1_Premises sheet
     model.premises = extractPremises(excelData['1_Premises']);
+    model.premises.forecastWindowSize = 5; // Default window size for statistical forecasts
     
     // Extract BOMs from 2_BOMs sheet
     const bomsData = extractBOMs(excelData['2_BOMs']);
@@ -398,7 +412,7 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     
     model.demand = {
       availableForecastingMethods: ['slr', 'dlr', 'sma', 'dma', 'ses', 'des', 'winters'],
-      ordersForecastMethod: 'slr',
+      ordersForecastMethod: 'sma',
       monthlyTendency,
       previousYearsDemand: firstFullYearDemand,
       yearZeroDemand,
@@ -448,16 +462,7 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     
     // Extract financing from 7_Financing sheet
     const financingData = extractFinancing(excelData['7_Financing']);
-    model.financing = {
-      initialInvestment: financingData.initialInvestment,
-      loans: [{
-        name: 'Bank Loan',
-        period: financingData.loan.period,
-        amount: financingData.loan.amount,
-        periods: financingData.loan.periods,
-        rate: financingData.loan.interestRate,
-      }],
-    };
+    model.financing = financingData;
     
     // ===== PHASE 2: Generate Timeline =====
     
@@ -499,7 +504,8 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     model.demandDerived = deriveDemand(
       model.demand,
       totalMonths,
-      model.demand.ordersForecastMethod
+      model.boms.products,
+      model.premises.forecastWindowSize || 5
     );
     
     // Derive production (capacity, quality, work orders)
@@ -545,42 +551,96 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     
     console.log('[MexicoManufacturingAdapter] Derived values calculated');
     
-    // ===== PHASE 4: Calculate Final Values =====
+    // ===== PHASE 4: Calculate Cash Flows =====
     
-    console.log('[MexicoManufacturingAdapter] Calculating final values...');
+    console.log('[MexicoManufacturingAdapter] Calculating cash flows...');
     
-    // Calculate revenue from demand and BOMs
-    model.revenue = calculateRevenueFromDemandAndBOMs(
-      model.demandDerived,
-      model.bomsDerived,
-      model.timeline.periods
-    );
+    // Calculate inflows and outflows for each period
+    model.cashFlows = {
+      inflows: [],
+      outflows: [],
+      netCashFlow: [],
+      cumulativeCashFlow: [],
+    };
     
-    // Calculate costs from derived values
-    model.costs = calculateCostsFromDerivedValues(
-      model.bomsDerived,
-      model.demandDerived,
-      model.workforceDerived,
-      model.assetsDerived,
-      model.timeline.periods
-    );
+    let cumulativeCash = 0;
     
-    // Calculate operating expenses
-    model.operatingExpenses = calculateOperatingExpenses(
-      model.workforceDerived,
-      model.expensesDerived,
-      model.timeline.periods
-    );
+    for (let month = 0; month < totalMonths; month++) {
+      // INFLOWS
+      let inflow = 0;
+      
+      // 1. Sales revenue = purchaseOrders * salesPrice
+      if (model.demandDerived[0] && model.bomsDerived[0]) {
+        const purchaseOrders = model.demandDerived[0].purchaseOrders[month] || 0;
+        const salesPrice = model.bomsDerived[0].salesPrice[month] || 0;
+        inflow += purchaseOrders * salesPrice;
+      }
+      
+      // 2. Loan disbursements (in the period the loan was taken)
+      for (const loan of model.financingDerived) {
+        // Check if this is the loan start period (remaining goes from 0 to loan amount)
+        if (month > 0 && loan.remaining[month] > 0 && loan.remaining[month - 1] === 0) {
+          inflow += loan.remaining[month];
+        } else if (month === 0 && loan.remaining[month] > 0) {
+          inflow += loan.remaining[month];
+        }
+      }
+      
+      model.cashFlows.inflows.push(Math.round(inflow * 100) / 100);
+      
+      // OUTFLOWS
+      let outflow = 0;
+      
+      // 1. Production costs = workOrders * totalCost
+      if (model.productionDerived[0] && model.bomsDerived[0]) {
+        const workOrders = model.productionDerived[0].workOrders[month] || 0;
+        const totalCost = model.bomsDerived[0].totalCost[month] || 0;
+        outflow += workOrders * totalCost;
+      }
+      
+      // 2. All salaries
+      outflow += model.workforceDerived.directLaborSalaries[month] || 0;
+      outflow += model.workforceDerived.indirectLaborSalaries[month] || 0;
+      outflow += model.workforceDerived.engineeringSalaries[month] || 0;
+      outflow += model.workforceDerived.administrativeSalaries[month] || 0;
+      
+      // 3. Asset purchases (in the period they were purchased, assumed all in period 0)
+      if (month === 0) {
+        for (const asset of model.assets.assets) {
+          const assetCost = sanitizeNumber(asset.cost) * sanitizeNumber(asset.amount);
+          outflow += assetCost;
+        }
+      }
+      
+      // 4. All expenses
+      for (const expense of model.expensesDerived) {
+        outflow += expense.cost[month] || 0;
+      }
+      
+      // 5. Loan payments (amortization + interest)
+      for (const loan of model.financingDerived) {
+        outflow += loan.amortization[month] || 0;
+        outflow += loan.interest[month] || 0;
+      }
+      
+      model.cashFlows.outflows.push(Math.round(outflow * 100) / 100);
+      
+      // NET CASH FLOW
+      const netCashFlow = inflow - outflow;
+      model.cashFlows.netCashFlow.push(Math.round(netCashFlow * 100) / 100);
+      
+      // CUMULATIVE CASH FLOW
+      cumulativeCash += netCashFlow;
+      model.cashFlows.cumulativeCashFlow.push(Math.round(cumulativeCash * 100) / 100);
+    }
     
-    console.log('[MexicoManufacturingAdapter] Final values calculated');
+    console.log('[MexicoManufacturingAdapter] Cash flows calculated');
     
-    // Set project parameters for compatibility with existing engine
+    // Set project parameters for compatibility
     model.project.initialInvestment = model.financing.initialInvestment;
     model.project.discountRate = model.premises.trema; // Use TREMA as discount rate
-    model.project.equity = model.financing.initialInvestment - (model.financing.loan?.amount || 0);
     
     console.log('[MexicoManufacturingAdapter] Transformation complete');
-    console.log('[MexicoManufacturingAdapter] Summary:', getModelSummary(model));
     
     return model;
     

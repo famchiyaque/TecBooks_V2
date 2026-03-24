@@ -5,7 +5,8 @@
  * from the canonical business model.
  */
 
-import { sanitizeNumber, sanitizeNumberArray } from '../models/schemas.js';
+import { sanitizeNumber } from '../models/schemas.js';
+import { aggregateMonthlyToAnnual } from './cashflow.js';
 
 /**
  * Calculate Net Present Value (NPV)
@@ -225,5 +226,150 @@ export function calculateAllProjectMetrics(businessModel) {
     initialInvestment,
     discountRate,
     totalCashflow: cashflows.reduce((sum, cf) => sum + cf, 0),
+  };
+}
+
+/**
+ * Project metrics for a horizon of annual inflows/outflows (e.g. from aggregated monthly CBM cashFlows).
+ * @param {number} initialInvestment
+ * @param {number[]} inflows
+ * @param {number[]} outflows
+ * @param {number} trema discount rate as decimal (e.g. 0.15)
+ * @param {number} lifetime number of periods (years including year 0 when slice includes index 0)
+ */
+export function calculateProjectMetricsForLifetime(initialInvestment, inflows, outflows, trema, lifetime) {
+  const relevantInflows = inflows.slice(0, lifetime);
+  const relevantOutflows = outflows.slice(0, lifetime);
+
+  const cashflows = relevantInflows.map((inflow, index) => {
+    if (index === 0) {
+      return inflow - relevantOutflows[index] - initialInvestment;
+    }
+    return inflow - relevantOutflows[index];
+  });
+
+  const discountRatePercent = trema * 100;
+  let npv = 0;
+  for (let i = 0; i < lifetime; i++) {
+    npv += cashflows[i] / Math.pow(1 + (discountRatePercent / 100), i);
+  }
+
+  let lowRate = npv > 0 ? 0 : -100;
+  let highRate = npv > 0 ? 200 : 0;
+  let irr = 0;
+  let iterations = 1000;
+  const tolerance = 0.01;
+
+  while (iterations--) {
+    const guessRate = (lowRate + highRate) / 2;
+    let npvAtRate = 0;
+
+    for (let t = 0; t < lifetime; t++) {
+      const cashFlow = relevantInflows[t] - relevantOutflows[t];
+      npvAtRate += cashFlow / Math.pow(1 + guessRate / 100, t);
+    }
+    npvAtRate -= initialInvestment;
+
+    if (Math.abs(npvAtRate) < tolerance) {
+      irr = guessRate;
+      break;
+    }
+
+    if (npvAtRate > 0) {
+      lowRate = guessRate;
+    } else {
+      highRate = guessRate;
+    }
+  }
+
+  const totalInflows = relevantInflows.reduce((sum, val) => sum + val, 0);
+  const totalOutflows = relevantOutflows.reduce((sum, val) => sum + val, 0);
+  const roi =
+    ((totalInflows - totalOutflows - initialInvestment) / (totalOutflows + initialInvestment)) * 100;
+
+  let breakEven = -1;
+  let accumulated = -initialInvestment;
+
+  for (let i = 1; i < lifetime; i++) {
+    const previousAccumulated = accumulated;
+    accumulated += cashflows[i];
+
+    if (accumulated >= 0 && breakEven === -1) {
+      if (previousAccumulated < 0 && cashflows[i] > 0) {
+        const periodFraction = Math.abs(previousAccumulated) / cashflows[i];
+        breakEven = i + periodFraction;
+      } else {
+        breakEven = i;
+      }
+      break;
+    }
+  }
+
+  const npvPerYear = npv / lifetime;
+
+  return {
+    npv: parseFloat(npv.toFixed(2)),
+    irr: parseFloat(irr.toFixed(1)),
+    roi: parseFloat(roi.toFixed(2)),
+    breakEven: breakEven >= 0 ? parseFloat(breakEven.toFixed(1)) : -1,
+    npvPerYear: parseFloat(npvPerYear.toFixed(2)),
+  };
+}
+
+/**
+ * Build annual cashflow series from CBM.cashFlows and compute NPV/IRR metrics for each project lifetime.
+ * @param {Object} businessModel
+ * @param {number} maxYears
+ */
+export function calculateMetricsForAllLifetimes(businessModel, maxYears = 10) {
+  const { premises, financing, cashFlows } = businessModel;
+
+  if (!cashFlows?.inflows?.length || !cashFlows?.outflows?.length) {
+    return null;
+  }
+
+  const annual = aggregateMonthlyToAnnual(cashFlows.inflows, cashFlows.outflows, maxYears);
+  if (!annual) return null;
+
+  const { inflows, outflows, effectiveMaxYears } = annual;
+  const initialInvestment = sanitizeNumber(financing?.initialInvestment);
+  const trema = premises?.trema ?? 0;
+
+  const metricsByLifetime = [];
+  let bestLifetime = null;
+  let bestNPVPerYear = -Infinity;
+
+  for (let lifetime = 1; lifetime <= effectiveMaxYears; lifetime++) {
+    const metrics = calculateProjectMetricsForLifetime(
+      initialInvestment,
+      inflows,
+      outflows,
+      trema,
+      lifetime + 1
+    );
+    metrics.lifetime = lifetime;
+    metricsByLifetime.push(metrics);
+
+    if (metrics.npvPerYear > bestNPVPerYear) {
+      bestNPVPerYear = metrics.npvPerYear;
+      bestLifetime = {
+        lifetime,
+        npv: metrics.npv,
+        npvPerYear: metrics.npvPerYear,
+        reason: 'Highest NPV per year ratio',
+      };
+    }
+  }
+
+  return {
+    cashflows: {
+      inflows: annual.inflows,
+      outflows: annual.outflows,
+      netCashflows: annual.netCashflows,
+      cumulativeCashflows: annual.cumulativeCashflows,
+    },
+    metricsByLifetime,
+    bestLifetime,
+    recommendedLifetime: bestLifetime?.lifetime || effectiveMaxYears,
   };
 }

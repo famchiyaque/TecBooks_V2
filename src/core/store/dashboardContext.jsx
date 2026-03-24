@@ -7,10 +7,9 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { validateBusinessModel } from '../models/BusinessModel.js';
-import { calculateAllProjectMetrics } from '../engine/projectMetrics.js';
+import { calculateAllProjectMetrics, calculateMetricsForAllLifetimes } from '../engine/projectMetrics.js';
 import { calculateAllStatements } from '../engine/statements.js';
 import { prepareCashflowChartData, calculateCashflowStats } from '../engine/cashflow.js';
-import { calculateManufacturingProjections } from '../engine/manufacturingProjections.js';
 import {
   deriveBOMSalesPriceAndCost,
   deriveDemand,
@@ -35,15 +34,18 @@ export function DashboardProvider({ children, businessModel }) {
   const [model, setModel] = useState(businessModel);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [demandProjectionMethod, setDemandProjectionMethod] = useState('inflation');
+  const [demandProjectionMethod, setDemandProjectionMethod] = useState('sma');
   
   // New: Forecasting methods state
   const [forecastingMethods, setForecastingMethods] = useState({
-    demand: 'slr',
+    demand: 'sma',
     boms: 'inflation',
     expenses: 'inflation',
     workforce: 'inflation',
   });
+
+  /** 0-based inclusive indices into timeline periods; null = full timeline */
+  const [periodRange, setPeriodRange] = useState(null);
 
   // Update model when businessModel prop changes
   useEffect(() => {
@@ -53,10 +55,12 @@ export function DashboardProvider({ children, businessModel }) {
       
       // Initialize forecasting methods from model
       if (businessModel.demand?.ordersForecastMethod) {
+        const d = businessModel.demand.ordersForecastMethod;
         setForecastingMethods(prev => ({
           ...prev,
-          demand: businessModel.demand.ordersForecastMethod,
+          demand: d,
         }));
+        setDemandProjectionMethod(d);
       }
     }
   }, [businessModel]);
@@ -99,16 +103,18 @@ export function DashboardProvider({ children, businessModel }) {
       const demandDerived = model.demand
         ? deriveDemand(
             { ...model.demand, ordersForecastMethod: forecastingMethods.demand },
-            totalMonths
+            totalMonths,
+            model.boms?.products || [],
+            model.premises?.forecastWindowSize || 5
           )
         : [];
       
-      // Recalculate workforce
-      const workforceDerived = model.workforce?.employees
+      const workforceDerived = model.workforce
         ? deriveWorkforceSalaries(
-            model.workforce.employees,
+            model.workforce,
             totalMonths,
-            model.premises?.inflationRate || 0.04
+            model.premises?.inflationRate || 0.04,
+            forecastingMethods.workforce || 'inflation'
           )
         : { directLaborSalaries: [], indirectLaborSalaries: [], engineeringSalaries: [], administrativeSalaries: [] };
       
@@ -176,24 +182,6 @@ export function DashboardProvider({ children, businessModel }) {
     }
   }, [derivedValues, model]);
 
-  // Update model with new final values
-  useEffect(() => {
-    if (finalValues && model) {
-      console.log('[DashboardContext] Updating model with new final values');
-      setModel(prev => ({
-        ...prev,
-        revenue: finalValues.revenue,
-        costs: finalValues.costs,
-        operatingExpenses: finalValues.operatingExpenses,
-        // Also update derived values in the model
-        bomsDerived: derivedValues?.bomsDerived,
-        demandDerived: derivedValues?.demandDerived,
-        workforceDerived: derivedValues?.workforceDerived,
-        expensesDerived: derivedValues?.expensesDerived,
-      }));
-    }
-  }, [finalValues]);
-
   // Compute project metrics (memoized for performance)
   const projectMetrics = useMemo(() => {
     if (!model) return null;
@@ -232,45 +220,48 @@ export function DashboardProvider({ children, businessModel }) {
     }
   }, [model]);
 
-  // Compute manufacturing projections (for manufacturing businesses)
-  const manufacturingProjections = useMemo(() => {
-    if (!model) return null;
-    
-    // Check if this is a manufacturing business
-    const isManufacturing = 
-      model.metadata?.type?.toLowerCase() === 'manufacturing' ||
-      model.metadata?.source === 'mexico-manufacturing-excel';
-    
-    if (!isManufacturing) {
-      console.log('[DashboardContext] Not a manufacturing business, skipping projections');
-      return null;
-    }
-    
-    setLoading(true);
-    
+  /** NPV/IRR/cashflow chart data from CBM.cashFlows (any business type with monthly flows) */
+  const projectEvaluationProjections = useMemo(() => {
+    if (!model?.cashFlows?.inflows?.length) return null;
     try {
-      console.log('[DashboardContext] Calculating manufacturing projections...');
-      const projections = calculateManufacturingProjections(model, 10, demandProjectionMethod);
-      setLoading(false);
-      return projections;
+      return calculateMetricsForAllLifetimes(model, 10);
     } catch (err) {
-      console.error('[DashboardContext] Error calculating manufacturing projections:', err);
-      setLoading(false);
+      console.error('[DashboardContext] Error calculating project evaluation projections:', err);
       return null;
     }
-  }, [model, demandProjectionMethod]);
+  }, [model]);
+
+  const persistModelToSession = (nextModel) => {
+    try {
+      sessionStorage.setItem('currentBusinessModel', JSON.stringify(nextModel));
+    } catch (e) {
+      console.warn('[DashboardContext] Could not persist model to sessionStorage', e);
+    }
+  };
 
   // Update business model
   const updateModel = (newModel) => {
     setModel(newModel);
+    persistModelToSession(newModel);
   };
 
   // Update specific parts of the model
   const updateModelPartial = (updates) => {
-    setModel(prev => ({
-      ...prev,
-      ...updates,
-    }));
+    setModel(prev => {
+      const next = { ...prev, ...updates };
+      persistModelToSession(next);
+      return next;
+    });
+  };
+
+  /** Slice a per-period array using periodRange (0-based indices inclusive) */
+  const getFilteredData = (dataArray) => {
+    if (!Array.isArray(dataArray)) return dataArray;
+    if (!periodRange || periodRange.start == null || periodRange.end == null) return dataArray;
+    const start = Math.max(0, periodRange.start);
+    const end = Math.min(dataArray.length - 1, periodRange.end);
+    if (start > end) return [];
+    return dataArray.slice(start, end + 1);
   };
   
   // Update forecasting method for a specific category
@@ -280,6 +271,18 @@ export function DashboardProvider({ children, businessModel }) {
       ...prev,
       [category]: method,
     }));
+    if (category === 'demand') {
+      setDemandProjectionMethod(method);
+      setModel(prev => {
+        if (!prev?.demand) return prev;
+        const next = {
+          ...prev,
+          demand: { ...prev.demand, ordersForecastMethod: method },
+        };
+        persistModelToSession(next);
+        return next;
+      });
+    }
   };
 
   const value = {
@@ -292,7 +295,13 @@ export function DashboardProvider({ children, businessModel }) {
     projectMetrics,
     statements,
     cashflowData,
-    manufacturingProjections,
+    projectEvaluationProjections,
+    /** @deprecated use projectEvaluationProjections */
+    manufacturingProjections: projectEvaluationProjections,
+    
+    // Recalculated slices (adapter model is unchanged; use these for UI that reacts to forecast method)
+    recalculatedDerived: derivedValues,
+    recalculatedFinal: finalValues,
     
     // Demand projection settings
     demandProjectionMethod,
@@ -301,6 +310,11 @@ export function DashboardProvider({ children, businessModel }) {
     // Forecasting methods
     forecastingMethods,
     updateForecastingMethod,
+    
+    // Period filtering (subheader) — indices into timeline.periods / month arrays
+    periodRange,
+    setPeriodRange,
+    getFilteredData,
     
     // Actions
     updateModel,

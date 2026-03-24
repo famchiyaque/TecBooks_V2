@@ -132,3 +132,60 @@ export function calculateMonthlyCashflowBreakdown(businessModel) {
   
   return result;
 }
+
+/**
+ * Aggregate monthly cash inflows/outflows to annual series (Year 0 = month 0 only; later years = 12-month buckets).
+ * @param {number[]} monthlyInflows
+ * @param {number[]} monthlyOutflows
+ * @param {number} maxYears cap on number of operational years after year 0
+ * @returns {Object|null}
+ */
+export function aggregateMonthlyToAnnual(monthlyInflows, monthlyOutflows, maxYears = 10) {
+  if (!Array.isArray(monthlyInflows) || !Array.isArray(monthlyOutflows) || monthlyInflows.length === 0) {
+    return null;
+  }
+
+  const totalMonths = monthlyInflows.length;
+  const totalYears = Math.max(1, Math.ceil(totalMonths / 12));
+  const effectiveMaxYears = Math.min(maxYears, totalYears);
+
+  const annualInflows = [];
+  const annualOutflows = [];
+  const annualNetCashflows = [];
+  const annualCumulativeCashflows = [];
+
+  annualInflows[0] = monthlyInflows[0] || 0;
+  annualOutflows[0] = monthlyOutflows[0] || 0;
+  annualNetCashflows[0] = annualInflows[0] - annualOutflows[0];
+  annualCumulativeCashflows[0] = annualNetCashflows[0];
+
+  for (let year = 1; year <= effectiveMaxYears; year++) {
+    const startMonth = (year - 1) * 12 + 1;
+    const endMonth = Math.min(year * 12 + 1, totalMonths);
+
+    let yearInflow = 0;
+    let yearOutflow = 0;
+
+    for (let month = startMonth; month < endMonth; month++) {
+      yearInflow += monthlyInflows[month] || 0;
+      yearOutflow += monthlyOutflows[month] || 0;
+    }
+
+    annualInflows.push(Math.round(yearInflow * 100) / 100);
+    annualOutflows.push(Math.round(yearOutflow * 100) / 100);
+
+    const yearNet = yearInflow - yearOutflow;
+    annualNetCashflows.push(Math.round(yearNet * 100) / 100);
+
+    const cumulative = annualCumulativeCashflows[year - 1] + yearNet;
+    annualCumulativeCashflows.push(Math.round(cumulative * 100) / 100);
+  }
+
+  return {
+    inflows: annualInflows,
+    outflows: annualOutflows,
+    netCashflows: annualNetCashflows,
+    cumulativeCashflows: annualCumulativeCashflows,
+    effectiveMaxYears,
+  };
+}

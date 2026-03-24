@@ -11,8 +11,6 @@ function MainLayout() {
     const [sidebarVisible, setSidebarVisible] = useState(true)
     const { loading } = useDashboard()
 
-    const [period, setPeriod] = useState(null)
-
     const location = useLocation()
 
     const routeToSidebarMap = {
@@ -43,8 +41,6 @@ function MainLayout() {
                 sidebarVisible={sidebarVisible} 
                 setSidebarVisible={setSidebarVisible} 
                 activeSidebar={activeSidebar}
-                period={period} 
-                setPeriod={setPeriod} 
             />
 
             <div>  
@@ -53,7 +49,7 @@ function MainLayout() {
                 </div>
 
                 <div className={`${sidebarVisible ? 'view' : 'view-no-sidebar'}`}>
-                    {loading ? <Loader /> : <Outlet context={{ period }} />}
+                    {loading ? <Loader /> : <Outlet />}
                 </div>
             </div>    
         </>
