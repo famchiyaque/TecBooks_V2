@@ -99,7 +99,8 @@ function doubleLinear(baseArray, interval) {
 }
 
 
-function simpleMoving(baseArray, interval, compound = 3) {
+function simpleMoving(baseArray, interval, params = {}) {
+    const compound = params.compound ?? 3;
     const result = [...baseArray];
 
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
@@ -160,20 +161,22 @@ function doubleMoving(baseArray, interval) {
     return result;
 }
 
-function simpleExponential(baseArray, interval, alpha = 0.5) {
+function simpleExponential(baseArray, interval, params = {}) {
+    const alpha = params.alpha ?? 0.5;
     const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1) return result;
 
-    // Warm up: smooth through all historical points to get correct state
-    let smoothed = y[0];
-    for (let i = 1; i < y.length; i++) {
-        smoothed = alpha * y[i] + (1 - alpha) * smoothed;
+    // SES: S_t = alpha * Y_{t-1} + (1 - alpha) * S_{t-1}
+    const smoothed = [y[0]];
+    for (let t = 1; t < y.length; t++) {
+        smoothed.push(alpha * y[t - 1] + (1 - alpha) * smoothed[t - 1]);
     }
 
-    // SES h-step forecast = flat line at last smoothed value
+    // h-step forecast = flat at last smoothed value
+    const lastSmoothed = smoothed[smoothed.length - 1];
     for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        result[i] = Math.round(smoothed);
+        result[i] = Math.round(lastSmoothed);
     }
 
     for (let i = 0; i <= lastNonNull; i++) result[i] = null;
@@ -181,62 +184,66 @@ function simpleExponential(baseArray, interval, alpha = 0.5) {
 }
 
 
-function doubleExponential(baseArray, interval, alpha = 0.5, beta = 0.3) {
+function doubleExponential(baseArray, interval, params = {}) {
+    const alpha = params.alpha ?? 0.5;
+    const beta  = params.beta  ?? 0.3;
     const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1) return result;
 
-    let level = y[0];
-    let trend = y.length > 1 ? y[1] - y[0] : 0;
+    // DES warm-up through all historical data
+    let L = y[0];
+    let T = y.length > 1 ? y[1] - y[0] : 0;
 
+    for (let t = 1; t < y.length; t++) {
+        const prevL = L;
+        L = alpha * y[t] + (1 - alpha) * (L + T);
+        T = beta * (L - prevL) + (1 - beta) * T;
+    }
+
+    // h-step forecast: F(h) = L + h*T
     for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        const lastValue = result[i - 1] ?? level + trend;
-        const newLevel = alpha * lastValue + (1 - alpha) * (level + trend);
-        const newTrend = beta * (newLevel - level) + (1 - beta) * trend;
-        result[i] = newLevel + newTrend;
-        level = newLevel;
-        trend = newTrend;
+        const h = i - lastNonNull;
+        result[i] = Math.round(L + h * T);
     }
 
     for (let i = 0; i <= lastNonNull; i++) result[i] = null;
-
     return result;
 }
 
 
-function winters(baseArray, interval, seasonLength = 12, alpha = 0.5, beta = 0.3, gamma = 0.2) {
+function winters(baseArray, interval, params = {}) {
+    const alpha        = params.alpha        ?? 0.5;
+    const beta         = params.beta         ?? 0.3;
+    const gamma        = params.gamma        ?? 0.2;
+    const seasonLength = params.seasonLength ?? 12;
     const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-    if (firstNonNull === -1) return result;
+    if (firstNonNull === -1 || y.length < 2) return result;
 
-    const n = y.length;
-    const sl = Math.min(seasonLength, n);
+    const m = Math.min(seasonLength, y.length);
 
-    // Initialize level: average of first season window
-    let level = y.slice(0, sl).reduce((a, b) => a + b, 0) / sl;
+    // Initialize level and trend
+    let L = y[0];
+    let T = y[1] - y[0];
 
-    // Initialize trend: average change per period
-    let trend = n > 1 ? (y[n - 1] - y[0]) / (n - 1) : 0;
+    // Initialize seasonal indices: deviation from initial level
+    const S = Array(m).fill(0);
+    for (let i = 0; i < m; i++) S[i] = y[i] - L;
 
-    // Initialize seasonal components (additive): deviation from initial level
-    const season = Array(seasonLength).fill(0);
-    for (let i = 0; i < sl; i++) season[i] = y[i] - level;
-
-    // Warm up: run through historical data to refine level/trend/seasonals
-    for (let i = 1; i < n; i++) {
-        const s = season[(firstNonNull + i) % seasonLength];
-        const newLevel = alpha * (y[i] - s) + (1 - alpha) * (level + trend);
-        const newTrend = beta * (newLevel - level) + (1 - beta) * trend;
-        season[(firstNonNull + i) % seasonLength] = gamma * (y[i] - newLevel) + (1 - gamma) * s;
-        level = newLevel;
-        trend = newTrend;
+    // Warm-up through all historical data
+    for (let t = 0; t < y.length; t++) {
+        const s = S[t % m];
+        const prevL = L;
+        L = alpha * (y[t] - s) + (1 - alpha) * (L + T);
+        T = beta * (L - prevL) + (1 - beta) * T;
+        S[t % m] = gamma * (y[t] - L) + (1 - gamma) * s;
     }
 
     // Forecast future points
     for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        const s = season[i % seasonLength];
-        result[i] = Math.round(level + trend + s);
-        level = level + trend;
+        result[i] = Math.round(L + T + S[i % m]);
+        L = L + T;
     }
 
     for (let i = 0; i <= lastNonNull; i++) result[i] = null;
@@ -307,7 +314,7 @@ const forecasts = {
     "Winter's": { color: "skyblue", func: winters },    
 }
 
-export default function getSeriesData(salesData, effectivePastDate, effectiveFutureDate, effectiveInterval, activeMethods) {
+export default function getSeriesData(salesData, effectivePastDate, effectiveFutureDate, effectiveInterval, activeMethods, params = {}) {
     // console.log("salesData passed: ", !!salesData);
     // console.log("effectivePastDate: ", effectivePastDate);
     // console.log("effectiveFutureDate: ", effectiveFutureDate);
@@ -331,12 +338,12 @@ export default function getSeriesData(salesData, effectivePastDate, effectiveFut
     });
 
     activeMethods.forEach(method => {
-        const { color, func } = forecasts[method]
-        if (func) {
+        const methodConfig = forecasts[method]
+        if (methodConfig?.func) {
             seriesData.push({
                 name: method,
-                color: color,
-                data: func(baseArray, effectiveInterval),
+                color: methodConfig.color,
+                data: methodConfig.func(baseArray, effectiveInterval, params),
                 dashStyle: 'Dash'
             })
         }

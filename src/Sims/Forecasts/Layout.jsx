@@ -9,6 +9,22 @@ import TimelineSliders from './Components/TimelineSliders'
 import useBaseSalesData from './hooks/baseSalesData-hook'
 import useSeriesData from './hooks/seriesData-hook'
 
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 24, background: '#fee', color: '#900', fontFamily: 'monospace' }}>
+          <strong>Crash capturado:</strong>
+          <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{this.state.error.toString()}{'\n'}{this.state.error.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function Layout() {
 
   const fontStyle = {
@@ -27,6 +43,7 @@ function Layout() {
   useSeriesData();
 
   return (
+    <ErrorBoundary>
     <div style={fontStyle}>
       <GenericHeader pageName={"Simulator"} />
       <GenericSubheader subheader={"Sales Forecaster"} />
@@ -45,6 +62,7 @@ function Layout() {
       </div>
 
     </div>
+    </ErrorBoundary>
   )
 }
 

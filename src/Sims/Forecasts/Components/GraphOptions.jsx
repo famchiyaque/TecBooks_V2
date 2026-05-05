@@ -27,7 +27,7 @@ function GraphOptions() {
     const betaEnabled = useSelector(getBetaEnabled);
     const effectiveBeta = useSelector((state) => state.forecaster.effectiveBeta);
     const gammaEnabled = useSelector(getGammaEnabled);
-    const effectiveGamma = useSelector((state) => state.forecaster.effectivGamma);
+    const effectiveGamma = useSelector((state) => state.forecaster.effectiveGamma);
     console.log("alpha enabled was: ", alphaEnabled);
 
     const { min, max } = useSelector(getCompoundRange);
@@ -96,7 +96,7 @@ function GraphOptions() {
                             value={effectiveCompound}
                             step={1}
                             min={min}
-                            max={max}
+                            max={50}
                             valueLabelDisplay="auto"
                             onChange={handleCompoundChange}
                             sx={{
@@ -125,7 +125,7 @@ function GraphOptions() {
                         value={effectiveAlpha}
                         step={0.1}
                         min={0}
-                        max={1}
+                        max={50}
                         valueLabelDisplay="auto"
                         onChange={handleAlphaChange}
                         sx={{
@@ -153,7 +153,7 @@ function GraphOptions() {
                         value={effectiveBeta}
                         step={0.1}
                         min={0}
-                        max={1}
+                        max={50}
                         valueLabelDisplay="auto"
                         onChange={handleBetaChange}
                         sx={{
@@ -181,7 +181,7 @@ function GraphOptions() {
                         value={effectiveGamma}
                         step={0.1}
                         min={0}
-                        max={1}
+                        max={50}
                         valueLabelDisplay="auto"
                         onChange={handleGammaChange}
                         sx={{

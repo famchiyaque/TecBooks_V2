@@ -1,15 +1,8 @@
+const MONTH_ABBR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
 function numberDateToName(date) {
-    const months = ['January', 'February', 'March', 'April', 'May',
-        'June', 'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-
-    const newDate = date.split('-')
-    const monthName = months[Number(newDate[1])]
-
-    const result = monthName + ' ' + newDate[0]
-
-    // console.log(result)
-    return result
+    const [year, month] = date.split('-');
+    return `${MONTH_ABBR[Number(month) - 1]}-${year}`;
 }
 
 function getInstructionsSheet() {
@@ -279,7 +272,7 @@ export const getExcelData = (surveyInfo) => {
         let tempDate = new Date(startDate); // Clone to avoid mutation
     
         while (tempDate <= currentDate) {
-            months.push(tempDate.toLocaleString('default', { month: 'long', year: 'numeric' }));
+            months.push(`${MONTH_ABBR[tempDate.getMonth()]}-${tempDate.getFullYear()}`);
             tempDate.setMonth(tempDate.getMonth() + 1);
         }
     
