@@ -125,7 +125,7 @@ function GraphOptions() {
                         value={effectiveAlpha}
                         step={0.1}
                         min={0}
-                        max={50}
+                        max={0.99}
                         valueLabelDisplay="auto"
                         onChange={handleAlphaChange}
                         sx={{
@@ -153,7 +153,7 @@ function GraphOptions() {
                         value={effectiveBeta}
                         step={0.1}
                         min={0}
-                        max={50}
+                        max={0.99}
                         valueLabelDisplay="auto"
                         onChange={handleBetaChange}
                         sx={{
@@ -181,7 +181,7 @@ function GraphOptions() {
                         value={effectiveGamma}
                         step={0.1}
                         min={0}
-                        max={50}
+                        max={0.99}
                         valueLabelDisplay="auto"
                         onChange={handleGammaChange}
                         sx={{
