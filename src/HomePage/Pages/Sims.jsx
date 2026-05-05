@@ -6,9 +6,14 @@ function SimsPage() {
 
   return (
     <div className="page-container blue-page" id="sims-page">
-        <div className='page-topper'>for interactive and educational practice</div>
+        <div className='page-topper'>interactive learning tools</div>
         <div className='sims-container'>
-          <Typography variant='h3' sx={{ fontWeight: '600', padding: '0 0 1.5rem 0' }}>Available Simulators</Typography>
+          <Typography variant='h3' sx={{ fontWeight: '700', padding: '0 0 0.5rem 0', color: '#073a5a' }}>
+            Educational Simulators
+          </Typography>
+          <Typography variant='h6' sx={{ fontWeight: '400', padding: '0 0 2rem 0', color: '#073a5a', opacity: 0.8 }}>
+            Practice financial decision-making in a risk-free environment
+          </Typography>
           <div className='sims-grid'>
             <SimCard
               title={"Project Evaluation"}

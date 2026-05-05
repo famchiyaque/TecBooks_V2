@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import GenericSubheader from '@/Global Components/GenericSubheader'
-import GenericHeader from "@/Global Components/GenericHeader"
+import GenericSubheader from '@/components/global/GenericSubheader'
+import GenericHeader from "@/components/global/GenericHeader"
 import Graph from "./Components/Graph"
 import MethodsSidebar from './Components/MethodsSidebar'
 import DataOptionsHeader from './Components/DataOptionsHeader'

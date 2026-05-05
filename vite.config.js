@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 8322,
+    host: true,
+    allowedHosts: ['dev.tecbooks.org', 'localhost']
   },
   resolve: {
     alias: {

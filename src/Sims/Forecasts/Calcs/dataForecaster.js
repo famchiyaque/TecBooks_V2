@@ -44,26 +44,57 @@ function simpleLinear(baseArray, interval) {
 }
 
 
+// Gaussian elimination for 3x3 system — used by doubleLinear quadratic regression
+function solveLinearSystem3x3(A, b) {
+    const n = 3;
+    const aug = A.map((row, i) => [...row, b[i]]);
+    for (let col = 0; col < n; col++) {
+        let maxRow = col;
+        for (let row = col + 1; row < n; row++) {
+            if (Math.abs(aug[row][col]) > Math.abs(aug[maxRow][col])) maxRow = row;
+        }
+        [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+        if (Math.abs(aug[col][col]) < 1e-10) return null;
+        for (let row = col + 1; row < n; row++) {
+            const f = aug[row][col] / aug[col][col];
+            for (let j = col; j <= n; j++) aug[row][j] -= f * aug[col][j];
+        }
+    }
+    const x = Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) {
+        x[i] = aug[i][n];
+        for (let j = i + 1; j < n; j++) x[i] -= aug[i][j] * x[j];
+        x[i] /= aug[i][i];
+    }
+    return x;
+}
+
+// Quadratic regression: y = b0 + b1*x + b2*x² (genuinely different from simple linear)
 function doubleLinear(baseArray, interval) {
     const result = [...baseArray];
-    const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-    if (firstNonNull === -1) return result;
+    const { x, y, firstNonNull, lastNonNull } = getNonNullRange(baseArray);
+    if (firstNonNull === -1 || x.length < 3) return result;
 
-    // compute linear regression on non-null points
-    const x = y.map((_, idx) => firstNonNull + idx + 1);
-    const X = x.reduce((a, b) => a + b, 0) / x.length;
-    const Y = y.reduce((a, b) => a + b, 0) / y.length;
-    const topSum = x.map((xi, i) => (xi - X) * (y[i] - Y)).reduce((a, b) => a + b, 0);
-    const bottomSum = x.map(xi => (xi - X) ** 2).reduce((a, b) => a + b, 0);
-    const slope = topSum / bottomSum;
-    const intercept = Y - slope * X;
+    const n = x.length;
+    const S1  = x.reduce((a, xi) => a + xi, 0);
+    const S2  = x.reduce((a, xi) => a + xi ** 2, 0);
+    const S3  = x.reduce((a, xi) => a + xi ** 3, 0);
+    const S4  = x.reduce((a, xi) => a + xi ** 4, 0);
+    const Sy  = y.reduce((a, b) => a + b, 0);
+    const Sxy  = x.reduce((a, xi, i) => a + xi * y[i], 0);
+    const Sx2y = x.reduce((a, xi, i) => a + xi ** 2 * y[i], 0);
+
+    const coeffs = solveLinearSystem3x3(
+        [[n, S1, S2], [S1, S2, S3], [S2, S3, S4]],
+        [Sy, Sxy, Sx2y]
+    );
+    if (!coeffs) return result;
+    const [b0, b1, b2] = coeffs;
 
     for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        result[i] = intercept + slope * (i + 1);
+        result[i] = Math.round(b0 + b1 * (i + 1) + b2 * (i + 1) ** 2);
     }
-
     for (let i = 0; i <= lastNonNull; i++) result[i] = null;
-
     return result;
 }
 
@@ -91,53 +122,61 @@ function simpleMoving(baseArray, interval, compound = 3) {
     return result;
 }
 
-function doubleMoving(baseArray, interval, compound = 30) {
+// DMA forecast: a = 2*SMA - DMA, b = (2/(m-1))*(SMA-DMA), F(h) = a + b*h
+function doubleMoving(baseArray, interval) {
     const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
+    if (firstNonNull === -1) return result;
 
-    if (firstNonNull === -1) return result; // no data at all
+    const n = y.length;
+    const m = Math.max(2, Math.floor(n / 3)); // dynamic: ~1/3 of data length
 
-    // Step 1: Compute first SMA
-    const smaArray = [...baseArray];
-    for (let i = firstNonNull + compound; i < baseArray.length; i++) {
-        const window = [];
-        for (let j = i - compound; j < i; j++) {
-            if (smaArray[j] !== null) window.push(smaArray[j]);
-        }
-        smaArray[i] = window.length ? window.reduce((a, b) => a + b, 0) / window.length : null;
+    // SMA on historical points
+    const sma = y.map((_, i) => {
+        if (i < m - 1) return null;
+        const w = y.slice(i - m + 1, i + 1);
+        return w.reduce((a, b) => a + b, 0) / m;
+    });
+
+    // DMA on sma values
+    const dma = sma.map((_, i) => {
+        if (i < 2 * m - 2) return null;
+        const w = sma.slice(i - m + 1, i + 1).filter(v => v !== null);
+        return w.length === m ? w.reduce((a, b) => a + b, 0) / m : null;
+    });
+
+    const lastSMA = sma[n - 1];
+    const lastDMA = dma[n - 1];
+    if (lastSMA === null || lastDMA === null) return result;
+
+    const a = 2 * lastSMA - lastDMA;
+    const b = m > 1 ? (2 / (m - 1)) * (lastSMA - lastDMA) : 0;
+
+    for (let i = lastNonNull + 1; i < baseArray.length; i++) {
+        const h = i - lastNonNull;
+        result[i] = Math.round(a + b * h);
     }
-
-    // Step 2: Compute SMA of SMA (double moving)
-    const dmaArray = Array(baseArray.length).fill(null);
-    for (let i = firstNonNull + 2 * compound; i < baseArray.length; i++) {
-        const window = [];
-        for (let j = i - compound; j < i; j++) {
-            if (smaArray[j] !== null) window.push(smaArray[j]);
-        }
-        dmaArray[i] = window.length ? window.reduce((a, b) => a + b, 0) / window.length : null;
-    }
-
-    return dmaArray;
+    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
+    return result;
 }
 
 function simpleExponential(baseArray, interval, alpha = 0.5) {
     const result = [...baseArray];
-
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-    if (firstNonNull === -1) return result; // no data at all
+    if (firstNonNull === -1) return result;
 
-    // start smoothing from the first actual point
-    let lastCalculated = y[0]; 
-    for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        // use the last non-null point to start the forecast
-        const nextValue = alpha * (result[i - 1] ?? lastCalculated) + (1 - alpha) * lastCalculated;
-        result[i] = nextValue;
-        lastCalculated = nextValue;
+    // Warm up: smooth through all historical points to get correct state
+    let smoothed = y[0];
+    for (let i = 1; i < y.length; i++) {
+        smoothed = alpha * y[i] + (1 - alpha) * smoothed;
     }
 
-    // clear past points
-    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
+    // SES h-step forecast = flat line at last smoothed value
+    for (let i = lastNonNull + 1; i < baseArray.length; i++) {
+        result[i] = Math.round(smoothed);
+    }
 
+    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
     return result;
 }
 
@@ -170,27 +209,37 @@ function winters(baseArray, interval, seasonLength = 12, alpha = 0.5, beta = 0.3
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1) return result;
 
-    let level = y[0];
-    let trend = y[1] - y[0];
+    const n = y.length;
+    const sl = Math.min(seasonLength, n);
+
+    // Initialize level: average of first season window
+    let level = y.slice(0, sl).reduce((a, b) => a + b, 0) / sl;
+
+    // Initialize trend: average change per period
+    let trend = n > 1 ? (y[n - 1] - y[0]) / (n - 1) : 0;
+
+    // Initialize seasonal components (additive): deviation from initial level
     const season = Array(seasonLength).fill(0);
+    for (let i = 0; i < sl; i++) season[i] = y[i] - level;
 
-    for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        const seasonal = season[i % seasonLength] || 0;
-        const lastValue = result[i - 1] ?? level + trend + seasonal;
-
-        const newLevel = alpha * (lastValue - seasonal) + (1 - alpha) * (level + trend);
+    // Warm up: run through historical data to refine level/trend/seasonals
+    for (let i = 1; i < n; i++) {
+        const s = season[(firstNonNull + i) % seasonLength];
+        const newLevel = alpha * (y[i] - s) + (1 - alpha) * (level + trend);
         const newTrend = beta * (newLevel - level) + (1 - beta) * trend;
-        const newSeason = gamma * (lastValue - newLevel) + (1 - gamma) * seasonal;
-
-        season[i % seasonLength] = newSeason;
-        result[i] = newLevel + newTrend + newSeason;
-
+        season[(firstNonNull + i) % seasonLength] = gamma * (y[i] - newLevel) + (1 - gamma) * s;
         level = newLevel;
         trend = newTrend;
     }
 
-    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
+    // Forecast future points
+    for (let i = lastNonNull + 1; i < baseArray.length; i++) {
+        const s = season[i % seasonLength];
+        result[i] = Math.round(level + trend + s);
+        level = level + trend;
+    }
 
+    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
     return result;
 }
 

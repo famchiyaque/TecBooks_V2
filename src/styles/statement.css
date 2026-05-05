@@ -6,26 +6,30 @@
   width: 100%;
 }
 
+.statement-navigation {
+  width: 100%;
+  max-width: 900px;
+  margin: 1rem auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
 .statement-container {
-  width: 75%;
-  margin: 2rem auto;
+  width: 100%;
+  max-width: 900px;
+  margin: 1rem auto;
   display: flex;
   justify-content: center;
-  /* margin: 2rem 0; */
-  position: relative;
-  /* border: solid red 1px; */
 }
 
 .left-container {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
+  flex: 0 0 auto;
 }
 
 .right-container {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+  flex: 0 0 auto;
 }
 
 .span {
@@ -57,16 +61,11 @@
 
 .statement {
   width: 100%;
-  max-width: 900px;
   background-color: #fff;
-  padding: 4rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 3rem 2.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  border: solid blue 1px;
   line-height: 150%;
-  /* display: flex;
-  flex-direction: column;
-  justify-content: flex-start; */
 }
 
 .page-header {
@@ -77,23 +76,20 @@
   width: 100%;
   display: flex;
   align-items: flex-start;
-  justify-content: space-around;
-  /* border: solid red 1px; */
+  justify-content: space-between;
+  padding: 0 1.5rem;
 }
 
 .income-titles, .balance-titles {
-  /* width: 36%; */
-  width: 50%;
+  flex: 1;
   text-align: left;
-  /* border: solid green 1px; */
+  padding-right: 2rem;
 }
 
 .income-data, .balance-data {
-  /* width: 63%; */
-  width: 50%;
+  flex: 0 0 auto;
   text-align: right;
-  /* display: flex; */
-  /* border: solid orange 1px; */
+  min-width: 150px;
 }
 
 .data-column {

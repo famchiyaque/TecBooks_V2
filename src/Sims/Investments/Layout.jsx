@@ -6,8 +6,8 @@ import InputSection from './Components/InputSection'
 import Results from './Components/Results'
 import History from './Components/History'
 import '../../styles/investments.css'
-import GenericHeader from '../../Global Components/GenericHeader'
-import GenericSubheader from '../../Global Components/GenericSubheader'
+import GenericHeader from '../../components/global/GenericHeader'
+import GenericSubheader from '../../components/global/GenericSubheader'
 import Divider from '@mui/material/Divider';
 
 

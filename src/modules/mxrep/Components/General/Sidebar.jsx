@@ -1,0 +1,69 @@
+import { React, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import '@/styles/general.css'
+import { iconMap } from './IconsMap'
+import '@/styles/general.css'
+import { Button } from '@/components/ui/button'
+
+function Sidebar({ sidebarConfig, activeSidebar, setActiveSidebar }) {
+    const navigate = useNavigate()
+
+    console.log("active sidebar passed: ", activeSidebar)
+    console.log("Sidebar config in dynamic sidebar: ", sidebarConfig)
+    console.log("")
+
+    // const [activeSidebar, setActiveSidebar] = useState(1)
+    const [sidebarFixed, setSidebarFixed] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const elevenVH = window.innerHeight * 0.11
+
+            if (window.scrollY > elevenVH) setSidebarFixed(true)
+            else setSidebarFixed(false)
+        }
+
+        window.addEventListener('scroll', handleScroll)
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll)
+        }
+
+    }, [])
+
+    return (
+        <nav className={`sidebar ${sidebarFixed ? 'sidebar-fixed': ''}`}>
+            <div className="sidebar-title">
+                <div className="title-icon">
+                    {iconMap[sidebarConfig.title.iconCode]}
+                </div>
+                <div className="title-content">
+                    <div className="title-main">{sidebarConfig.title.titleMain}</div>
+                    <div className="title-sub">{sidebarConfig.title.titleSub}</div>
+                </div>
+            </div>
+
+            {sidebarConfig.pages.map((page, idx) => (
+                <div
+                    className={`sidebar-entry ${activeSidebar === page.route ? 'active' : ''}`}
+                    onClick={() => {
+                        setActiveSidebar(page.route)
+                        navigate(page.route)
+                    }}
+                    key={idx}
+                >
+                    {iconMap[page.iconCode]}
+                    <span>{page.title}</span>
+                </div>
+            ))}
+
+            <div className='mt-auto'>
+                <Button onClick={() => navigate("/mxrep/logout")}>
+                    Logout
+                </Button>
+            </div>
+        </nav>
+    )
+}
+
+export default Sidebar
