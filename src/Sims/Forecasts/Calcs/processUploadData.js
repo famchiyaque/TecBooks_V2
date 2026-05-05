@@ -1,5 +1,5 @@
 // ./lib/uploadData.js
-import { parseISO, differenceInDays, format } from 'date-fns';
+import { parseISO, parse, differenceInDays, format, isValid } from 'date-fns';
 
 // import { INTERVAL_OPTIONS } from '../configs/options-configs';
 
@@ -37,8 +37,16 @@ export function processUploadedData(rawData) {
 
       let parsedDate;
       try {
-        parsedDate = parseISO(rawDate);
-        if (isNaN(parsedDate)) throw new Error();
+        const dateStr = String(rawDate).trim();
+        const formats = ['yyyy-MM-dd', 'MM/dd/yyyy', 'M/d/yyyy', 'MM-dd-yyyy'];
+        parsedDate = parseISO(dateStr);
+        if (!isValid(parsedDate)) {
+          for (const fmt of formats) {
+            parsedDate = parse(dateStr, fmt, new Date());
+            if (isValid(parsedDate)) break;
+          }
+        }
+        if (!isValid(parsedDate)) throw new Error();
       } catch {
         throw new Error(`Invalid date format: ${rawDate}`);
       }

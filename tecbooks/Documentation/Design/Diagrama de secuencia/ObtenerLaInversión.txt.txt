@@ -1,0 +1,35 @@
+@startuml
+title "Obtener Inversión Total"
+
+control "generateData.controller.js" as C
+boundary "getEgresos.usecase.js" as UC
+boundary getInvestment.service.js as SGI
+
+C -> UC: generateExcel(robloxData)
+activate UC
+
+' 1. El Caso de Uso reúne los datos necesarios
+UC -> UC: const summarySalaryByRole = salarySummary.byRole
+UC -> UC: const totalDepreciation = depreciationData.totalDepreciation
+UC -> UC: const managementCost = productionLineTemplate.totalCost
+UC -> UC: const civilWorkMachinesAndTeam = depreciationData.transportDepreciation * 0.35
+
+' 2. El Caso de Uso CREA el objeto que se enviará al servicio
+UC -> UC: const investmentData = { salaries, depreciation, \nmanagement, civilWork }
+
+' 3. Se envía el OBJETO al servicio
+UC -> SGI:const totalInvestment \n getInvestmentService.getInvestment(investmentData)
+activate SGI
+
+' 4. El Servicio recibe el objeto y suma sus valores
+SGI -> SGI: let totalInvestment = 0
+loop for value in investmentData
+    SGI -> SGI: totalInvestment += value
+end
+
+' 5. El Servicio retorna el resultado final
+SGI -->> UC: totalInvestment
+deactivate SGI
+
+deactivate UC
+@enduml

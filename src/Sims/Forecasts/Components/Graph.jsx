@@ -77,6 +77,7 @@ function Graph() {
         categories,
       },
       yAxis: { title: { text: 'Sales in Dollars' } },
+      tooltip: { valueDecimals: 2 },
       series: seriesData || [],
     };
   }, [seriesData, pastDate, futureDate, interval]);
