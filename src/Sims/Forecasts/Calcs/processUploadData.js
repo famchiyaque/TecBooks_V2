@@ -38,9 +38,20 @@ export function processUploadedData(rawData) {
       let parsedDate;
       try {
         const dateStr = String(rawDate).trim();
-        const formats = ['yyyy-MM-dd', 'MM/dd/yyyy', 'M/d/yyyy', 'MM-dd-yyyy'];
-        parsedDate = parseISO(dateStr);
+
+        // Spanish abbreviated month: "ene-2023" or "ene-23"
+        const ES_MONTHS = { ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11 };
+        const esMatch = dateStr.match(/^([a-z]{3})-(\d{2,4})$/i);
+        if (esMatch && ES_MONTHS[esMatch[1].toLowerCase()] !== undefined) {
+          const yr = esMatch[2].length === 2 ? 2000 + Number(esMatch[2]) : Number(esMatch[2]);
+          parsedDate = new Date(yr, ES_MONTHS[esMatch[1].toLowerCase()], 1);
+        }
+
+        if (!parsedDate || !isValid(parsedDate)) {
+          parsedDate = parseISO(dateStr);
+        }
         if (!isValid(parsedDate)) {
+          const formats = ['yyyy-MM-dd', 'MM/dd/yyyy', 'M/d/yyyy', 'MM-dd-yyyy', 'MMM-yy', 'MMM-yyyy', 'MMM yyyy'];
           for (const fmt of formats) {
             parsedDate = parse(dateStr, fmt, new Date());
             if (isValid(parsedDate)) break;

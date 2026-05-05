@@ -78,14 +78,14 @@ function Graph() {
       },
       yAxis: { title: { text: 'Sales in Dollars' } },
       tooltip: { valueDecimals: 2 },
-      series: seriesData || [],
+      series: seriesData ? seriesData.map(s => ({ ...s, data: [...s.data] })) : [],
     };
   }, [seriesData, pastDate, futureDate, interval]);
 
   return (
     <Paper elevation={1} className='min-w-[600] p-1'>
       <div style={{ maxHeight: '100%', width: '700px' }}>
-        <HighchartsReact highcharts={Highcharts} options={options} />
+        {options && <HighchartsReact highcharts={Highcharts} options={options} />}
       </div>
     </Paper>
   );
