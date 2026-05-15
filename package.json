@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",
+    "exceljs": "^4.4.0",
     "fusioncharts": "^4.1.2",
     "highcharts": "^12.3.0",
     "highcharts-react-official": "^3.2.2",

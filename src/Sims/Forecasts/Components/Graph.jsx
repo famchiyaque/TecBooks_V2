@@ -84,7 +84,7 @@ function Graph() {
 
   return (
     <Paper elevation={1} className='min-w-[600] p-1'>
-      <div style={{ maxHeight: '100%', width: '700px' }}>
+      <div id="forecast-chart-container" style={{ maxHeight: '100%', width: '700px' }}>
         {options && <HighchartsReact highcharts={Highcharts} options={options} />}
       </div>
     </Paper>
