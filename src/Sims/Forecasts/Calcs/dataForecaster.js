@@ -163,52 +163,62 @@ function doubleMoving(baseArray, interval) {
 
 function simpleExponential(baseArray, interval, params = {}) {
     const alpha = params.alpha ?? 0.5;
-    const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-    if (firstNonNull === -1) return result;
+    if (firstNonNull === -1) return null;
 
-    // SES: S_t = alpha * Y_{t-1} + (1 - alpha) * S_{t-1}
-    const smoothed = [y[0]];
+    // Historical: smoothed S values
+    const historical = baseArray.map(() => null);
+    let S = y[0];
+    historical[firstNonNull] = Math.round(S);
     for (let t = 1; t < y.length; t++) {
-        smoothed.push(alpha * y[t - 1] + (1 - alpha) * smoothed[t - 1]);
+        S = alpha * y[t] + (1 - alpha) * S;
+        historical[firstNonNull + t] = Math.round(S);
     }
 
-    // h-step forecast = flat at last smoothed value
-    const lastSmoothed = smoothed[smoothed.length - 1];
+    // Future: flat forecast
+    const forecast = baseArray.map(() => null);
+    forecast[lastNonNull] = Math.round(S); // connect from last historical point
     for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-        result[i] = Math.round(lastSmoothed);
+        forecast[i] = Math.round(S);
     }
 
-    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
-    return result;
+    return { historical, forecast };
 }
 
 
 function doubleExponential(baseArray, interval, params = {}) {
     const alpha = params.alpha ?? 0.5;
-    const beta  = params.beta  ?? 0.3;
+    const gamma = params.beta  ?? 0.1; // trend smoothing (called β in UI, γ in Holt's notation)
     const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-    if (firstNonNull === -1) return result;
+    if (firstNonNull === -1 || y.length < 2) return result;
 
-    // DES warm-up through all historical data
-    let L = y[0];
-    let T = y.length > 1 ? y[1] - y[0] : 0;
+    const n = y.length;
 
-    for (let t = 1; t < y.length; t++) {
-        const prevL = L;
-        L = alpha * y[t] + (1 - alpha) * (L + T);
-        T = beta * (L - prevL) + (1 - beta) * T;
+    // Init: S_1 = y_1,  b_1 = (y_n - y_1) / (n-1)  — stable slope across full history
+    let S = y[0];
+    let b = (y[n - 1] - y[0]) / (n - 1);
+
+    // Historical: smoothed S values
+    const historical = baseArray.map(() => null);
+    historical[firstNonNull] = Math.round(S);
+
+    for (let t = 1; t < n; t++) {
+        const prevS = S;
+        S = alpha * y[t] + (1 - alpha) * (S + b);
+        b = gamma * (S - prevS) + (1 - gamma) * b;
+        historical[firstNonNull + t] = Math.round(S);
     }
 
-    // h-step forecast: F(h) = L + h*T
+    // Future: linear forecast
+    const forecast = baseArray.map(() => null);
+    forecast[lastNonNull] = Math.round(S); // connect from last historical point
     for (let i = lastNonNull + 1; i < baseArray.length; i++) {
         const h = i - lastNonNull;
-        result[i] = Math.round(L + h * T);
+        forecast[i] = Math.round(S + h * b);
     }
 
-    for (let i = 0; i <= lastNonNull; i++) result[i] = null;
-    return result;
+    return { historical, forecast };
 }
 
 
@@ -339,17 +349,42 @@ export default function getSeriesData(salesData, effectivePastDate, effectiveFut
 
     activeMethods.forEach(method => {
         const methodConfig = forecasts[method]
-        if (methodConfig?.func) {
+        if (!methodConfig?.func) return;
+
+        const result = methodConfig.func(baseArray, effectiveInterval, params);
+
+        if (result && typeof result === 'object' && !Array.isArray(result) && result.historical && result.forecast) {
+            // Split series: historical smoothed (solid) + forecast (dashed)
+            seriesData.push({
+                name: method + ' (smoothed)',
+                color: methodConfig.color,
+                data: result.historical,
+                dashStyle: 'Solid',
+                lineWidth: 1.5,
+            });
+            seriesData.push({
+                name: method + ' (forecast)',
+                color: methodConfig.color,
+                data: result.forecast,
+                dashStyle: 'Dash',
+            });
+        } else if (Array.isArray(result)) {
             seriesData.push({
                 name: method,
                 color: methodConfig.color,
-                data: methodConfig.func(baseArray, effectiveInterval, params),
+                data: result,
                 dashStyle: 'Dash'
-            })
+            });
         }
     })
 
     // console.log("returning seriesData: ", seriesData)
+    console.log("Series finales:", seriesData.map(s => ({
+        name: s.name,
+        totalPoints: s.data.length,
+        nonNullPoints: s.data.filter(v => v !== null).length,
+        lastIndex: s.data.findLastIndex(v => v !== null)
+    })));
 
     return seriesData;
 }

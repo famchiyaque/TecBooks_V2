@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
-import { FaRandom, FaFileUpload } from "react-icons/fa";
+import { FaRandom, FaFileUpload, FaFileDownload, FaFileExcel } from "react-icons/fa";
 import Tooltip from '@mui/material/Tooltip';
 import { useSelector, useDispatch } from 'react-redux';
 import { getCurrentDataInfo, setDataSouce, setSalesData, setSeriesData } from '../store';
+import { exportForecastToExcel } from '../Calcs/exportForecast';
 import DataConfigPopover from './DataConfigPopover';
 import DataUploadPopover from './DataUploadPopover';
 import { setStartDate, setBehavior, setBehaviorCase, setSalesDataBatch } from '../store';
@@ -15,6 +16,10 @@ function DataOptionsHeader() {
     const dispatch = useDispatch()
 
     const currentDataInfo = useSelector(getCurrentDataInfo);
+    const seriesData = useSelector((state) => state.forecaster.seriesData);
+    const effectivePastDate = useSelector((state) => state.forecaster.effectivePastDate);
+    const effectiveFutureDate = useSelector((state) => state.forecaster.effectiveFutureDate);
+    const effectiveInterval = useSelector((state) => state.forecaster.effectiveInterval);
     const [dataAnchorEl, setDataAnchorEl] = useState(null);
     const [uploadAnchorEl, setUploadAnchorEl] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -105,6 +110,19 @@ function DataOptionsHeader() {
                 className="text-gray-500 w-[25px] h-[25px] cursor-pointer hover:text-blue-700"
                 onClick={handleRandomize}
             />
+        </Tooltip>
+
+        <Tooltip title="Export to Excel" placement='bottom-end'>
+            <FaFileExcel
+                className="text-gray-500 w-[25px] h-[25px] cursor-pointer hover:text-green-600"
+                onClick={() => exportForecastToExcel(seriesData, effectivePastDate, effectiveFutureDate, effectiveInterval).catch(console.error)}
+            />
+        </Tooltip>
+
+        <Tooltip title="Download Template" placement='bottom-end'>
+            <a href="/minitab_template.xlsx" download="minitab_template.xlsx">
+                <FaFileDownload className="text-gray-500 w-[25px] h-[25px] cursor-pointer hover:text-blue-700" />
+            </a>
         </Tooltip>
 
         <Tooltip title="Upload Data" placement='bottom-end'>
