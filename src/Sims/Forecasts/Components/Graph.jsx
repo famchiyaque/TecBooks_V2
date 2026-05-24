@@ -70,8 +70,16 @@ function Graph() {
     // console.log("categories returned: ", categories);
   
     return {
-      chart: { type: 'line', borderRadius: 5 },
+      chart: {
+        type: 'line',
+        borderRadius: 5,
+        zooming: { type: 'x' },
+      },
       title: { text: 'Sales Data' },
+      subtitle: {
+        text: '🔍 Click and drag to zoom in. Right-click to reset zoom.',
+        style: { fontSize: '11px', color: '#888' },
+      },
       xAxis: {
         title: { text: `From: ${formatLabel(pastDate, interval)} to ${formatLabel(futureDate, interval)}` },
         categories,
