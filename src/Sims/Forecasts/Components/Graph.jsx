@@ -70,21 +70,30 @@ function Graph() {
     // console.log("categories returned: ", categories);
   
     return {
-      chart: { type: 'line', borderRadius: 5 },
+      chart: {
+        type: 'line',
+        borderRadius: 5,
+        zooming: { type: 'x' },
+      },
       title: { text: 'Sales Data' },
+      subtitle: {
+        text: '🔍 Click and drag to zoom in. Right-click to reset zoom.',
+        style: { fontSize: '11px', color: '#888' },
+      },
       xAxis: {
         title: { text: `From: ${formatLabel(pastDate, interval)} to ${formatLabel(futureDate, interval)}` },
         categories,
       },
       yAxis: { title: { text: 'Sales in Dollars' } },
-      series: seriesData || [],
+      tooltip: { valueDecimals: 2 },
+      series: seriesData ? seriesData.map(s => ({ ...s, data: [...s.data] })) : [],
     };
   }, [seriesData, pastDate, futureDate, interval]);
 
   return (
     <Paper elevation={1} className='min-w-[600] p-1'>
-      <div style={{ maxHeight: '100%', width: '700px' }}>
-        <HighchartsReact highcharts={Highcharts} options={options} />
+      <div id="forecast-chart-container" style={{ maxHeight: '100%', width: '700px' }}>
+        {options && <HighchartsReact highcharts={Highcharts} options={options} />}
       </div>
     </Paper>
   );
