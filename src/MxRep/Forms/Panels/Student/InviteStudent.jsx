@@ -14,7 +14,7 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { UserPlus, X, Users } from 'lucide-react'
-import { cn } from '@/components/lib/utils'
+import { cn } from '@/lib/utils'
 
 const inviteStudentSchema = z.object({
   studentId: z.string().min(1, 'Please select a student'),

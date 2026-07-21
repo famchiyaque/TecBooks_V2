@@ -2,7 +2,7 @@ import React from "react";
 import "@/styles/kpi.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useSimData } from "../SimDataContext";
-import Gauge from "../Dashboard/Gauge";
+import Gauge from '@/MxRep/Components/Dashboard/Gauge';
 
 const getKPIBoxColor = (value) => {
   if (value < 0) {

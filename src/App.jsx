@@ -2,18 +2,18 @@ import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import React from "react";
 import RotateMessage from "./components/global/RotateMessage";
-import HomePage from "./HomePage/HomePage";
+import HomePage from "./pages/home/HomePage";
 import MxRepRouter from "./MxRep/Routing/Router";
-import Simulators from "./Sims/Index";
-import FAQ from "./faq/index";
+import Simulators from "./pages/sims/Index";
+import FAQ from "./pages/faq/index";
 import { Navigate } from "react-router-dom";
 import { OrientationProvider } from "./components/global/PortraitContext";
 
 // New unified architecture imports
-import Dashboard from "./dashboard/index";
-import ExcelTemplates from "./modules/excel-templates/index";
-import CustomExcelBuilder from "./modules/custom-excel-builder/CustomExcelBuilder";
-import { createCustomExcelStore } from "./modules/custom-excel-builder/store";
+import Dashboard from "./pages/dashboard/Index";
+import ExcelTemplates from "./pages/modules/templates/index";
+import CustomExcelBuilder from "./pages/modules/custom-excel/CustomExcelBuilder";
+import { createCustomExcelStore } from "./store/customExcelStore";
 import { Provider } from "react-redux";
 
 // Global Navigation

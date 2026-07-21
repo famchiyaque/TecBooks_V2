@@ -11,7 +11,7 @@ import { registerInstitution } from '@/MxRep/utils/schemas/form.schemas'
 import { defaultRegisterInstitution } from '@/MxRep/utils/schemas/form.defaults'
 import Loader from '@/components/global/Loader'
 import { AlertCircle, CheckCircle, Building2, Mail, Phone, MapPin, User, Briefcase } from 'lucide-react'
-import { cn } from '@/components/lib/utils'
+import { cn } from '@/lib/utils'
 import { useRegisterInstitution } from '@/MxRep/utils/hooks/register.hooks'
 
 function RegisterInstitution() {
