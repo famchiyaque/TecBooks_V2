@@ -40,11 +40,8 @@ export function adaptCustomExcelToBusinessModel(customExcelData) {
  * @param {Object} customExcelData - Data from custom excel builder
  * @returns {boolean}
  */
-export function isCustomExcelDataComplete(customExcelData) {
+export function isCustomExcelDataValid(customExcelData) {
   // TODO: Implement validation logic
   return customExcelData && customExcelData.businessName;
 }
 
-// Legacy function names for backward compatibility
-export const adaptSurveyToBusinessModel = adaptCustomExcelToBusinessModel;
-export const isSurveyDataComplete = isCustomExcelDataComplete;

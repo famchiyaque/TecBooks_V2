@@ -15,7 +15,7 @@ import {
   deriveAssetsDepreciation,
   deriveExpenses,
   deriveFinancingPayments,
-} from '../dashboard/index.js';
+} from '../../utils/dashboard/index.js';
 
 /**
  * Extract metadata from Welcome sheet

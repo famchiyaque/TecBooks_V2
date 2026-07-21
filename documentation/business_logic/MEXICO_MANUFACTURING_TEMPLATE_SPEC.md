@@ -298,7 +298,7 @@ model.financing = {
 
 The adapter is located at:
 ```
-src/core/adapters/MexicoManufacturingAdapter.js
+src/adapters/excel/mexico-manufacturing.adapter.js
 ```
 
 ### Detection Logic
@@ -308,7 +308,7 @@ The adapter is automatically selected when the Excel file contains a sheet named
 ### Usage
 
 ```javascript
-import { adaptMexicoManufacturingToBusinessModel } from '@/utils/adapters';
+import { adaptMexicoManufacturingToBusinessModel } from '@/adapters';
 
 const businessModel = adaptMexicoManufacturingToBusinessModel(excelData);
 ```
