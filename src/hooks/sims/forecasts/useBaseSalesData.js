@@ -1,4 +1,3 @@
-// base-sales-data-hook.jsx
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { generatePastSalesData } from '@/utils/sims/forecasts/dataGenerator';

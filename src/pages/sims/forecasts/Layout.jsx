@@ -6,8 +6,8 @@ import MethodsSidebar from '@/components/sims/forecasts/MethodsSidebar'
 import DataOptionsHeader from '@/components/sims/forecasts/DataOptionsHeader'
 import GraphOptions from '@/components/sims/forecasts/GraphOptions'
 import TimelineSliders from '@/components/sims/forecasts/TimelineSliders'
-import useBaseSalesData from '@/hooks/sims/forecasts/baseSalesData-hook'
-import useSeriesData from '@/hooks/sims/forecasts/seriesData-hook'
+import useBaseSalesData from '@/hooks/sims/forecasts/useBaseSalesData'
+import useSeriesData from '@/hooks/sims/forecasts/useSeriesData'
 
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
