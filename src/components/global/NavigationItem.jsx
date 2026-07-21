@@ -14,7 +14,7 @@ import {
   ChevronRight,
   ExpandMore
 } from '@mui/icons-material'
-import { useNavigation } from './NavigationContext'
+import { useNavigation } from '@/contexts/NavigationContext'
 
 const iconMap = {
   Home: Home,

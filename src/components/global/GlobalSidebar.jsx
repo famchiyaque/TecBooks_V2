@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'
-import { useNavigation } from './NavigationContext'
-import NavigationItem from './NavigationItem'
-import { navigationConfig } from './navigationConfig'
+import { useNavigation } from '@/contexts/NavigationContext'
+import NavigationItem from '@/components/global/NavigationItem'
+import { navigationConfig } from '@/config/navigationConfig'
 import { Close, Menu } from '@mui/icons-material'
-import './globalNavigation.css'
+import '@/styles/globalNavigation.css'
 
 function GlobalSidebar() {
   const { isOpen, toggleNavigation } = useNavigation()

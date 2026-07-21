@@ -17,8 +17,8 @@ import { createCustomExcelStore } from "./store/customExcelStore";
 import { Provider } from "react-redux";
 
 // Global Navigation
-import { NavigationProvider } from "./components/GlobalNavigation/NavigationContext";
-import GlobalSidebar from "./components/GlobalNavigation/GlobalSidebar";
+import { NavigationProvider } from "./contexts/NavigationContext";
+import GlobalSidebar from "./components/global/GlobalSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
