@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
-import { simToken } from "./legacySimData"
+import { simToken } from "../config/legacySimData.config"
 
 const LegacySimDataContext = createContext()
 

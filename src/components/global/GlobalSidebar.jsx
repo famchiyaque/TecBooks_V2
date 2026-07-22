@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useNavigation } from '@/contexts/NavigationContext'
 import NavigationItem from '@/components/global/NavigationItem'
-import { navigationConfig } from '@/config/navigationConfig'
+import { navigationConfig } from '@/config/navigation.config'
 import { Close, Menu } from '@mui/icons-material'
 import '@/styles/globalNavigation.css'
 
