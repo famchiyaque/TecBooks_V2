@@ -6,7 +6,7 @@
  */
 
 import { forecastFuture, calculateLinearRegression } from './forecasts.js';
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Derive BOM sales prices and total costs over time using inflation

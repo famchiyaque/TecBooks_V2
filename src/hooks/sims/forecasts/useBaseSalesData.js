@@ -5,7 +5,7 @@ import {
   getPastTimelineDates, 
   getFutureTimelineDates, 
   } from '@/utils/sims/forecasts/timelines';
-import { DATA_PATTERNS } from '@/utils/sims/forecasts/options-configs';
+import { DATA_PATTERNS } from '@/config/sims/forecasts/options.config';
 import { 
   setDetectedInterval,
   setEffectiveInterval,

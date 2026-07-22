@@ -5,8 +5,8 @@
  * This adapter will process data from the TecBooks custom excel builder form.
  */
 
-import { createEmptyBusinessModel } from '../../models/dashboard/BusinessModel.js';
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { createCanonicalBusinessModel } from '@/models/canonical-business-model';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Transform custom excel builder data to canonical business model
@@ -16,7 +16,7 @@ import { sanitizeNumber } from '../../models/dashboard/schemas.js';
 export function adaptCustomExcelToBusinessModel(customExcelData) {
   console.log('[CustomExcelAdapter] Starting transformation to canonical model');
   
-  const model = createEmptyBusinessModel();
+  const model = createCanonicalBusinessModel();
   
   // TODO: Implement based on actual custom excel builder structure
   // This is a stub that shows the expected transformation pattern

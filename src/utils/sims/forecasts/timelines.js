@@ -1,4 +1,4 @@
-import { TIMELINE_OPTIONS } from './options-configs';
+import { TIMELINE_OPTIONS } from '@/config/sims/forecasts/options.config';
 
 function getTimelineDate(option) {
     const today = new Date();

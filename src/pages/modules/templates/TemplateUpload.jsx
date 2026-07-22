@@ -4,6 +4,7 @@ import { Card, CardContent, Typography, Button, Box, Alert } from '@mui/material
 import { CloudUpload, CheckCircle } from '@mui/icons-material'
 import * as XLSX from 'xlsx'
 import { adaptExcelToBusinessModel, adaptMexicoManufacturingToBusinessModel } from '@/adapters'
+import { validateCanonicalBusinessModel } from '@/models/canonical-business-model'
 import GenericHeader from '@/components/global/GenericHeader'
 import GenericSubheader from '@/components/global/GenericSubheader'
 import '@/styles/general.css'
@@ -67,6 +68,14 @@ function TemplateUpload() {
       console.log('[TemplateUpload] Business model created:', businessModel)
       console.log('[TemplateUpload] Business model metadata:', businessModel?.metadata)
       console.log('[TemplateUpload] Business model keys:', Object.keys(businessModel || {}))
+
+      const validation = validateCanonicalBusinessModel(businessModel)
+      if (!validation.valid) {
+        console.error('[TemplateUpload] Validation failed:', validation.errors)
+        setError(validation.errors.join('; '))
+        setUploading(false)
+        return
+      }
 
       // Store business model in sessionStorage for reliable transfer
       try {

@@ -5,8 +5,8 @@
  * This adapter handles data from the MxRep production line game/simulator.
  */
 
-import { createEmptyBusinessModel, mergeAdditionalData } from '../../models/dashboard/BusinessModel.js';
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { createCanonicalBusinessModel } from '@/models/canonical-business-model';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Transform MxRep simulation data to canonical business model
@@ -17,7 +17,7 @@ import { sanitizeNumber } from '../../models/dashboard/schemas.js';
 export function adaptMxRepToBusinessModel(simData, options = {}) {
   console.log('[MxRepAdapter] Starting transformation to canonical model');
   
-  const model = createEmptyBusinessModel();
+  const model = createCanonicalBusinessModel();
   
   // Basic metadata
   model.metadata.name = simData.teamName || 'MxRep Team';

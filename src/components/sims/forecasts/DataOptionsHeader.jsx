@@ -8,7 +8,7 @@ import { exportForecastToExcel } from '@/utils/sims/forecasts/exportForecast';
 import DataConfigPopover from './DataConfigPopover';
 import DataUploadPopover from './DataUploadPopover';
 import { setStartDate, setBehavior, setBehaviorCase, setSalesDataBatch } from '@/store/forecastStore';
-import { BEHAVIOR_OPTIONS, DATA_PATTERNS } from '@/utils/sims/forecasts/options-configs';
+import { BEHAVIOR_OPTIONS, DATA_PATTERNS } from '@/config/sims/forecasts/options.config';
 import { faker } from '@faker-js/faker';
 
 function DataOptionsHeader() {

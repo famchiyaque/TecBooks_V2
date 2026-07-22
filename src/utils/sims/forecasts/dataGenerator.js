@@ -1,6 +1,6 @@
 import { parseISO, differenceInDays, format } from 'date-fns';
 import { faker } from '@faker-js/faker';
-import { DATA_PATTERNS } from './options-configs'; // adjust import
+import { DATA_PATTERNS } from '@/config/sims/forecasts/options.config'; // adjust import
 
 /**
  * Generate synthetic past sales data based on defaults for a given behavior case,

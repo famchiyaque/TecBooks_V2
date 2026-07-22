@@ -1,7 +1,7 @@
 // ./lib/uploadData.js
 import { parseISO, parse, differenceInDays, format, isValid } from 'date-fns';
 
-// import { INTERVAL_OPTIONS } from './options-configs';
+// import { INTERVAL_OPTIONS } from '@/config/sims/forecasts/options.config';
 
 const INTERVALS = ['daily', 'weekly', 'monthly', 'yearly'];
 

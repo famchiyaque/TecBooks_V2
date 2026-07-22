@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { validateBusinessModel } from '../models/dashboard/BusinessModel.js';
+import { validateCanonicalBusinessModel } from '@/models/canonical-business-model';
 import { calculateAllProjectMetrics, calculateMetricsForAllLifetimes } from '../utils/dashboard/projectMetrics.js';
 import { calculateAllStatements } from '../utils/dashboard/statements.js';
 import { prepareCashflowChartData, calculateCashflowStats } from '../utils/dashboard/cashflow.js';
@@ -68,7 +68,7 @@ export function DashboardProvider({ children, businessModel }) {
   // Validate model when it changes
   useEffect(() => {
     if (model) {
-      const validation = validateBusinessModel(model);
+      const validation = validateCanonicalBusinessModel(model);
       if (!validation.valid) {
         console.warn('[DashboardContext] Model validation warnings:', validation.errors);
         setError(validation.errors.join(', '));

@@ -5,8 +5,8 @@
  * Based on the existing processExcel.js logic but adapted to the new architecture.
  */
 
-import { createEmptyBusinessModel } from '../../models/dashboard/BusinessModel.js';
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { createCanonicalBusinessModel } from '@/models/canonical-business-model';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Parse date input from Excel (handles serial numbers and string formats)
@@ -337,15 +337,21 @@ function extractAccountsData(sheet) {
  */
 export function adaptExcelToBusinessModel(excelData) {
   console.log('[ExcelAdapter] Starting transformation to canonical model');
-  
-  const model = createEmptyBusinessModel();
+
+  // Generic Excel templates do not declare country yet; default so
+  // factory can apply country premises/countryData and validation can pass.
+  const model = createCanonicalBusinessModel({
+    source: 'excel',
+    metadata: {
+      country: 'mexico',
+      type: 'general',
+    },
+  });
   
   // Extract business info
   const bizInfo = extractBusinessInfo(excelData.Overview);
   model.metadata.name = bizInfo.name;
   model.metadata.startDate = bizInfo.startDate;
-  model.metadata.source = 'excel';
-  model.metadata.type = 'general'; // Can be enhanced based on template type
   
   // Timeline
   model.timeline.months = bizInfo.months;

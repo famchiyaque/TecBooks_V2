@@ -4,7 +4,7 @@ import Popover from '@mui/material/Popover';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { BEHAVIOR_OPTIONS } from '@/utils/sims/forecasts/options-configs';
+import { BEHAVIOR_OPTIONS } from '@/config/sims/forecasts/options.config';
 import { Button, FormControlLabel } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import { useSelector, useDispatch } from 'react-redux';

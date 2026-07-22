@@ -5,7 +5,7 @@
  * Final values are the ones actually used in financial statements, project metrics, and UI.
  */
 
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Calculate revenue from demand and BOM pricing

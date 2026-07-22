@@ -5,7 +5,7 @@
  * This is a simplified version - can be expanded with more sophisticated methods.
  */
 
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Calculate simple moving average

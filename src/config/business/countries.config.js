@@ -1,6 +1,6 @@
 /**
- * Available/Supportec Countries
- * 
+ * Available/Supported Countries
+ *
  * This is the list of countries that are supported by the business model.
  */
 

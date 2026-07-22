@@ -5,7 +5,7 @@
  * from the canonical business model.
  */
 
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Calculate Income Statement for all periods

@@ -5,8 +5,8 @@
  * This template has 8 sheets with specific structure for manufacturing businesses in Mexico.
  */
 
-import { createEmptyBusinessModel } from '../../models/dashboard/BusinessModel.js';
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { createCanonicalBusinessModel } from '@/models/canonical-business-model';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 import {
   deriveBOMSalesPriceAndCost,
   deriveDemand,
@@ -335,19 +335,25 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
   console.log('[MexicoManufacturingAdapter] Starting transformation...');
   console.log('[MexicoManufacturingAdapter] Available sheets:', Object.keys(excelData));
   
-  const model = createEmptyBusinessModel();
-  
   try {
     // ===== PHASE 1: Extract Inputs =====
     
     // Extract metadata from Welcome sheet
     const metadata = extractMetadata(excelData.Welcome || excelData['Welcome']);
-    model.metadata.name = metadata.businessName;
-    model.metadata.type = metadata.businessType;
-    model.metadata.country = metadata.country;
-    model.metadata.source = 'mexico-manufacturing-excel';
-    model.metadata.currency = 'MXN';
-    model.metadata.startDate = new Date().toISOString(); // Default to now
+    const countryKey = String(metadata.country || 'mexico').toLowerCase();
+
+    // Factory applies country defaults (countryData / premises seed / labor benefits).
+    // Sheet premises below overwrite the seed with template values.
+    const model = createCanonicalBusinessModel({
+      source: 'mexico-manufacturing-excel',
+      metadata: {
+        name: metadata.businessName,
+        type: metadata.businessType,
+        country: countryKey,
+        currency: 'MXN',
+        startDate: new Date().toISOString(),
+      },
+    });
     
     // Extract premises from 1_Premises sheet
     model.premises = extractPremises(excelData['1_Premises']);
@@ -648,18 +654,4 @@ export function adaptMexicoManufacturingToBusinessModel(excelData) {
     console.error('[MexicoManufacturingAdapter] Error during transformation:', error);
     throw error;
   }
-}
-
-/**
- * Helper to get model summary (imported from BusinessModel)
- */
-function getModelSummary(model) {
-  return {
-    name: model.metadata.name,
-    type: model.metadata.type,
-    country: model.metadata.country,
-    products: model.boms.length,
-    totalAssets: model.assets.totalAssets,
-    initialInvestment: model.financing.initialInvestment,
-  };
 }

@@ -4,7 +4,7 @@
  * Calculates cashflow projections and analysis from the canonical business model.
  */
 
-import { sanitizeNumber } from '../../models/dashboard/schemas.js';
+import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Calculate net cashflow per period

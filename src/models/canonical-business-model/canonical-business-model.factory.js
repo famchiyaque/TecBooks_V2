@@ -1,25 +1,25 @@
-import { countries } from './countries.js';
-import { premises } from './premises.js';
-import { laborBenefits } from './employeeBenefits.js';
+import { countries } from '@/config/business/countries.config.js'
+import { premises } from '@/config/business/premises.config.js'
+import { laborBenefits } from '@/config/business/employee-benefits.config.js'
 
 /**
- * Canonical Business Model
- * 
- * This is the single source of truth for business data structure.
- * All adapters must transform their input into this format.
- * All calculations in the engine expect this format.
+ * Canonical Business Model factory
+ *
+ * Single approved constructor for a fresh, serializable CBM.
+ * Adapters fill source-specific sections; structural defaults come from here.
  */
 
-/**
- * Creates an empty canonical business model
- * @returns {CanonicalBusinessModel}
- */
-export function createEmptyBusinessModel() {
+function deepCopy(value) {
+  if (value === null || value === undefined) return value
+  return JSON.parse(JSON.stringify(value))
+}
+
+function buildEmptyCanonicalBusinessModel() {
   return {
     //////////////////////////////////////////////////
     //---------------- User Inputs -----------------//
     //////////////////////////////////////////////////
-    
+
     // Business Metadata
     metadata: {
       name: '',
@@ -143,7 +143,7 @@ export function createEmptyBusinessModel() {
     // Operating Expenses
     expenses: {
       availableForecastingMethods: ['inflation', 'static', 'production'],
-      forecastingMethod: '', // 
+      forecastingMethod: '', //
       fixedExpenses: [
         // {
         //   name: '',
@@ -209,7 +209,7 @@ export function createEmptyBusinessModel() {
 
     assetsDerived: {
       // machineryDepreciation: [], // forecasted machinery depreciation by period using depreciation rate
-      // machineryTotal: [], // calculated total machinery value by period  
+      // machineryTotal: [], // calculated total machinery value by period
       // vehiclesDepreciation: [], // forecasted vehicles depreciation by period using depreciation rate
       // vehiclesTotal: [], // calculated total vehicles value by period
       // buildingsDepreciation: [], // forecasted buildings depreciation by period using depreciation rate
@@ -253,7 +253,6 @@ export function createEmptyBusinessModel() {
 
     // Revenue Streams (for compatibility with existing engine)
     revenue: {
-
       productsAndServices: {}, // { 'product1': [month1Val, month2Val, ...], 'service1': [...] }
       totals: [], // Total revenue per month
     },
@@ -296,78 +295,127 @@ export function createEmptyBusinessModel() {
       production: null,
       // Future: other specialized data
     },
-  };
+  }
 }
 
 /**
- * Validates a business model
- * @param {CanonicalBusinessModel} model 
- * @returns {{ valid: boolean, errors: string[] }}
- */
-export function validateBusinessModel(model) {
-  const errors = [];
-
-  if (!model.metadata?.name) {
-    errors.push('Business name is required');
-  }
-
-  if (!model.metadata?.type) {
-    errors.push('Business type is required');
-  }
-
-  if (!model.metadata?.country) {
-    errors.push('Country is required');
-  }
-
-  // For manufacturing templates, validate manufacturing-specific fields
-  if (model.metadata?.type === 'manufacturing') {
-    if (!model.boms || model.boms.length === 0) {
-      errors.push('Manufacturing business must have at least one BOM');
-    }
-
-    if (!model.production?.qualityYield) {
-      errors.push('Production parameters are required for manufacturing');
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
-}
-
-/**
- * Merges additional data into an existing business model
- * @param {CanonicalBusinessModel} model 
- * @param {Object} additionalData 
- * @returns {CanonicalBusinessModel}
- */
-export function mergeAdditionalData(model, additionalData) {
-  return {
-    ...model,
-    additionalData: {
-      ...model.additionalData,
-      ...additionalData,
-    },
-  };
-}
-
-/**
- * Gets a summary of the business model for debugging
- * @param {CanonicalBusinessModel} model 
+ * Creates a fresh canonical business model.
+ * @param {{ source?: string, metadata?: Object }} [options]
  * @returns {Object}
  */
-export function getModelSummary(model) {
-  return {
-    businessName: model.metadata?.name,
-    type: model.metadata?.type,
-    country: model.metadata?.country,
-    source: model.metadata?.source,
-    months: model.timeline?.totalMonths || model.timeline?.months?.length || 0,
-    hasBOMs: (model.boms?.length || 0) > 0,
-    hasAssets: model.assets?.totalAssets > 0,
-    hasFinancing: model.financing?.initialInvestment > 0,
-    numberOfProducts: model.boms?.length || 0,
-    totalAssets: model.assets?.totalAssets || 0,
-  };
+export function createCanonicalBusinessModel(options = {}) {
+  const model = buildEmptyCanonicalBusinessModel()
+  const metaOpts = options.metadata || {}
+
+  for (const [key, value] of Object.entries(metaOpts)) {
+    model.metadata[key] = value ?? model.metadata[key]
+  }
+
+  if (options.source != null) {
+    model.metadata.source = options.source
+  }
+
+  const country = model.metadata.country
+  if (country && countries[country]) {
+    model.metadata.countryData = { ...countries[country] }
+
+    const countryPremises = deepCopy(premises[country] || {})
+    model.premises = {
+      ...countryPremises,
+      initialInvestment: countryPremises.initialInvestment ?? 0,
+      rewardMargin: countryPremises.rewardMargin ?? 0,
+      forecastWindowSize: countryPremises.forecastWindowSize ?? 5,
+    }
+
+    const countryLaborBenefits = laborBenefits[country]
+      ? deepCopy(laborBenefits[country])
+      : null
+    model.workforce.employees = [
+      {
+        title: '',
+        category: '',
+        amount: 0,
+        baseSalary: 0,
+        laborBenefits: countryLaborBenefits,
+      },
+    ]
+  }
+
+  return model
+}
+
+/**
+ * Hydrate a persisted / partially filled CBM against factory defaults.
+ * @param {Object|null|undefined} rawModel
+ * @returns {Object}
+ */
+export function hydrateCanonicalBusinessModel(rawModel) {
+  if (!rawModel) {
+    return createCanonicalBusinessModel()
+  }
+
+  const base = createCanonicalBusinessModel({
+    source: rawModel.metadata?.source,
+    metadata: rawModel.metadata,
+  })
+
+  const hydrated = {
+    ...base,
+    ...rawModel,
+    metadata: { ...base.metadata, ...rawModel?.metadata },
+    timeline: { ...base.timeline, ...rawModel?.timeline },
+    premises: { ...base.premises, ...rawModel?.premises },
+    boms: {
+      ...base.boms,
+      ...rawModel?.boms,
+      products: rawModel?.boms?.products ?? base.boms.products,
+    },
+    production: {
+      ...base.production,
+      ...rawModel?.production,
+      lines: rawModel?.production?.lines ?? base.production.lines,
+    },
+    demand: { ...base.demand, ...rawModel?.demand },
+    assets: {
+      ...base.assets,
+      ...rawModel?.assets,
+      assets: rawModel?.assets?.assets ?? base.assets.assets,
+    },
+    workforce: {
+      ...base.workforce,
+      ...rawModel?.workforce,
+      employees: rawModel?.workforce?.employees ?? base.workforce.employees,
+    },
+    expenses: { ...base.expenses, ...rawModel?.expenses },
+    financing: { ...base.financing, ...rawModel?.financing },
+    cashFlows: { ...base.cashFlows, ...rawModel?.cashFlows },
+    revenue: { ...base.revenue, ...rawModel?.revenue },
+    costs: { ...base.costs, ...rawModel?.costs },
+    operatingExpenses: { ...base.operatingExpenses, ...rawModel?.operatingExpenses },
+    project: { ...base.project, ...rawModel?.project },
+    accounts: { ...base.accounts, ...rawModel?.accounts },
+    additionalData: { ...base.additionalData, ...rawModel?.additionalData },
+    bomsDerived: rawModel?.bomsDerived ?? base.bomsDerived,
+    demandDerived: rawModel?.demandDerived ?? base.demandDerived,
+    productionDerived: rawModel?.productionDerived ?? base.productionDerived,
+    workforceDerived: rawModel?.workforceDerived ?? base.workforceDerived,
+    assetsDerived: rawModel?.assetsDerived ?? base.assetsDerived,
+    expensesDerived: rawModel?.expensesDerived ?? base.expensesDerived,
+    financingDerived: rawModel?.financingDerived ?? base.financingDerived,
+  }
+
+  // Normalize startDate to ISO string for session safety (no Date objects)
+  const startDate = hydrated.metadata?.startDate
+  if (startDate != null) {
+    if (startDate instanceof Date && !isNaN(startDate.getTime())) {
+      hydrated.metadata.startDate = startDate.toISOString()
+    } else if (typeof startDate === 'string') {
+      const parsed = new Date(startDate)
+      if (!isNaN(parsed.getTime())) {
+        hydrated.metadata.startDate = parsed.toISOString()
+      }
+    }
+  }
+
+  return hydrated
 }

@@ -1,5 +1,5 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
-import { INTERVAL_OPTIONS } from '@/utils/sims/forecasts/options-configs';
+import { INTERVAL_OPTIONS } from '@/config/sims/forecasts/options.config';
 import { differenceInDays, differenceInWeeks, differenceInMonths, differenceInYears } from 'date-fns';
 
 const forecasterSlice = createSlice({

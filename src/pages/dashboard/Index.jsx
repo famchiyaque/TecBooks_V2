@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { DashboardProvider, LegacySimDataProvider } from '@/contexts'
+import { hydrateCanonicalBusinessModel } from '@/models/canonical-business-model'
 import Layout from './Layout'
 import ProjectEvaluation from './ProjectEvaluation'
 import Overview from './Overview'
@@ -38,6 +39,10 @@ function Dashboard({ businessModel: propBusinessModel }) {
           console.error('[Dashboard] Error parsing stored model:', err)
         }
       }
+    }
+
+    if (model) {
+      model = hydrateCanonicalBusinessModel(model)
     }
     
     setBusinessModel(model)
