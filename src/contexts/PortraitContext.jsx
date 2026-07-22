@@ -1,4 +1,4 @@
-// contexts/OrientationContext.jsx
+// contexts/PortraitContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const OrientationContext = createContext();

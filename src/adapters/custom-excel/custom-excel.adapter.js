@@ -6,7 +6,7 @@
  */
 
 import { createCanonicalBusinessModel } from '@/models/canonical-business-model';
-import { sanitizeNumber } from '@/utils/number.utils.js';
+// import { sanitizeNumber } from '@/utils/number.utils.js';
 
 /**
  * Transform custom excel builder data to canonical business model

@@ -40,7 +40,7 @@ function CalculationLoader({ message = 'Calculating projections...' }) {
       clearInterval(stepInterval);
       clearInterval(progressInterval);
     };
-  }, []);
+  }, [steps.length]);
 
   const CurrentIcon = steps[currentStep].icon;
 

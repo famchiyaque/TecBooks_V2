@@ -26,4 +26,11 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  // Node tooling configs (not browser code)
+  {
+    files: ['vite.config.js', 'tailwind.config.js', 'eslint.config.js', 'postcss.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

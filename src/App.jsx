@@ -11,7 +11,7 @@ import TemplateUpload from "./pages/TemplateUpload";
 import CustomExcelBuilder from "./pages/CustomExcelBuilder";
 import Forecasts from "./pages/sims/Forecasts";
 import Investments from "./pages/sims/Investments";
-import { OrientationProvider } from "./components/global/PortraitContext";
+import { OrientationProvider } from "./contexts/PortraitContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import GlobalSidebar from "./components/global/GlobalSidebar";
 import ScrollToTop from "./components/ScrollToTop";
