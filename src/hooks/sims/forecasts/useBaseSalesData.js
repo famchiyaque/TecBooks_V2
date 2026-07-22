@@ -16,7 +16,7 @@ import {
   setEffectiveFutureDate,
   setSalesData,
   setUploadedFileType
-} from '@/store/forecastStore';
+} from '@/store/forecast.store';
 
 export default function useBaseSalesData() {
   const dispatch = useDispatch();

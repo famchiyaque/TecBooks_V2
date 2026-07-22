@@ -1,6 +1,6 @@
 import React from "react";
 import { SiMixpanel } from "react-icons/si";
-import { faqData } from "@/pages/faq/data/faqData";
+import { faqData } from "@/utils/faq/faqData";
 import "@/styles/general.css";
 
 function FAQSidebar({

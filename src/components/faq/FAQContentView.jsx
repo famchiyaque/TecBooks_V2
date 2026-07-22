@@ -6,7 +6,7 @@ import {
   getSectionItems,
   getSubsectionItems,
   findFAQItem,
-} from "@/pages/faq/data/faqData";
+} from "@/utils/faq/faqData";
 
 function FAQContentView({
   viewType,

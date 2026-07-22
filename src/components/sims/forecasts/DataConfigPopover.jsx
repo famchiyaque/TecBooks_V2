@@ -8,7 +8,7 @@ import { BEHAVIOR_OPTIONS } from '@/config/sims/forecasts/options.config';
 import { Button, FormControlLabel } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import { useSelector, useDispatch } from 'react-redux';
-import { setStartDate, setBehavior, setBehaviorCase, setSalesDataBatch, setSalesData, setSeriesData } from '@/store/forecastStore';
+import { setStartDate, setBehavior, setBehaviorCase, setSalesDataBatch, setSalesData, setSeriesData } from '@/store/forecast.store';
 
 function DataConfigPopover({ anchorEl, open, onClose }) {
     const dispatch = useDispatch();

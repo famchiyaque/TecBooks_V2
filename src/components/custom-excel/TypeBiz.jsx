@@ -8,7 +8,7 @@ import EastIcon from '@mui/icons-material/East'
 import FormControl from '@mui/material/FormControl'
 import TextField from '@mui/material/TextField';
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrQuestion, setNameBiz, setStartMonth, selectTypeBizComplete } from '@/store/customExcelStore'
+import { setCurrQuestion, setNameBiz, setStartMonth, selectTypeBizComplete } from '@/store/custom-excel.store'
 
 function TypeBiz() {
   const dispatch = useDispatch()

@@ -19,7 +19,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import HelpIcon from '@mui/icons-material/Help'
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrQuestion, setHasExpenses, setExpenses, selectExpensesComplete } from '@/store/customExcelStore'
+import { setCurrQuestion, setHasExpenses, setExpenses, selectExpensesComplete } from '@/store/custom-excel.store'
 
 function Expenses() {
     const dispatch = useDispatch()

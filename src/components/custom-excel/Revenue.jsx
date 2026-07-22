@@ -17,7 +17,7 @@ import Modal from '@mui/material/Modal';
 import HelpIcon from '@mui/icons-material/Help'
 
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrQuestion, setRevenue, selectRevenueComplete } from '@/store/customExcelStore'
+import { setCurrQuestion, setRevenue, selectRevenueComplete } from '@/store/custom-excel.store'
 
 function Revenue() {
   const dispatch = useDispatch()

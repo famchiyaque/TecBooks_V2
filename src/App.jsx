@@ -1,29 +1,23 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from "react-router-dom";
 import React from "react";
 import RotateMessage from "./components/global/RotateMessage";
-import HomePage from "./pages/home/HomePage";
+import HomePage from "./pages/HomePage";
+import FAQ from "./pages/FAQ";
 import MxRepRouter from "./MxRep/Routing/Router";
-import Simulators from "./pages/sims/Index";
-import FAQ from "./pages/faq/index";
-import { Navigate } from "react-router-dom";
-import { OrientationProvider } from "./components/global/PortraitContext";
-
-// New unified architecture imports
 import Dashboard from "./pages/dashboard/Index";
-import ExcelTemplates from "./pages/modules/templates/index";
-import CustomExcelBuilder from "./pages/modules/custom-excel/CustomExcelBuilder";
-import { createCustomExcelStore } from "./store/customExcelStore";
-import { Provider } from "react-redux";
-
-// Global Navigation
+import TemplateSelector from "./pages/TemplateSelector";
+import TemplateUpload from "./pages/TemplateUpload";
+import CustomExcelBuilder from "./pages/CustomExcelBuilder";
+import Forecasts from "./pages/sims/Forecasts";
+import Investments from "./pages/sims/Investments";
+import { OrientationProvider } from "./components/global/PortraitContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import GlobalSidebar from "./components/global/GlobalSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   console.log("app loaded");
-  const customExcelStore = createCustomExcelStore();
 
   return (
     <OrientationProvider>
@@ -37,40 +31,19 @@ function App() {
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<HomePage />} />
 
-              {/* New Unified Dashboard - Main product */}
               <Route path="/dashboard/*" element={<Dashboard />} />
 
-              <Route path="/modules/templates/*" element={<ExcelTemplates />} />
-              <Route path="/modules/custom-excel/*" element={
-                <Provider store={customExcelStore}>
-                  <CustomExcelBuilder />
-                </Provider>
-              } />
+              <Route path="/modules/templates" element={<TemplateSelector />} />
+              <Route path="/modules/templates/upload" element={<TemplateUpload />} />
+              <Route path="/modules/custom-excel" element={<CustomExcelBuilder />} />
 
-              {/* Excel Templates Module - Template selection and upload */}
-              {/* <Route path="/templates/*" element={<ExcelTemplates />} /> */}
-
-              {/* Survey Module - In-app questionnaire */}
-              {/* <Route path="/survey" element={
-                <Provider store={surveyStore}>
-                  <Survey />
-                </Provider>
-              } /> */}
-
-              {/* MxRep Module - Educational production simulator */}
               <Route path="/mxrep/*" element={<MxRepRouter />} />
 
-              {/* Legacy Routes - Old implementations accessible at /legacy/ */}
-              {/* <Route path="/legacy/tecbooks/*" element={<TECBooks />} /> */}
-              {/* <Route path="/legacy/mxrep/*" element={<MxRepRouter />} /> */}
+              <Route path="/sims" element={<Outlet />}>
+                <Route path="project-evaluation" element={<Investments />} />
+                <Route path="forecasting" element={<Forecasts />} />
+              </Route>
 
-              {/* Backward compatibility - redirect old paths to legacy */}
-              {/* <Route path="/tecbooks/*" element={<Navigate to="/legacy/tecbooks" replace />} /> */}
-
-              {/* Independent Simulators */}
-              <Route path="/sims/*" element={<Simulators />} />
-
-              {/* FAQ */}
               <Route path="/faq" element={<FAQ />} />
             </Routes>
           </div>

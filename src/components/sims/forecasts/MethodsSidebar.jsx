@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Checkbox, FormControlLabel, Typography } from '@mui/material';
 import { MODEL_OPTIONS } from '@/config/sims/forecasts/options.config';
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveMethods } from '@/store/forecastStore';
+import { setActiveMethods } from '@/store/forecast.store';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 

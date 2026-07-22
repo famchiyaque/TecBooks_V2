@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import FAQSidebar from "@/components/faq/FAQSidebar";
 import FAQContentView from "@/components/faq/FAQContentView";
-import { faqData } from "@/pages/faq/data/faqData";
+import { faqData } from "@/utils/faq/faqData";
 import "@/styles/general.css";
 
 function FAQ() {

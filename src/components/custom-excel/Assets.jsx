@@ -12,7 +12,7 @@ import EastIcon from '@mui/icons-material/East'
 import HelpIcon from '@mui/icons-material/Help'
 import AssetModal from '@/components/custom-excel/AssetModal'
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrQuestion, setHasAssets, setHasInventory, selectAssetsComplete } from '@/store/customExcelStore'
+import { setCurrQuestion, setHasAssets, setHasInventory, selectAssetsComplete } from '@/store/custom-excel.store'
 import AssetsInp from '@/components/custom-excel/AssetsInp'
 import InventoryInps from '@/components/custom-excel/InventoryInp'
 

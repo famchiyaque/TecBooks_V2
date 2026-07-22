@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import { useSelector, useDispatch } from 'react-redux';
-import { setEffectivePastDate, setEffectiveFutureDate } from '@/store/forecastStore';
+import { setEffectivePastDate, setEffectiveFutureDate } from '@/store/forecast.store';
 import Divider, { dividerClasses } from '@mui/material/Divider';
 import { Typography } from '@mui/material';
 

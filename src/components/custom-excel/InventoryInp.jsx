@@ -5,7 +5,7 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import { useSelector, useDispatch } from 'react-redux';
-import { setHasRW, setHasWIPG, setHasFG } from '@/store/customExcelStore';
+import { setHasRW, setHasWIPG, setHasFG } from '@/store/custom-excel.store';
 
 function InventoryInp() {
     const dispatch = useDispatch();

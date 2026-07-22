@@ -11,7 +11,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux';
-import { selectAllCustomExcelInfo, selectCustomExcelComplete, setCurrQuestion } from '@/store/customExcelStore';
+import { selectAllCustomExcelInfo, selectCustomExcelComplete, setCurrQuestion } from '@/store/custom-excel.store';
 
 function Expenses() {
   const navigate = useNavigate();

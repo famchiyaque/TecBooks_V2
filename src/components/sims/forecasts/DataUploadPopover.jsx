@@ -11,7 +11,7 @@ import {
   setDetectedInterval, setEffectiveInterval,
   setPastTimelineDates, setFutureTimelineDates,
   setEffectivePastDate, setEffectiveFutureDate
-} from '@/store/forecastStore';
+} from '@/store/forecast.store';
 import { processUploadedData } from '@/utils/sims/forecasts/processUploadData';
 import { getPastTimelineDates, getFutureTimelineDates } from '@/utils/sims/forecasts/timelines';
 

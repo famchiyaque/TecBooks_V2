@@ -10,7 +10,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import IconButton from '@mui/material/IconButton'
 import ClearAllIcon from '@mui/icons-material/ClearAll'
 import { useSelector, useDispatch } from 'react-redux'
-import { referenceProjectHistory } from '@/store/projEvalStore'
+import { referenceProjectHistory } from '@/store/project-evaluation.store'
 
 function History() {
   const dispatch = useDispatch()

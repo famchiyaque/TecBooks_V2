@@ -6,7 +6,7 @@ import EditNoteIcon from '@mui/icons-material/EditNote'
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt'
 import { useSelector } from 'react-redux'
-import { getProjectInfo, getResults } from '@/store/projEvalStore'
+import { getProjectInfo, getResults } from '@/store/project-evaluation.store'
 
 function Results() {
   const projectInfo = useSelector(getProjectInfo)

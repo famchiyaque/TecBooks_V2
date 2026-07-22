@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import Slider from '@mui/material/Slider'
 import { Typography } from '@mui/material'
 import { useSelector, useDispatch } from 'react-redux'
-import { setOrder } from '@/store/projEvalStore'
+import { setOrder } from '@/store/project-evaluation.store'
 
 function Compound() {
   const dispatch = useDispatch()

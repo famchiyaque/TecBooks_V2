@@ -27,10 +27,10 @@ src/
   lib/               # Tiny shared libs (e.g. shadcn `utils`)
   models/            # Domain models (Canonical Business Model)
   MxRep/             # Isolated educational module (intentional island)
-  pages/             # Route-level screens
-  store/             # Client stores (e.g. forecast simulator Redux/Zustand)
+  pages/             # Route-level screens (flat where possible; dashboard/ + sims/ kept as groups)
+  store/             # Feature Redux stores (*.store.js); created inside the page that needs them
   styles/            # Global / feature CSS
-  utils/             # Pure helpers (dashboard calculations, sims, numbers)
+  utils/             # Pure helpers (dashboard calculations, sims, faq, numbers)
 ```
 
 ### Mental model
@@ -94,7 +94,7 @@ adapters/
   index.js
 ```
 
-Active upload today: `pages/modules/templates/TemplateUpload.jsx` → Mexico adapter if a `Welcome` sheet exists, else generic Excel adapter.
+Active upload today: `pages/TemplateUpload.jsx` → Mexico adapter if a `Welcome` sheet exists, else generic Excel adapter.
 
 ### Config vs model vs utils
 

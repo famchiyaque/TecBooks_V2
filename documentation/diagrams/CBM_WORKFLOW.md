@@ -73,7 +73,7 @@ flowchart TB
 
 ### 1. Input
 
-Entry: `src/pages/modules/templates/TemplateUpload.jsx`
+Entry: `src/pages/TemplateUpload.jsx`
 
 - User picks a filled template.
 - SheetJS (`xlsx`) turns the workbook into `{ SheetName: rows[] }`.
@@ -196,7 +196,7 @@ The **pipeline stages** (input → adapt → model → validate → store → da
 
 | Step | File |
 |------|------|
-| Upload + detect + validate + store | `src/pages/modules/templates/TemplateUpload.jsx` |
+| Upload + detect + validate + store | `src/pages/TemplateUpload.jsx` |
 | Factory + hydrate | `src/models/canonical-business-model/canonical-business-model.factory.js` |
 | Validate | `src/models/canonical-business-model/canonical-business-model.validators.js` |
 | Mexico fill | `src/adapters/excel/mexico-manufacturing.adapter.js` |

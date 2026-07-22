@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import Divider from '@mui/material/Divider';
 import { useSelector, useDispatch } from 'react-redux'
-import { setAssets } from '@/store/customExcelStore'
+import { setAssets } from '@/store/custom-excel.store'
 
 function AssetsInp() {
     const dispatch = useDispatch()

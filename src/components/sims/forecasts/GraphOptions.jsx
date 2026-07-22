@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setEffectiveInterval, setCompound, setAlpha, setBeta, setGamma,
     getAvailableIntervals, getCompoundEnabled, getAlphaEnabled, getBetaEnabled,
     getGammaEnabled, getCompoundRange
- } from '@/store/forecastStore';
+ } from '@/store/forecast.store';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
 import { TbAlpha } from "react-icons/tb";

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Typography } from '@mui/material'
+import { Provider, useSelector, useDispatch } from 'react-redux'
 import Progress from '@/components/custom-excel/Progress'
 import TypeBiz from '@/components/custom-excel/TypeBiz'
 import Revenue from '@/components/custom-excel/Revenue'
@@ -11,13 +12,11 @@ import Report from '@/components/custom-excel/Report'
 import '@/styles/custom-excel-builder.css'
 import GenericHeader from '@/components/global/GenericHeader'
 import GenericSubheader from '@/components/global/GenericSubheader'
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box'
+import Modal from '@mui/material/Modal'
+import { createCustomExcelStore, setProgressBarFixed } from '@/store/custom-excel.store'
 
-import { useSelector, useDispatch } from 'react-redux';
-import { setProgressBarFixed } from '@/store/customExcelStore'
-
-function CustomExcelBuilder() {
+function CustomExcelBuilderContent() {
   const dispatch = useDispatch()
 
   const [open, setOpen] = useState(true);
@@ -104,6 +103,20 @@ function CustomExcelBuilder() {
         </Modal>
       </div>
     </div>
+  )
+}
+
+/**
+ * Owns its Redux store so App.jsx stays provider-free.
+ * Store is created once per mount via lazy useState initializer.
+ */
+function CustomExcelBuilder() {
+  const [store] = useState(() => createCustomExcelStore())
+
+  return (
+    <Provider store={store}>
+      <CustomExcelBuilderContent />
+    </Provider>
   )
 }
 
