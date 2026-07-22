@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/ui/utils";
 
 function FAQCard({ item, onClick }) {
   const Icon = item.icon;

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Mic, Volume2, VolumeX, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/ui/utils";
 
 function VoiceMemoButton({ itemId, className }) {
   const [isPlaying, setIsPlaying] = useState(false);
