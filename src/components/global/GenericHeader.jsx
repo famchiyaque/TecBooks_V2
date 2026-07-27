@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
 import { useNavigate } from "react-router-dom"
-import { useNavigation } from '@/components/GlobalNavigation/NavigationContext'
+import { useNavigation } from '@/contexts/NavigationContext'
 
 function GenericHeader({ pageName }) {
   const navigate = useNavigate()

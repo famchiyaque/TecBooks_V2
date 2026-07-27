@@ -62,7 +62,7 @@ function MainLayout() {
         const lastPart = pathParts[pathParts.length - 1]
         const matchedSidebar = routeToSidebarMap[lastPart] || 1
         setActiveSidebar(matchedSidebar);
-    }, [location]);
+    }, [location, routeToSidebarMap]);
 
     console.log("active sidebar: ", activeSidebar)
     

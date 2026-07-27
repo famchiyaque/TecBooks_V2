@@ -6,25 +6,17 @@ import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { useNavigate } from "react-router-dom"
-// import Button from '@mui/material/Button'
-// import IconButton from '@mui/material/IconButton'
-// import MenuIcon from '@mui/icons-material/Menu'
+import Loader from '@/components/global/Loader'
 
 function Header() {
   const { simData, isLoading, error } = useSimData()
   const navigate = useNavigate()
 
-  try {
-    const { simData, isLoading, error } = useSimData()
-    console.log("Context working:", { simData, isLoading, error })
-  } catch (e) {
-    console.error("Context not available:", e.message)
-    return <div>Error: SimData context not available</div>
-  }
+  if (isLoading) return <Loader />
 
-  // const toggleSidebar = () => {
-  //   setSidebarVisible(!sidebarVisible)
-  // }
+  if (!simData || error) return (
+    <div>Error: SimData context not available</div>
+  )
 
   // previous colors for header/subheader: #1976d2, #1e90ff
   // new blue color pallete: #03045e, #0077b6, #00b4d8
