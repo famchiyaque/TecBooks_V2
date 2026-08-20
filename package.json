@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:pages": "vite build && wrangler pages deploy dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -62,6 +63,7 @@
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
     "tailwind": "^4.0.0",
-    "vite": "^7.1.0"
+    "vite": "^7.1.0",
+    "wrangler": "^4.25.0"
   }
 }

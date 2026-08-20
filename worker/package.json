@@ -1,0 +1,21 @@
+{
+  "name": "tecbooks-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "db:migrate:local": "wrangler d1 migrations apply tecbooks-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply tecbooks-db --remote",
+    "types": "wrangler types",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.25.0"
+  }
+}
