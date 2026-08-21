@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:pages": "vite build && wrangler pages deploy dist"
+    "deploy:main": "vite build && wrangler pages deploy dist --project-name=tecbooks-frontend --branch=main",
+    "deploy:develop": "vite build && wrangler pages deploy dist --project-name=tecbooks-frontend-develop --branch=develop"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
