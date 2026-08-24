@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Form, FormField, FormLabel, FormItem, FormMessage } from '@/components/ui/form'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { forgotPasswordSchema } from '@/MxRep/utils/schemas/form.schemas';
-import FAQHelpButton from '@/faq/components/FAQHelpButton'
+import FAQHelpButton from '@/components/faq/FAQHelpButton'
 
 function ForgotPassword() {
   const form = useForm({

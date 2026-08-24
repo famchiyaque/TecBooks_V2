@@ -8,9 +8,9 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Period from "../Dashboard/Period";
 import Year from "../Dashboard/Year";
 import { iconMap } from "./IconsMap";
-import FAQHelpButton from "@/faq/components/FAQHelpButton";
+import FAQHelpButton from "@/components/faq/FAQHelpButton";
 import { useLocation } from "react-router-dom";
-import { getFAQForPathname } from "@/faq/utils/routeToFAQ";
+import { getFAQForPathname } from "@/utils/faq/routeToFAQ";
 
 function SubHeader({
   sidebarVisible,

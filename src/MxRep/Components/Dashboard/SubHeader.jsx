@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import "@/styles/production.css";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -11,8 +11,8 @@ import { MdDashboard, MdCandlestickChart } from "react-icons/md";
 import { FaFileInvoiceDollar, FaChartPie, FaRegChartBar } from "react-icons/fa";
 import { BiTrendingUp } from "react-icons/bi";
 import PrecisionManufacturingIcon from "@mui/icons-material/PrecisionManufacturing";
-import FAQHelpButton from "@/faq/components/FAQHelpButton";
-import { getFAQForRoute } from "@/faq/utils/routeToFAQ";
+import FAQHelpButton from "@/components/faq/FAQHelpButton";
+import { getFAQForRoute } from "@/utils/faq/routeToFAQ";
 
 function SubHeader({
   sidebarVisible,

@@ -18,7 +18,7 @@ function Waterfall({ period, year }) {
 
   return (
     <div style={{ width: '100%', minHeight: '240px', display: 'flex', justifyContent: 'flex-end' }}>
-      <WaterfallChart transactions={transactions} style={{ marginTop: 'auto', border: 'solid red 1px', marginTop: '3rem' }} />
+      <WaterfallChart transactions={transactions} style={{ border: 'solid red 1px', marginTop: '3rem' }} />
     </div>
   )
 }
