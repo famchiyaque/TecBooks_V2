@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react"
 import '@/styles/production.css'
 import { useAuth } from '@/MxRep/utils/contexts/AuthContext'
-import { useSimData } from "@/MxRep/utils/contexts/SimDataContext"
+// import { useSimData } from "@/MxRep/utils/contexts/SimDataContext"
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { useNavigate, useLocation } from "react-router-dom"
+import Loader from '@/components/global/Loader'
 // import Button from '@mui/material/Button'
 // import IconButton from '@mui/material/IconButton'
 // import MenuIcon from '@mui/icons-material/Menu'
@@ -26,11 +27,13 @@ function Header() {
   useEffect(() => {
     if (location.pathname.includes("dashboard")) setIsDashboard(true)
     else setIsDashboard(false)
-  }, [])
+  }, [location])
 
   // const toggleSidebar = () => {
   //   setSidebarVisible(!sidebarVisible)
   // }
+
+  if (isLoading) return <Loader />
 
   // previous colors for header/subheader: #1976d2, #1e90ff
   // new blue color pallete: #03045e, #0077b6, #00b4d8

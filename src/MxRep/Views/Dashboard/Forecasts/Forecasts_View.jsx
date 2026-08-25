@@ -55,7 +55,7 @@ function Forecasts_View() {
     useEffect(() => {
         const newCastTotals = getCastTotals(seriesData, dataType)
         setCastTotals(newCastTotals)
-    }, [seriesData])
+    }, [seriesData, dataType])
 
     const isActive = (value) => activeForecasts.includes(value)
 

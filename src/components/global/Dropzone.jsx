@@ -3,7 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { Box, Typography } from "@mui/material";
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
-import Loader from "../../HomePage/Comps/Loader";
+import Loader from "@/components/home/Loader";
 
 function ExcelDropzone() {
   const [isValidating, setIsValidating] = useState(false);
