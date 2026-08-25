@@ -1,0 +1,121 @@
+@startuml RF76_Login
+title Iniciar sesión (RF76) -- React + Cloudflare Worker (Hono) + D1
+
+actor Usuario
+participant "React\nLoginForm" as FE
+participant "Worker\nroute /api/auth/login" as Route
+participant "Middleware\nlogger / error-handler" as MW
+participant "Controller\nauth.controller" as Ctrl
+participant "UseCase\nloginUseCase" as UC
+participant "Service\nauth.service" as Svc
+participant "Model\nusers.model" as Model
+database "D1\nusers" as DB
+
+Usuario -> FE: Entra a la página de inicio
+Usuario -> FE: Ingresa correo y contraseña
+Usuario -> FE: Presiona "Iniciar sesión"
+
+FE -> FE: ¿Campos completos?
+alt campos incompletos
+  FE --> Usuario: "Rellena todos los campos"
+else campos completos
+  FE -> FE: ¿Formato de correo válido?
+  alt formato inválido
+    FE --> Usuario: "El formato del correo no es válido"
+  else formato válido
+
+    FE -> Route: POST /api/auth/login\n{ email, password }
+    activate Route
+    Route -> MW: siguiente en la cadena
+    MW -> MW: log request
+    MW -> Ctrl: next()
+    Ctrl -> UC: loginUseCase(env, { email, password })
+    Ctrl -> Ctrl: valida body con zod
+
+    UC -> Svc: login(db, email, password)
+    activate Svc
+
+    Svc -> Model: findUserByEmail(db, email)
+    activate Model
+    Model -> DB: SELECT * FROM users WHERE email = ?
+    DB --> Model: fila | null
+    deactivate Model
+    Model --> Svc: usuario | null
+
+    alt usuario no existe
+      Svc --> UC: error 401 form_identifier_not_found
+      UC --> Ctrl: propaga error
+      Ctrl --> MW: propaga error
+      deactivate Svc
+      MW -> Route: errorHandler(err)
+      Route --> FE: 401 { error: "form_identifier_not_found" }
+      deactivate Route
+      FE --> Usuario: "Favor de registrarte o contacta al administrador"
+
+    else usuario existe
+      Svc -> Svc: revisa status (banned / deactivated / locked)
+
+      alt cuenta banned o deactivated
+        Svc --> UC: error 403 user_banned
+        UC --> Ctrl: propaga error
+        deactivate Svc
+        Ctrl --> Route: propaga error
+        Route --> FE: 403 { error: "user_banned" }
+        deactivate Route
+        FE --> Usuario: "Cuenta desactivada, contacta al administrador"
+
+      else cuenta locked (intentos fallidos agotados)
+        Svc --> UC: error 423 user_locked
+        UC --> Ctrl: propaga error
+        deactivate Svc
+        Ctrl --> Route: propaga error
+        Route --> FE: 423 { error: "user_locked" }
+        deactivate Route
+        FE --> Usuario: "Cuenta bloqueada temporalmente, intenta más tarde"
+
+      else cuenta activa
+        Svc -> Svc: compareHash(password, usuario.hashed_password)
+
+        alt password incorrecto
+          Svc -> Model: incrementFailedAttempts(db, usuario.id)
+          Model -> DB: UPDATE users SET failed_attempts = failed_attempts + 1 ...
+          DB --> Model: ok
+          Model --> Svc: ok
+          Svc --> UC: error 401 form_password_incorrect
+          UC --> Ctrl: propaga error
+          deactivate Svc
+          Ctrl --> Route: propaga error
+          Route --> FE: 401 { error: "form_password_incorrect" }
+          deactivate Route
+          FE --> Usuario: "Contraseña incorrecta"
+
+        else password correcto
+          Svc -> Model: resetFailedAttempts(db, usuario.id)
+          Model -> DB: UPDATE users SET failed_attempts = 0 ...
+          DB --> Model: ok
+          Model --> Svc: ok
+
+          Svc -> Svc: firma JWT / genera session token
+          Svc --> UC: { user, token }
+          UC --> Ctrl: { user, token }
+          deactivate Svc
+          Ctrl --> Route: 200 { user, token }
+          Route --> FE: 200 + Set-Cookie (httpOnly) / body { token }
+          deactivate Route
+
+          FE -> FE: guarda sesión (cookie httpOnly o memoria)
+          FE --> Usuario: Redirige a la página principal
+        end
+      end
+    end
+  end
+end
+
+note over Svc, DB
+  Gap actual: la tabla "users" (0004_administration.sql) NO tiene
+  columnas para status/banned/deactivated/locked ni failed_attempts.
+  Clerk las resolvía como "caja negra" -- ahora que el login es propio,
+  hay que agregarlas en una migración nueva antes de implementar esto.
+end note
+
+@enduml
