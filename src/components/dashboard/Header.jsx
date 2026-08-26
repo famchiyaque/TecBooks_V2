@@ -6,7 +6,8 @@ import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { useNavigate } from "react-router-dom"
 
 function Header() {
@@ -37,9 +38,17 @@ function Header() {
             </Typography>
           )}
           {isAuthenticated && (
-            <Button color="inherit" onClick={handleLogout}>
-              Log Out
-            </Button>
+            <IconButton
+              aria-label="log out"
+              onClick={handleLogout}
+              sx={{
+                bgcolor: '#d32f2f',
+                color: '#fff',
+                '&:hover': { bgcolor: '#b71c1c' },
+              }}
+            >
+              <LogoutIcon />
+            </IconButton>
           )}
         </Toolbar>
       </AppBar>

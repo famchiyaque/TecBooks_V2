@@ -2,7 +2,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Box, Button, TextField, Typography, Alert, Link as MuiLink } from '@mui/material'
 import { useSignIn } from '@clerk/react'
 import GenericHeader from '@/components/global/GenericHeader'
@@ -186,9 +186,10 @@ function SignUpForm({ onSwitch, redirectTo }) {
   )
 }
 
+const POST_LOGIN_REDIRECT = '/sims/project-feasibility'
+
 function Login() {
-  const location = useLocation()
-  const redirectTo = location.state?.from || '/home'
+  const redirectTo = POST_LOGIN_REDIRECT
   const [rightPanelActive, setRightPanelActive] = React.useState(false)
 
   return (

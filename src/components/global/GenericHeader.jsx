@@ -5,8 +5,8 @@ import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
-import Button from '@mui/material/Button'
 import MenuIcon from '@mui/icons-material/Menu'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { useNavigate } from "react-router-dom"
 import { useNavigation } from '@/contexts/NavigationContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -41,9 +41,17 @@ function GenericHeader({ pageName }) {
           </Box>
           <Typography variant="subtitle1">{pageName}</Typography>
           {isAuthenticated && (
-            <Button color="inherit" onClick={handleLogout}>
-              Log Out
-            </Button>
+            <IconButton
+              aria-label="log out"
+              onClick={handleLogout}
+              sx={{
+                bgcolor: '#d32f2f',
+                color: '#fff',
+                '&:hover': { bgcolor: '#b71c1c' },
+              }}
+            >
+              <LogoutIcon />
+            </IconButton>
           )}
         </Toolbar>
       </AppBar>
