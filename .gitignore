@@ -28,3 +28,6 @@ dist-ssr
 # Make config file now private
 .env
 .env.production
+
+pnpm-lock.yaml
+pnpm-workspace.yaml

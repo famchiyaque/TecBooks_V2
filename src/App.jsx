@@ -1,5 +1,11 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import React from "react";
 import RotateMessage from "./components/global/RotateMessage";
 import HomePage from "./pages/HomePage";
@@ -9,8 +15,9 @@ import Dashboard from "./pages/dashboard/Index";
 import TemplateSelector from "./pages/TemplateSelector";
 import TemplateUpload from "./pages/TemplateUpload";
 import CustomExcelBuilder from "./pages/CustomExcelBuilder";
-import Forecasts from "./pages/sims/Forecasts";
 import Investments from "./pages/sims/Investments";
+import Forecasts from "./pages/sims/Forecasts";
+import Program from "./pages/sims/Program";
 import { OrientationProvider } from "./contexts/PortraitContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import GlobalSidebar from "./components/global/GlobalSidebar";
@@ -34,14 +41,21 @@ function App() {
               <Route path="/dashboard/*" element={<Dashboard />} />
 
               <Route path="/modules/templates" element={<TemplateSelector />} />
-              <Route path="/modules/templates/upload" element={<TemplateUpload />} />
-              <Route path="/modules/custom-excel" element={<CustomExcelBuilder />} />
+              <Route
+                path="/modules/templates/upload"
+                element={<TemplateUpload />}
+              />
+              <Route
+                path="/modules/custom-excel"
+                element={<CustomExcelBuilder />}
+              />
 
               <Route path="/mxrep/*" element={<MxRepRouter />} />
 
               <Route path="/sims" element={<Outlet />}>
                 <Route path="project-evaluation" element={<Investments />} />
                 <Route path="forecasting" element={<Forecasts />} />
+                <Route path="program-evaluation" element={<Program />} />
               </Route>
 
               <Route path="/faq" element={<FAQ />} />
