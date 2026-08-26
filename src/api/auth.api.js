@@ -14,3 +14,8 @@ export async function registerRequest({ email, password, first_name, last_name }
   const { data } = await workerApi.post('/api/auth/register', { email, password, first_name, last_name })
   return data
 }
+
+export async function logoutRequest() {
+  const { data } = await workerApi.post('/api/auth/logout')
+  return data
+}

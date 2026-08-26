@@ -5,13 +5,21 @@ import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
 import MenuIcon from '@mui/icons-material/Menu'
 import { useNavigate } from "react-router-dom"
 import { useNavigation } from '@/contexts/NavigationContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 function GenericHeader({ pageName }) {
   const navigate = useNavigate()
   const { toggleNavigation } = useNavigation()
+  const { isAuthenticated, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <Box>
@@ -32,7 +40,11 @@ function GenericHeader({ pageName }) {
             </Typography>
           </Box>
           <Typography variant="subtitle1">{pageName}</Typography>
-          
+          {isAuthenticated && (
+            <Button color="inherit" onClick={handleLogout}>
+              Log Out
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
     </Box>

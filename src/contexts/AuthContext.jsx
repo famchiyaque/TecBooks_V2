@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react'
 import { useClerk } from '@clerk/react'
+import { logoutRequest } from '@/api/auth.api'
 
 const AuthContext = createContext()
 
@@ -25,10 +26,15 @@ export const AuthProvider = ({ children }) => {
     setUser(safeUser)
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await logoutRequest()
+    } catch (err) {
+      console.error('logout request failed', err)
+    }
     localStorage.removeItem(STORAGE_KEY)
     setUser(null)
-    signOut()
+    await signOut()
   }
 
   return (

@@ -20,6 +20,13 @@ function setSessionCookie(c, token) {
   );
 }
 
+function clearSessionCookie(c) {
+  c.header(
+    'Set-Cookie',
+    'session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'
+  );
+}
+
 export async function loginController(c) {
   const body = await c.req.json();
   const parsed = loginSchema.safeParse(body);
@@ -46,4 +53,9 @@ export async function registerController(c) {
   setSessionCookie(c, token);
 
   return c.json({ user: safeUser, token, clerkTicket }, 201);
+}
+
+export async function logoutController(c) {
+  clearSessionCookie(c);
+  return c.json({ ok: true }, 200);
 }
