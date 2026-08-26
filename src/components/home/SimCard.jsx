@@ -7,11 +7,17 @@ import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import { useNavigate } from 'react-router-dom';
 import EastIcon from '@mui/icons-material/East'
+import { useAuth } from '@/contexts/AuthContext'
 
-export default function MediaCard({ title, img_path, desc, sim_route }) {
+export default function MediaCard({ title, img_path, desc, sim_route, requireAuth }) {
     const navigate = useNavigate()
+    const { isAuthenticated } = useAuth()
 
     const handleGoToSim = () => {
+      if (requireAuth && !isAuthenticated) {
+        navigate('/login', { state: { from: sim_route } })
+        return
+      }
       navigate(sim_route)
     }
 

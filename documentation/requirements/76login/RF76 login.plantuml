@@ -2,7 +2,7 @@
 title Iniciar sesión (RF76) -- React + Cloudflare Worker (Hono) + D1 + Clerk
 
 actor Usuario
-participant "React\nLoginForm" as FE
+participant "React\nLanding (cards)" as FE
 participant "Worker\nroute /api/auth/login" as Route
 participant "Middleware\nlogger / error-handler" as MW
 participant "Controller\nauth.controller" as Ctrl
@@ -11,8 +11,23 @@ participant "Service\nauth.service" as Svc
 participant "Model\nusers.model" as Model
 database "D1\nusers" as DB
 participant "Clerk\nSDK/API" as Clerk
+participant "React\nSimulator View" as Sim
 
-Usuario -> FE: Entra a la página de inicio
+Usuario -> FE: Presiona card "Project Feasibility Simulation"
+activate FE
+FE -> FE: ¿Hay sesión activa?\n(token/cookie httpOnly guardado)
+
+alt sesión activa
+  FE -> Sim: redirige directo a vista del simulador
+  deactivate FE
+  activate Sim
+  Sim --> Usuario: Muestra "Project Feasibility Simulation"
+  deactivate Sim
+
+else sin sesión activa
+  FE -> FE: redirige a /login
+  deactivate FE
+
 Usuario -> FE: Ingresa correo y contraseña
 Usuario -> FE: Presiona "Iniciar sesión"
 
@@ -108,11 +123,15 @@ else campos completos
           deactivate Route
 
           FE -> FE: guarda sesión (cookie httpOnly o memoria)
-          FE --> Usuario: Redirige a la página principal
+          FE -> Sim: redirige a vista del simulador
+          activate Sim
+          Sim --> Usuario: Muestra "Project Feasibility Simulation"
+          deactivate Sim
         end
       end
     end
   end
+end
 end
 
 

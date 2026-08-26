@@ -12,6 +12,7 @@
     "deploy:develop": "vite build && wrangler pages deploy dist --project-name=tecbooks-frontend-develop --branch=develop"
   },
   "dependencies": {
+    "@clerk/react": "^6.14.7",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@faker-js/faker": "^9.9.0",
