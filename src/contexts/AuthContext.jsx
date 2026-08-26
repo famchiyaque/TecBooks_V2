@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react'
+import { useClerk } from '@clerk/react'
 
 const AuthContext = createContext()
 
@@ -13,6 +14,7 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
+  const { signOut } = useClerk()
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved ? JSON.parse(saved) : null
@@ -26,6 +28,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem(STORAGE_KEY)
     setUser(null)
+    signOut()
   }
 
   return (
