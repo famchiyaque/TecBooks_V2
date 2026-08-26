@@ -1,5 +1,5 @@
-export async function findUserByEmail(db, email) {
-  return db
+export async function findUserByEmail(database, email) {
+  return database
     .prepare(
       'SELECT id, school_id, email, first_name, last_name, role_id, hashed_password, status, clerk_user_id FROM users WHERE email = ?'
     )
@@ -7,8 +7,8 @@ export async function findUserByEmail(db, email) {
     .first();
 }
 
-export async function createUser(db, { school_id, email, first_name, last_name, role_id, hashed_password, status, clerk_user_id }) {
-  const row = await db
+export async function createUser(database, { school_id, email, first_name, last_name, role_id, hashed_password, status, clerk_user_id }) {
+  const row = await database
     .prepare(
       `INSERT INTO users (school_id, email, first_name, last_name, role_id, hashed_password, status, clerk_user_id, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
@@ -19,12 +19,12 @@ export async function createUser(db, { school_id, email, first_name, last_name, 
   return row.id;
 }
 
-export async function findRoleIdByName(db, roleName) {
-  const row = await db.prepare('SELECT id FROM roles WHERE role = ?').bind(roleName).first();
+export async function findRoleIdByName(database, roleName) {
+  const row = await database.prepare('SELECT id FROM roles WHERE role = ?').bind(roleName).first();
   return row?.id ?? null;
 }
 
-export async function findSchoolIdBySlug(db, slug) {
-  const row = await db.prepare('SELECT id FROM schools WHERE slug = ?').bind(slug).first();
+export async function findSchoolIdBySlug(database, slug) {
+  const row = await database.prepare('SELECT id FROM schools WHERE slug = ?').bind(slug).first();
   return row?.id ?? null;
 }
