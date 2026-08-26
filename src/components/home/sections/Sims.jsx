@@ -29,6 +29,14 @@ function SimsPage() {
               sim_route={"/sims/forecasting"}
               style={{ boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px' }}
             />
+            <SimCard
+              title={"Project Feasibility Simulation"}
+              img_path={"business_landing.png"}
+              desc={"Evaluate whether a project is financially and operationally viable before committing resources."}
+              sim_route={"/sims/project-feasibility"}
+              requireAuth
+              style={{ boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px' }}
+            />
           </div>
         </div>
     </div>
