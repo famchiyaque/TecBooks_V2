@@ -8,14 +8,19 @@ function getClerkClient(env) {
 // verified the password, so we ask Clerk to build the session without
 // asking for credentials again. The frontend redeems it with @clerk/clerk-react.
 export async function createClerkSignInTicket(env, clerkUserId) {
-  if (!env.CLERK_SECRET_KEY || !clerkUserId) return null;
+  try {
+    if (!env.CLERK_SECRET_KEY || !clerkUserId) return null;
 
-  const clerkClient = getClerkClient(env);
-  const signInToken = await clerkClient.signInTokens.createSignInToken({
-    userId: clerkUserId,
-    expiresInSeconds: 60,
-  });
-  return signInToken.token;
+    const clerkClient = getClerkClient(env);
+    const signInToken = await clerkClient.signInTokens.createSignInToken({
+      userId: clerkUserId,
+      expiresInSeconds: 60,
+    });
+    return signInToken.token;
+  } catch (error) {
+    console.error('[clerk-auth.service] createClerkSignInTicket failed:', error);
+    throw error;
+  }
 }
 
 export async function createClerkUserAccount(env, { email, password, firstName, lastName }) {
@@ -29,6 +34,7 @@ export async function createClerkUserAccount(env, { email, password, firstName, 
       lastName,
     });
   } catch (caughtError) {
+    console.error('[clerk-auth.service] createClerkUserAccount failed:', caughtError);
     const errorCode = caughtError.errors?.[0]?.code;
 
     if (errorCode === 'form_identifier_exists') {
