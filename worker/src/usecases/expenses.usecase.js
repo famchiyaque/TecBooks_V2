@@ -1,5 +1,15 @@
-import { getExpenses } from "../models/expenses.model.js";
+import {
+  calculateTotalInvestment,
+  calculateFinancialInvestments,
+} from "../services/expenses.service";
 
 export async function getExpensesUseCase(env, gameId) {
-  return getExpenses(env.DB, gameId);
+  const totalInvestment = await calculateTotalInvestment(env.DB, gameId);
+  const expenses = await calculateFinancialInvestments(
+    env.DB,
+    totalInvestment,
+    gameId,
+  );
+
+  return expenses;
 }

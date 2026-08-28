@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 import { healthRoute } from "./routes/health.route.js";
-import { apiRoutes } from "./routes/router.js";
+import apiRoutes from "./routes/router.js";
 import { websocketRoute } from "./routes/websocket.route.js";
 
 const app = new Hono();

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:local": "wrangler dev --local",
     "dev:develop": "wrangler dev --env develop",
     "deploy:main": "wrangler deploy",
     "deploy:develop": "wrangler deploy --env develop",
