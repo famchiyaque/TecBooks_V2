@@ -142,6 +142,25 @@ VALUES
 ('Ensamble 14', 'machine', 2000000, 12),
 ('Ensamble 15', 'machine', 112000, 120);
 
+INSERT INTO assets (name, category, maintenance_cost, production_rate)
+VALUES
+('Compu-001', 'computer', 15500.00, NULL),
+('Compu-002', 'computer', 16500.00, NULL),
+('Compu-003', 'computer', 120000.00, NULL),
+('Compu-004', 'computer', 15400.00, NULL),
+('Compu-005', 'computer', 13450.00, NULL),
+('Compu-006', 'computer', 24000.00, NULL),
+('Edificios-1', 'buildings', 5800000.00, NULL),
+('Edificios-2', 'buildings', 112000.00, NULL),
+('Edificios-3', 'buildings', 45000.00, NULL),
+('Edificios-4', 'buildings', 96000.00, NULL),
+('Auto-1', 'transport', 300000.00, NULL),
+('Auto-2', 'transport', 70000.00, NULL),
+('Auto-3', 'transport', 70000.00, NULL),
+('Auto-4', 'transport', 0.00, NULL),
+('Camion-1', 'transport', 400000.00, NULL),
+('Camion-2', 'transport', 600000.00, NULL);
+
 INSERT INTO "game_teams" (
 	"game_id",
 	"name",
@@ -164,50 +183,25 @@ WHERE "name" = 'Business Finance Simulation'
 			AND "name" = 'Equipo Demo'
 	);
 
-INSERT INTO "game_team_assets" (
-	"game_team_id",
-	"asset_id",
-	"quantity",
-	"unit_price",
-	"acquired_at",
-	"status"
+INSERT INTO game_team_assets (
+    game_team_id,
+    asset_id,
+    quantity,
+    unit_price,
+    acquired_at,
+    status
 )
 SELECT
-	(
-		SELECT "id"
-		FROM "game_teams"
-		WHERE "game_id" = (
-			SELECT "id" FROM "games"
-			WHERE "name" = 'Business Finance Simulation'
-		)
-			AND "name" = 'Equipo Demo'
-	),
-	"id",
-	1,
-	"maintenance_cost",
-	'2025',
-	'active'
-FROM "assets"
-WHERE "name" IN (
-	'Elaboración placa base',
-	'Ensamble base',
-	'Ensamble 14',
-	'Ensamble 15'
-)
-	AND NOT EXISTS (
-		SELECT 1
-		FROM "game_team_assets" AS "existing"
-		WHERE "existing"."game_team_id" = (
-			SELECT "id"
-			FROM "game_teams"
-			WHERE "game_id" = (
-				SELECT "id" FROM "games"
-				WHERE "name" = 'Business Finance Simulation'
-			)
-				AND "name" = 'Equipo Demo'
-		)
-			AND "existing"."asset_id" = "assets"."id"
-	);
+    1,
+    id,
+    1,
+    maintenance_cost,
+    datetime('now'),
+    'active'
+FROM assets
+WHERE category IN ('machine', 'computer', 'buildings', 'transport');
+
+
 
 COMMIT;
 

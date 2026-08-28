@@ -1,25 +1,33 @@
 import { getTeam } from "../models/games.model";
 import { getPremises } from "../models/premises.model";
-import { getTeamAssets } from "../models/assets.model";
-import { getExpenses } from "../models/services.model";
-import { getEmployees } from "../models/employees.model";
+import { getTeamAssetsTotalExpense } from "../models/assets.model";
+import { getTotalExpenses } from "../models/services.model";
+import { getEmployeesTotalSalaries } from "../models/employees.model";
 
+// Retrieve session information of investment
+// Calculate investment types and total investment
 export async function calculateTotalInvestment(db, gameId) {
   const team = await getTeam(db, gameId);
-  const assets = await getTeamAssets(db, team.id);
-  const services = await getExpenses(db, gameId);
-  const employees = await getEmployees(db, team.id);
+  const assetExpenses = await getTeamAssetsTotalExpense(db, team.id);
+  const serviceExpenses = await getTotalExpenses(db, gameId);
+  const employeeExpenses = await getEmployeesTotalSalaries(db, team.id);
 
-  if (!assets || !services || !employees) {
+  if (!assetExpenses || !serviceExpenses || !employeeExpenses) {
     const error = new Error("Error getting session information");
-    console.log("Assets", assets);
-    console.log("Services", services);
-    console.log("Employees", employees);
+    console.error("Assets", assetExpenses);
+    console.error("Services", serviceExpenses);
+    console.error("Employees", employeeExpenses);
     error.status = 404;
     throw error;
   }
 
-  return 10;
+  const investments = {
+    assetExpenses,
+    workforceCapital:
+      serviceExpenses.serviceExpenses + employeeExpenses.employeeSalary,
+  };
+
+  return investments;
 }
 
 export async function calculateFinancialInvestments(
@@ -31,11 +39,31 @@ export async function calculateFinancialInvestments(
 
   if (!premises) {
     const error = new Error("Error getting session information");
-    console.log("Premises", premises);
+    console.error("Premises", premises);
     error.status = 404;
     throw error;
   }
 
-  // return totalInvestment * premises.inflation * premises.interestRate;
-  return 10;
+  let interest = new Array(premises.periods).fill(0);
+
+  const amortization = totalInvestment / premises.periods;
+
+  const rate = premises.national_leading_rate / 12;
+  interest[0] = rate * totalInvestment;
+
+  for (let i = 1; i < premises.periods - 12; i++) {
+    totalInvestment -= amortization;
+    interest[i] = rate * totalInvestment;
+  }
+
+  for (let i = premises.periods - 12; i < premises.periods; i++) {
+    totalInvestment -= amortization;
+    interest[i] = totalInvestment * premises.cpp;
+  }
+
+  const financialExpenses = {
+    amortization: amortization * 12,
+    interests: interest,
+  };
+  return financialExpenses;
 }
