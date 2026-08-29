@@ -44,21 +44,16 @@ export async function calculateFinancialInvestments(
     throw error;
   }
 
-  let interest = new Array(premises.periods).fill(0);
-
   const amortization = totalInvestment / premises.periods;
+
+  let interest = new Array(premises.periods).fill(0);
 
   const rate = premises.national_leading_rate / 12;
   interest[0] = rate * totalInvestment;
 
-  for (let i = 1; i < premises.periods - 12; i++) {
+  for (let i = 1; i < premises.periods + 1; i++) {
     totalInvestment -= amortization;
-    interest[i] = rate * totalInvestment;
-  }
-
-  for (let i = premises.periods - 12; i < premises.periods; i++) {
-    totalInvestment -= amortization;
-    interest[i] = totalInvestment * premises.cpp;
+    interest[i - 1] = parseFloat((rate * totalInvestment).toFixed(2));
   }
 
   const financialExpenses = {
