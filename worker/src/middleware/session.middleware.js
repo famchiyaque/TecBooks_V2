@@ -14,7 +14,7 @@ export async function sessionMiddleware(context, next) {
   }
 
   try {
-    const payload = await verify(token, context.env.JWT_SECRET);
+    const payload = await verify(token, context.env.JWT_SECRET, 'HS256');
     const userId = Number(payload.sub);
     if (!Number.isInteger(userId) || userId < 1) {
       throw unauthorized();
