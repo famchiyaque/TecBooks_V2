@@ -16,10 +16,11 @@ import TemplateSelector from "./pages/TemplateSelector";
 import TemplateUpload from "./pages/TemplateUpload";
 import CustomExcelBuilder from "./pages/CustomExcelBuilder";
 import Investments from "./pages/sims/Investments";
-import Forecasts from "./pages/sims/Forecasts";
-import Program from "./pages/sims/Program";
+import ProjectFeasibility from "./pages/sims/ProjectFeasibility";
+import Login from "./pages/Login";
 import { OrientationProvider } from "./contexts/PortraitContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import GlobalSidebar from "./components/global/GlobalSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -30,38 +31,48 @@ function App() {
     <OrientationProvider>
       <Router>
         <ScrollToTop />
-        <NavigationProvider>
-          <GlobalSidebar />
-          <div className="App blue-to-white">
-            <RotateMessage />
-            <Routes>
-              <Route path="/" element={<Navigate to="/home" />} />
-              <Route path="/home" element={<HomePage />} />
+        <AuthProvider>
+          <NavigationProvider>
+            <GlobalSidebar />
+            <div className="App blue-to-white">
+              <RotateMessage />
+              <Routes>
+                <Route path="/" element={<Navigate to="/home" />} />
+                <Route path="/home" element={<HomePage />} />
 
-              <Route path="/dashboard/*" element={<Dashboard />} />
+                <Route path="/dashboard/*" element={<Dashboard />} />
 
-              <Route path="/modules/templates" element={<TemplateSelector />} />
-              <Route
-                path="/modules/templates/upload"
-                element={<TemplateUpload />}
-              />
-              <Route
-                path="/modules/custom-excel"
-                element={<CustomExcelBuilder />}
-              />
+                <Route
+                  path="/modules/templates"
+                  element={<TemplateSelector />}
+                />
+                <Route
+                  path="/modules/templates/upload"
+                  element={<TemplateUpload />}
+                />
+                <Route
+                  path="/modules/custom-excel"
+                  element={<CustomExcelBuilder />}
+                />
 
-              <Route path="/mxrep/*" element={<MxRepRouter />} />
+                <Route path="/mxrep/*" element={<MxRepRouter />} />
 
-              <Route path="/sims" element={<Outlet />}>
-                <Route path="project-evaluation" element={<Investments />} />
-                <Route path="forecasting" element={<Forecasts />} />
-                <Route path="program-evaluation" element={<Program />} />
-              </Route>
+                <Route path="/sims" element={<Outlet />}>
+                  <Route path="project-evaluation" element={<Investments />} />
+                  <Route path="forecasting" element={<Forecasts />} />
+                  <Route
+                    path="project-feasibility"
+                    element={<ProjectFeasibility />}
+                  />
+                </Route>
 
-              <Route path="/faq" element={<FAQ />} />
-            </Routes>
-          </div>
-        </NavigationProvider>
+                <Route path="/login" element={<Login />} />
+
+                <Route path="/faq" element={<FAQ />} />
+              </Routes>
+            </div>
+          </NavigationProvider>
+        </AuthProvider>
       </Router>
     </OrientationProvider>
   );

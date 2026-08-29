@@ -44,10 +44,13 @@ function SimsPage() {
             style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
           />
           <SimCard
-            title={"Evaluador de programas [Cambiar por el nombre final]"}
-            img_path={"forecasts-sim.png"}
-            desc={"Evaluador de programas de proyectos"}
-            sim_route={"/sims/program-evaluation"}
+            title={"Project Feasibility Simulation"}
+            img_path={"business_landing.png"}
+            desc={
+              "Evaluate whether a project is financially and operationally viable before committing resources."
+            }
+            sim_route={"/sims/project-feasibility"}
+            requireAuth
             style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
           />
         </div>
