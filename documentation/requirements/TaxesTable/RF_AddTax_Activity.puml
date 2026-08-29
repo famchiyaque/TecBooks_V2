@@ -1,0 +1,72 @@
+@startuml Diagrama_de_Actividades_Anadir_Impuesto
+
+title Activity Diagram - Add Another Tax
+
+|#LightBlue|User|
+|#LightGreen|System|
+
+|User|
+start
+:Press the button\nto add another tax;
+:Register the tax name;
+:Register the tax rate/values\nfor the range (2025-2030);
+:Press save button;
+
+|System|
+:Receive the new tax and its values;
+
+if (Is the tax\nname empty?) then (yes)
+  :Show error\n"The tax name is required";
+  |User|
+  :Fix the tax name;
+  stop
+else (no)
+endif
+
+if (Does a tax with the\nsame name already exist?) then (yes)
+  :Show error\n"A tax with that name already exists";
+  |User|
+  :Enter a different name;
+  stop
+else (no)
+endif
+
+if (Are all entered\nvalues numeric?) then (no)
+  :Show error\n"Values must be numeric";
+  |User|
+  :Fix the entered values;
+  stop
+else (yes)
+endif
+
+if (Is any rate\nnegative?) then (yes)
+  :Show error\n"The tax rate cannot be negative";
+  |User|
+  :Fix the value;
+  stop
+else (no)
+endif
+
+if (Is any rate\ngreater than 100%?) then (yes)
+  :Show error\n"The tax rate cannot exceed 100%";
+  |User|
+  :Fix the value;
+  stop
+else (no)
+endif
+
+if (Are values missing for\nany year in the range?) then (yes)
+  :Show warning\n"Complete the values for all years"\nand keep the row in edit mode;
+  stop
+else (no)
+endif
+
+:Insert the new tax\ninto the table;
+:Recalculate the tax totals;
+:Recalculate the net income\nand affected financial ratios;
+
+|User|
+:View the updated table with\nthe new tax and the\nrecalculated financial ratios;
+stop
+
+@enduml

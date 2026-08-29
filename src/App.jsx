@@ -8,6 +8,7 @@ import MxRepRouter from "./MxRep/Routing/Router";
 import Dashboard from "./pages/dashboard/Index";
 import TemplateSelector from "./pages/TemplateSelector";
 import TemplateUpload from "./pages/TemplateUpload";
+import CostTable from "./pages/dashboard/CostTable";
 import CustomExcelBuilder from "./pages/CustomExcelBuilder";
 import Forecasts from "./pages/sims/Forecasts";
 import Investments from "./pages/sims/Investments";
@@ -39,6 +40,7 @@ function App() {
 
               <Route path="/modules/templates" element={<TemplateSelector />} />
               <Route path="/modules/templates/upload" element={<TemplateUpload />} />
+              <Route path="/modules/cost-table" element={<CostTable />} />
               <Route path="/modules/custom-excel" element={<CustomExcelBuilder />} />
 
               <Route path="/mxrep/*" element={<MxRepRouter />} />
