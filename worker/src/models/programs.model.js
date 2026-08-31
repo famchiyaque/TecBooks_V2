@@ -9,6 +9,19 @@ export async function insertFeasibilityProgram(database, { name, createdBy }) {
     .first();
 }
 
+export async function listFeasibilityProgramsByCreatedBy(database, createdBy) {
+  const { results } = await database
+    .prepare(
+      `SELECT id, name, created_by, created_at
+       FROM feasibility_programs
+       WHERE created_by = ?
+       ORDER BY id DESC`
+    )
+    .bind(createdBy)
+    .all();
+  return results;
+}
+
 export async function insertFeasibilityProjects(database, programId, projects) {
   const statements = projects.map((project) =>
     database
