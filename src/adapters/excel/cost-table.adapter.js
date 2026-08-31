@@ -6,35 +6,17 @@
  * RF-00-01 can detect non-numeric input; sanitizing here would silently turn "abc" into 0.
  */
 
-function classifyEmployee(name, tipo) {
-  const upperName = String(name || '').toUpperCase();
-  if (upperName.startsWith('MOD ')) return 'direct';
-  if (upperName.startsWith('MOID ')) return 'indirect';
-  if (upperName.startsWith('IM ') || upperName.includes('INGENIERO')) return 'engineering';
-  if (tipo === 'administracion') return 'administrative';
-  if (tipo === 'operacion') return 'indirect'; // supervision / operations overhead
-  return null;
-}
+import { EmployeeTableReader } from './employee-table/EmployeeTableReader.js';
 
 /**
- * "Empleados_2" sheet: header row 0 (Nombre, Tipo, Percepcion, ..., Salario Integrado),
- * one registered employee per data row.
- * The template has no headcount column, so quantity is fixed at 1 per registered row
- * (each row already represents one position); "Salario Integrado" (col 12) is the
- * fully-loaded monthly cost used for the MOD/MO indirecta/Ingenieria/Administracion sums.
+ * "Empleados_2" sheet: header row 0 (Nombre, Tipo, Percepcion, ..., Salario
+ * Integrado, Cantidad), one employee per data row. Columns are resolved by
+ * header name (see EmployeeTableReader) so the sheet can add/remove deduction
+ * columns without breaking this - "Cantidad" is the only fixed anchor.
  */
 function extractEmployees(empleadosSheet) {
-  const [, ...rows] = empleadosSheet;
-
-  return rows
-    .filter((row) => row && row[0])
-    .map((row, index) => ({
-      id: index,
-      name: row[0],
-      category: classifyEmployee(row[0], String(row[1] || '').trim().toLowerCase()),
-      quantity: 1,
-      monthlySalary: row[12],
-    }));
+  const reader = new EmployeeTableReader(empleadosSheet);
+  return reader.read().map((employee, index) => employee.toEmployee(index));
 }
 
 /**
