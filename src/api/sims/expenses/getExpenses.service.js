@@ -82,4 +82,67 @@ export const SAMPLE_SERVICES = [
     notas:
       "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
   },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
+  {
+    categoria: "Servicios Complejos",
+    subcategoria: "Internet",
+    descripcion:
+      "Conexión de banda ancha para toda la empresa (fibra óptica recomendada).",
+    rangoMensual: 8000,
+    notas:
+      "Varía según la velocidad (MBs), el proveedor y si incluye servicios adicionales (VPN, IP fija).",
+  },
 ];

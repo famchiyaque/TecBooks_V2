@@ -1,55 +1,42 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
-import AmountCell from "./AmountCell";
-import { SectionTitle, Card } from "./General";
-import { COLORS, cellSx } from "@/utils/sims/program/colors";
+import React, { useMemo } from "react";
+import TableContainer from "@/components/global/TableContainer";
 
-function FinancialExpensesTable({ years, items }) {
+/**
+ * FinancialExpensesTable
+ * Several concepts (Amortización, Interés devengado, ...) spread across
+ * every year.
+ *
+ * Props:
+ *  - years: number[]
+ *  - items: { concepto: string, values: { [year]: number } }[]
+ */
+export default function FinancialExpensesTable({ years, items }) {
+  const columns = useMemo(
+    () => [
+      { key: "concepto", label: "Concepto" },
+      ...years.map((year) => ({
+        key: String(year),
+        label: String(year),
+        align: "right",
+        type: "currency",
+      })),
+    ],
+    [years],
+  );
+
+  const rows = useMemo(
+    () =>
+      items.map((item) => {
+        const row = { concepto: item.concepto };
+        years.forEach((year) => {
+          row[String(year)] = item.values?.[year];
+        });
+        return row;
+      }),
+    [years, items],
+  );
+
   return (
-    <Card>
-      <SectionTitle>Gastos Financieros</SectionTitle>
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ bgcolor: COLORS.headerBg }}>
-              <TableCell
-                sx={{ ...cellSx, fontWeight: 700, color: COLORS.navy }}
-              >
-                Concepto
-              </TableCell>
-              {years.map((year) => (
-                <TableCell
-                  key={year}
-                  align="right"
-                  sx={{ ...cellSx, fontWeight: 700, color: COLORS.navy }}
-                >
-                  {year}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.concepto}>
-                <TableCell sx={{ ...cellSx, fontWeight: 600 }}>
-                  {item.concepto}
-                </TableCell>
-                {years.map((year) => (
-                  <AmountCell key={year} value={item.values?.[year]} />
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Card>
+    <TableContainer title="Gastos Financieros" columns={columns} rows={rows} />
   );
 }
-
-export default FinancialExpensesTable;

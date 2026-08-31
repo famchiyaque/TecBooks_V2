@@ -1,53 +1,41 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
-import AmountCell from "./AmountCell";
-import { COLORS, cellSx } from "@/utils/sims/program/colors";
-import { SectionTitle, Card } from "./General";
+import React, { useMemo } from "react";
+import TableContainer from "@/components/global/TableContainer";
 
-function AdminExpensesTable({ years, expenses }) {
+/**
+ * AdminExpensesTable
+ * One row (Gastos Administrativos) spread across every year.
+ *
+ * Props:
+ *  - years:    number[]                e.g. [2025, 2026, ...]
+ *  - expenses: { [year]: number }      amount per year
+ */
+export default function AdminExpensesTable({ years, expenses }) {
+  const columns = useMemo(
+    () => [
+      { key: "concepto", label: "Concepto" },
+      ...years.map((year) => ({
+        key: String(year),
+        label: String(year),
+        align: "right",
+        type: "currency",
+      })),
+    ],
+    [years],
+  );
+
+  const rows = useMemo(() => {
+    const row = { concepto: "Gastos Administrativos" };
+    years.forEach((year) => {
+      row[String(year)] = expenses?.[year];
+    });
+    return [row];
+  }, [years, expenses]);
+
   return (
-    <Card>
-      <SectionTitle>Gastos Administrativos</SectionTitle>
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ bgcolor: COLORS.headerBg }}>
-              <TableCell
-                sx={{ ...cellSx, fontWeight: 700, color: COLORS.navy }}
-              >
-                Concepto
-              </TableCell>
-              {years.map((year) => (
-                <TableCell
-                  key={year}
-                  align="right"
-                  sx={{ ...cellSx, fontWeight: 700, color: COLORS.navy }}
-                >
-                  {year}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell sx={{ ...cellSx, fontWeight: 600 }}>
-                Gastos Administrativos
-              </TableCell>
-              {years.map((year) => (
-                <AmountCell key={year} value={expenses?.[year]} />
-              ))}
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Card>
+    <TableContainer
+      title="Gastos Administrativos"
+      columns={columns}
+      rows={rows}
+    />
   );
 }
-
-export default AdminExpensesTable;

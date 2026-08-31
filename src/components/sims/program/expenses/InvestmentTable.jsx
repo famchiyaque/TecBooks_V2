@@ -1,66 +1,36 @@
 import React, { useMemo } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
-import AmountCell from "./AmountCell";
-import { SectionTitle, Card } from "./General";
-import { COLORS, cellSx } from "@/utils/sims/program/colors";
+import TableContainer from "@/components/global/TableContainer";
 
-function InvestmentTable({ items }) {
-  const total = useMemo(
-    () => items.reduce((sum, item) => sum + (Number(item.monto) || 0), 0),
-    [items],
+/**
+ * InvestmentTable
+ * List of investment concepts + amounts, with an auto-computed Total row.
+ *
+ * Props:
+ *  - items: { concepto: string, monto: number }[]
+ */
+export default function InvestmentTable({ items }) {
+  const columns = useMemo(
+    () => [
+      { key: "concepto", label: "Concepto" },
+      { key: "monto", label: "Monto", align: "right", type: "currency" },
+    ],
+    [],
   );
+
+  const rows = useMemo(() => {
+    const total = items.reduce(
+      (sum, item) => sum + (Number(item.monto) || 0),
+      0,
+    );
+    return [...items, { concepto: "Total", monto: total, rowVariant: "total" }];
+  }, [items]);
 
   return (
-    <Card>
-      <SectionTitle>Inversión</SectionTitle>
-      <TableContainer>
-        <Table size="small" sx={{ maxWidth: 480 }}>
-          <TableHead>
-            <TableRow sx={{ bgcolor: COLORS.headerBg }}>
-              <TableCell
-                sx={{ ...cellSx, fontWeight: 700, color: COLORS.navy }}
-              >
-                Concepto
-              </TableCell>
-              <TableCell
-                align="right"
-                sx={{ ...cellSx, fontWeight: 700, color: COLORS.navy }}
-              >
-                Monto
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.concepto}>
-                <TableCell sx={cellSx}>{item.concepto}</TableCell>
-                <AmountCell value={item.monto} />
-              </TableRow>
-            ))}
-            <TableRow sx={{ bgcolor: COLORS.sectionBg }}>
-              <TableCell
-                sx={{
-                  ...cellSx,
-                  fontWeight: 700,
-                  borderTop: `1px solid ${COLORS.navy}`,
-                }}
-              >
-                Total
-              </TableCell>
-              <AmountCell value={total} bold />
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Card>
+    <TableContainer
+      title="Inversión"
+      columns={columns}
+      rows={rows}
+      className="max-w-xl"
+    />
   );
 }
-
-export default InvestmentTable;
