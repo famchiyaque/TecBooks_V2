@@ -9,3 +9,8 @@ export async function createProgramRequest({ name, projects }) {
   const { data } = await workerApi.post('/api/programs', { name, projects })
   return data
 }
+
+export async function listProgramsRequest() {
+  const { data } = await workerApi.get('/api/programs')
+  return data
+}

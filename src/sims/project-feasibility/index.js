@@ -12,4 +12,4 @@ export { validateProjectClass, validateProgram } from './model/validateProjectCl
 
 export { getFileGateError, getProgramFileCountError } from './parse/fileGates.js'
 export { parseNovusProject, parseNovusProjectFile } from './parse/parseNovusProject.js'
-export { createProgramRequest } from './api/programs.api.js'
+export { createProgramRequest, listProgramsRequest } from './api/programs.api.js'

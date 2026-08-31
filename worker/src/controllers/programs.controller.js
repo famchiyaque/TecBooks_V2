@@ -1,4 +1,4 @@
-import { createProgramUseCase } from '../usecases/programs.usecase.js';
+import { createProgramUseCase, listProgramsUseCase } from '../usecases/programs.usecase.js';
 import { createProgramRequestSchema } from '../requests/program.request.js';
 
 export async function createProgramController(context) {
@@ -14,4 +14,12 @@ export async function createProgramController(context) {
   });
 
   return context.json(program, 201);
+}
+
+export async function listProgramsController(context) {
+  const programs = await listProgramsUseCase(context.env, {
+    createdBy: context.get('userId'),
+  });
+
+  return context.json(programs, 200);
 }
