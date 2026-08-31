@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material'
 
 const CATEGORY_ROWS = [
@@ -18,7 +18,11 @@ function formatCurrency(value) {
 
 function CostOfSalesTable({ costOfSalesByYear }) {
   return (
-    <TableContainer component={Card} sx={{ mt: 3, borderRadius: '15px', border: 'solid #073a5a 1px' }}>
+    <>
+      <Typography variant="h6" sx={{ fontWeight: 700, color: '#073a5a', mt: 3 }}>
+        Tabla de costos
+      </Typography>
+      <TableContainer component={Card} sx={{ mt: 1, borderRadius: '15px', border: 'solid #073a5a 1px' }}>
       <Table size="small">
         <TableHead>
           <TableRow sx={{ backgroundColor: '#073a5a' }}>
@@ -49,7 +53,8 @@ function CostOfSalesTable({ costOfSalesByYear }) {
           </TableRow>
         </TableBody>
       </Table>
-    </TableContainer>
+      </TableContainer>
+    </>
   )
 }
 

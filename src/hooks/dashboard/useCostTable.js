@@ -6,7 +6,7 @@ import {
 } from '@/store/costTable.store';
 import {
   areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
-  computeIndirectMaterialCosts, buildCostOfSalesTable,
+  computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
 } from '@/utils/dashboard/costCalculations';
 
 /**
@@ -69,8 +69,9 @@ export default function useCostTable() {
     const costOfSalesByYear = buildCostOfSalesTable(years, {
       MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials,
     });
+    const unclassifiedEmployees = findUnclassifiedEmployees(employees);
 
-    return { isValid: true, status: 'ready', costOfSalesByYear };
+    return { isValid: true, status: 'ready', costOfSalesByYear, unclassifiedEmployees };
   }, [
     hasFile, fileName, employees, production, premises,
     hasYearZeroRecord, hasEmployees, allEmployeesHaveQuantity,

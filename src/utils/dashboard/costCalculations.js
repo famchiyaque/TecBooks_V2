@@ -35,6 +35,8 @@ export function areCostsNumeric(employees, production) {
 
 /**
  * Sums annual salaries by category: MOD, MO indirecta, Ingenieria, Administracion.
+ * Employees whose category didn't match any of the 4 known buckets are skipped -
+ * use findUnclassifiedEmployees to surface those instead of losing them silently.
  */
 export function sumSalariesByCategory(employees) {
   const totals = { MOD: 0, MOIndirecta: 0, Ingenieria: 0, Administracion: 0 };
@@ -46,6 +48,15 @@ export function sumSalariesByCategory(employees) {
   }
 
   return totals;
+}
+
+/**
+ * Employees whose category is missing/unrecognized - these get silently excluded
+ * from sumSalariesByCategory's totals, so callers should warn about them instead
+ * of trusting the totals blindly.
+ */
+export function findUnclassifiedEmployees(employees) {
+  return employees.filter((emp) => !CATEGORY_TO_KEY[emp.category]).map((emp) => emp.name);
 }
 
 /**

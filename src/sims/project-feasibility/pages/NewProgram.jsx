@@ -29,15 +29,15 @@ function NewProgram() {
 
   return (
     <Box sx={{ p: 4 }}>
-      <BackButton label="Programas" sx={{ mb: 1, ml: -1 }} />
+      <BackButton label="Programs" sx={{ mb: 1, ml: -1 }} />
 
       <Box sx={{ maxWidth: 720, mx: 'auto', textAlign: 'left' }}>
       <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
-        Nuevo programa
+        New program
       </Typography>
 
       <TextField
-        label="Nombre del programa"
+        label="Program name"
         fullWidth
         value={programName}
         onChange={(event) => setProgramName(event.target.value)}
@@ -60,18 +60,18 @@ function NewProgram() {
       )}
 
       <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 600, color: '#073a5a' }}>
-        Proyectos en staging
+        Staged projects
       </Typography>
 
       {items.length === 0 ? (
-        <Typography sx={{ opacity: 0.8 }}>Aún no hay proyectos validados.</Typography>
+        <Typography sx={{ opacity: 0.8 }}>No validated projects yet.</Typography>
       ) : (
         <List>
           {items.map((item, index) => (
             <ListItem
               key={`${item.fileName}-${index}`}
               secondaryAction={
-                <IconButton edge="end" aria-label="quitar" onClick={() => remove(index)}>
+                <IconButton edge="end" aria-label="remove" onClick={() => remove(index)}>
                   <DeleteOutline />
                 </IconButton>
               }
@@ -95,7 +95,7 @@ function NewProgram() {
         onClick={onConfirm}
         sx={{ mt: 3, bgcolor: '#073a5a', borderRadius: 999, px: 3 }}
       >
-        {isSubmitting ? 'Guardando…' : 'Confirmar programa'}
+        {isSubmitting ? 'Saving…' : 'Confirm program'}
       </Button>
       </Box>
     </Box>

@@ -5,7 +5,7 @@ import BackButton from '@/components/global/BackButton'
 import CostOfSalesTable from '@/components/dashboard/CostOfSalesTable'
 import {
   areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
-  computeIndirectMaterialCosts, buildCostOfSalesTable,
+  computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
 } from '@/utils/dashboard/costCalculations'
 import { useProgram } from '../hooks/useProgram'
 import { cbmToCostTableInputs } from '../costTable/cbmToCostTableInputs'
@@ -14,15 +14,15 @@ function buildCostOfSales(cbm) {
   const { employees, production, premises } = cbmToCostTableInputs(cbm)
 
   if (employees.length === 0) {
-    return { error: 'Este proyecto no tiene empleados registrados.' }
+    return { error: 'This project has no registered employees.' }
   }
   if (!areCostsNumeric(employees, production)) {
-    return { error: 'Este proyecto tiene datos no numéricos en empleados o producción.' }
+    return { error: 'This project has non-numeric data in employees or production.' }
   }
 
   const years = Object.keys(production.purchaseOrders).map(Number)
   if (years.length === 0) {
-    return { error: 'Este proyecto no tiene año cero registrado.' }
+    return { error: 'This project has no year-zero record.' }
   }
 
   const { MOD, MOIndirecta, Ingenieria, Administracion } = sumSalariesByCategory(employees)
@@ -32,8 +32,9 @@ function buildCostOfSales(cbm) {
   const costOfSalesByYear = buildCostOfSalesTable(years, {
     MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials,
   })
+  const unclassifiedEmployees = findUnclassifiedEmployees(employees)
 
-  return { costOfSalesByYear }
+  return { costOfSalesByYear, unclassifiedEmployees }
 }
 
 function ProjectCostTable() {
@@ -45,7 +46,7 @@ function ProjectCostTable() {
 
   return (
     <Box sx={{ p: 4 }}>
-      <BackButton label={program?.name ?? 'Programa'} sx={{ mb: 1, ml: -1 }} />
+      <BackButton label={program?.name ?? 'Program'} sx={{ mb: 1, ml: -1 }} />
 
       <Box sx={{ maxWidth: 1000, mx: 'auto', textAlign: 'left' }}>
       {status === 'loading' && (
@@ -55,15 +56,15 @@ function ProjectCostTable() {
       )}
 
       {status === 'error' && (
-        <Alert severity="error">No se pudo cargar el programa. Intenta de nuevo.</Alert>
+        <Alert severity="error">Couldn't load the program. Please try again.</Alert>
       )}
 
       {status === 'not-found' && (
-        <Alert severity="warning">No se encontró ese programa.</Alert>
+        <Alert severity="warning">Program not found.</Alert>
       )}
 
       {status === 'ready' && !project && (
-        <Alert severity="warning">No se encontró ese proyecto.</Alert>
+        <Alert severity="warning">Project not found.</Alert>
       )}
 
       {status === 'ready' && project && (
@@ -73,6 +74,12 @@ function ProjectCostTable() {
           </Typography>
 
           {result?.error && <Alert severity="warning">{result.error}</Alert>}
+          {result?.unclassifiedEmployees?.length > 0 && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {result.unclassifiedEmployees.length} employee{result.unclassifiedEmployees.length === 1 ? '' : 's'} with
+              an unrecognized category weren't counted in this table: {result.unclassifiedEmployees.join(', ')}
+            </Alert>
+          )}
           {result?.costOfSalesByYear && (
             <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
           )}

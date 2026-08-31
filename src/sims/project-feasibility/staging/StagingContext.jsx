@@ -53,7 +53,7 @@ export function StagingProvider({ children }) {
       if (!validation.valid || !project) {
         nextErrors.push({
           fileName: file.name,
-          messages: validation.errors?.length ? validation.errors : ['No se pudo parsear el archivo'],
+          messages: validation.errors?.length ? validation.errors : ['Could not parse the file'],
         })
         continue
       }
@@ -103,8 +103,8 @@ export function StagingProvider({ children }) {
     } catch (error) {
       const message =
         error.response?.data?.error === 'unauthorized'
-          ? 'Inicia sesión para subir el programa'
-          : error.response?.data?.error || error.message || 'No se pudo guardar el programa'
+          ? 'Sign in to upload the program'
+          : error.response?.data?.error || error.message || 'Could not save the program'
       setConfirmError(message)
       return null
     } finally {

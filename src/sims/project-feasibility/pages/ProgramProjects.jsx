@@ -23,7 +23,7 @@ function ProjectCard({ project, onClick }) {
           {project.name}
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Tabla de costos generada a partir de este proyecto.
+          Cost table generated from this project.
         </Typography>
       </CardContent>
       <CardActions>
@@ -45,7 +45,7 @@ function ProgramProjects() {
 
   return (
     <Box sx={{ p: 4 }}>
-      <BackButton label="Programas" sx={{ mb: 1, ml: -1 }} />
+      <BackButton label="Programs" sx={{ mb: 1, ml: -1 }} />
 
       {status === 'loading' && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -54,11 +54,11 @@ function ProgramProjects() {
       )}
 
       {status === 'error' && (
-        <Alert severity="error">No se pudo cargar el programa. Intenta de nuevo.</Alert>
+        <Alert severity="error">Couldn't load the program. Please try again.</Alert>
       )}
 
       {status === 'not-found' && (
-        <Alert severity="warning">No se encontró ese programa.</Alert>
+        <Alert severity="warning">Program not found.</Alert>
       )}
 
       {status === 'ready' && program && (
@@ -68,7 +68,7 @@ function ProgramProjects() {
           </Typography>
 
           {program.projects.length === 0 ? (
-            <Typography sx={{ opacity: 0.85 }}>Este programa no tiene proyectos.</Typography>
+            <Typography sx={{ opacity: 0.85 }}>This program has no projects.</Typography>
           ) : (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
               {program.projects.map((project) => (

@@ -18,7 +18,7 @@ function CostTableContent() {
   const dispatch = useDispatch()
   const [stagedFile, setStagedFile] = useState(null)
   const [parseError, setParseError] = useState(null)
-  const { isValid, status, error, costOfSalesByYear } = useCostTable()
+  const { isValid, status, error, costOfSalesByYear, unclassifiedEmployees } = useCostTable()
 
   const handleFileSelect = (event) => {
     const selectedFile = event.target.files[0]
@@ -142,6 +142,13 @@ function CostTableContent() {
         {status === 'no-employees' && (
           <Alert severity="warning">
             No registered employees were found. Complete the Empleados_2 sheet for this program before continuing.
+          </Alert>
+        )}
+
+        {isValid && status === 'ready' && unclassifiedEmployees.length > 0 && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            {unclassifiedEmployees.length} empleado{unclassifiedEmployees.length === 1 ? '' : 's'} sin categoría
+            reconocida, no se contaron en la tabla: {unclassifiedEmployees.join(', ')}
           </Alert>
         )}
 

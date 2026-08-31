@@ -31,11 +31,11 @@ function ProgramCard({ program, onClick }) {
         </Typography>
         {projectNames.length === 0 ? (
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Sin proyectos todavía.
+            No projects yet.
           </Typography>
         ) : (
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {projectNames.length} proyecto{projectNames.length === 1 ? '' : 's'}: {projectNames.join(', ')}
+            {projectNames.length} project{projectNames.length === 1 ? '' : 's'}: {projectNames.join(', ')}
           </Typography>
         )}
       </CardContent>
@@ -105,7 +105,7 @@ function ProgramsPortal() {
 
       {status === 'error' && (
         <Alert severity="error" sx={{ mt: 3 }}>
-          No se pudieron cargar tus programas. Intenta de nuevo.
+          Couldn't load your programs. Please try again.
         </Alert>
       )}
 
