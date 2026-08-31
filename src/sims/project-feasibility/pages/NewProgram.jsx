@@ -28,9 +28,10 @@ function NewProgram() {
   }
 
   return (
-    <Box sx={{ p: 4, maxWidth: 720, mx: 'auto', textAlign: 'left' }}>
+    <Box sx={{ p: 4 }}>
       <BackButton label="Programas" sx={{ mb: 1, ml: -1 }} />
 
+      <Box sx={{ maxWidth: 720, mx: 'auto', textAlign: 'left' }}>
       <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
         Nuevo programa
       </Typography>
@@ -96,6 +97,7 @@ function NewProgram() {
       >
         {isSubmitting ? 'Guardando…' : 'Confirmar programa'}
       </Button>
+      </Box>
     </Box>
   )
 }

@@ -44,9 +44,10 @@ function ProjectCostTable() {
   const result = React.useMemo(() => (project ? buildCostOfSales(project.cbm) : null), [project])
 
   return (
-    <Box sx={{ p: 4, maxWidth: 1000, mx: 'auto', textAlign: 'left' }}>
+    <Box sx={{ p: 4 }}>
       <BackButton label={program?.name ?? 'Programa'} sx={{ mb: 1, ml: -1 }} />
 
+      <Box sx={{ maxWidth: 1000, mx: 'auto', textAlign: 'left' }}>
       {status === 'loading' && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
@@ -77,6 +78,7 @@ function ProjectCostTable() {
           )}
         </>
       )}
+      </Box>
     </Box>
   )
 }

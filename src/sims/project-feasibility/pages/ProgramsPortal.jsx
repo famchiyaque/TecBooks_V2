@@ -1,17 +1,59 @@
 import React from 'react'
-import { Link as RouterLink } from 'react-router-dom'
-import { Box, Button, Typography, CircularProgress, Alert } from '@mui/material'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import {
+  Box, Button, Typography, CircularProgress, Alert,
+  Card, CardMedia, CardContent, CardActions,
+} from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import EastIcon from '@mui/icons-material/East'
 import { useAuth } from '@/contexts/AuthContext'
-import SimCard from '@/components/home/SimCard'
 import { listProgramsRequest } from '../api/programs.api'
 
-const PROGRAM_CARD_TITLE = 'Project Feasibility Simulation'
-const PROGRAM_CARD_DESC = 'Evaluate whether a project is financially and operationally viable before committing resources.'
 const PROGRAM_CARD_IMAGE = 'business_landing.png'
+
+function ProgramCard({ program, onClick }) {
+  const projectNames = program.projects.map((project) => project.name)
+
+  return (
+    <Card
+      onClick={onClick}
+      sx={{
+        width: 345,
+        cursor: 'pointer',
+        boxShadow: 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, navy 0px 0px 0px 1px',
+        borderRadius: '15px',
+      }}
+    >
+      <CardMedia sx={{ height: 140 }} image={`/imgs/${PROGRAM_CARD_IMAGE}`} title={program.name} />
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="div" sx={{ fontWeight: 600 }}>
+          {program.name}
+        </Typography>
+        {projectNames.length === 0 ? (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Sin proyectos todavía.
+          </Typography>
+        ) : (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {projectNames.length} proyecto{projectNames.length === 1 ? '' : 's'}: {projectNames.join(', ')}
+          </Typography>
+        )}
+      </CardContent>
+      <CardActions>
+        <div style={{ width: '100%', marginLeft: 'auto', paddingRight: '1rem' }}>
+          <button className="learn-more continue-btn" style={{ color: '#eec60a' }}>
+            Go To Sim
+            <EastIcon sx={{ height: '100%', fontSize: '120%', fontWeight: 600 }} />
+          </button>
+        </div>
+      </CardActions>
+    </Card>
+  )
+}
 
 function ProgramsPortal() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [programs, setPrograms] = React.useState([])
   const [status, setStatus] = React.useState('loading')
 
@@ -76,13 +118,10 @@ function ProgramsPortal() {
       {status === 'ready' && programs.length > 0 && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mt: 4 }}>
           {programs.map((program) => (
-            <SimCard
+            <ProgramCard
               key={program.id}
-              title={PROGRAM_CARD_TITLE}
-              desc={PROGRAM_CARD_DESC}
-              img_path={PROGRAM_CARD_IMAGE}
-              sim_route={`/sims/project-feasibility/programs/${program.id}`}
-              requireAuth
+              program={program}
+              onClick={() => navigate(`/sims/project-feasibility/programs/${program.id}`)}
             />
           ))}
         </Box>
