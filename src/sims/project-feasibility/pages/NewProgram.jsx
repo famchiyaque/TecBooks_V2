@@ -4,6 +4,7 @@ import { Alert, Box, Button, IconButton, List, ListItem, ListItemText, TextField
 import DeleteOutline from '@mui/icons-material/DeleteOutline'
 import { useStaging } from '../staging/StagingContext.jsx'
 import ProjectDropzone from './ProjectDropzone.jsx'
+import BackButton from '@/components/global/BackButton'
 
 function NewProgram() {
   const navigate = useNavigate()
@@ -28,6 +29,8 @@ function NewProgram() {
 
   return (
     <Box sx={{ p: 4, maxWidth: 720, mx: 'auto', textAlign: 'left' }}>
+      <BackButton label="Programas" sx={{ mb: 1, ml: -1 }} />
+
       <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
         Nuevo programa
       </Typography>
