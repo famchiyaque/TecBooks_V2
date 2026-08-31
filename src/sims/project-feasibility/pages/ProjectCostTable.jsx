@@ -1,8 +1,10 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
+import { Provider } from 'react-redux'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import BackButton from '@/components/global/BackButton'
 import CostOfSalesTable from '@/components/dashboard/CostOfSalesTable'
+import { costTableEditsSlice } from '@/store/costTable.store'
 import {
   areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
   computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
@@ -44,6 +46,9 @@ function ProjectCostTable() {
   const project = program?.projects.find((candidate) => String(candidate.id) === String(projectId))
   const result = React.useMemo(() => (project ? buildCostOfSales(project.cbm) : null), [project])
 
+  // Fresh store per project so edits/custom rows never leak between projects.
+  const editsStore = React.useMemo(() => costTableEditsSlice.createStore(), [projectId])
+
   return (
     <Box sx={{ p: 4 }}>
       <BackButton label={program?.name ?? 'Program'} sx={{ mb: 1, ml: -1 }} />
@@ -81,7 +86,9 @@ function ProjectCostTable() {
             </Alert>
           )}
           {result?.costOfSalesByYear && (
-            <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
+            <Provider store={editsStore}>
+              <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
+            </Provider>
           )}
         </>
       )}

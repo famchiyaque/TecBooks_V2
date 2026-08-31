@@ -6,7 +6,7 @@ import {
   Card, CardContent, Typography, Button, Box, Alert,
 } from '@mui/material'
 import { CloudUpload, CheckCircle } from '@mui/icons-material'
-import { createCostTableStore, setFileName, setEmployees, setProduction, setPremises, resetCostTable } from '@/store/costTable.store'
+import { createCostTableStore, costTableEditsSlice, setFileName, setEmployees, setProduction, setPremises, resetCostTable } from '@/store/costTable.store'
 import { adaptCostTableExcel } from '@/adapters/excel/cost-table.adapter'
 import useCostTable from '@/hooks/dashboard/useCostTable'
 import { useAuth } from '@/contexts/AuthContext'
@@ -32,6 +32,7 @@ function CostTableContent() {
     setStagedFile(null)
     setParseError(null)
     dispatch(resetCostTable())
+    dispatch(costTableEditsSlice.actions.reset())
   }
 
   const handleConfirm = async () => {

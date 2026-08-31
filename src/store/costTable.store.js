@@ -1,4 +1,9 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { EditableTableSlice } from './EditableTableSlice.js';
+
+// This table's editable-cells/custom-rows state - see EditableTableSlice for
+// the reusable pattern (any other table just needs its own instance of this).
+export const costTableEditsSlice = new EditableTableSlice('costTableEdits');
 
 const costTableSlice = createSlice({
   name: 'costTable',
@@ -32,7 +37,7 @@ export const {
 
 // Create a store specifically for the cost table feature
 export const createCostTableStore = () => configureStore({
-  reducer: { costTable: costTableSlice.reducer },
+  reducer: { costTable: costTableSlice.reducer, [costTableEditsSlice.name]: costTableEditsSlice.reducer },
 });
 
 // Selectors
