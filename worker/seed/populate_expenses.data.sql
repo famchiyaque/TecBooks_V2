@@ -1,5 +1,4 @@
 -- Crear usuario
-BEGIN TRANSACTION;
 
 INSERT OR IGNORE INTO "roles" ("role")
 VALUES ('teacher');
@@ -42,11 +41,6 @@ VALUES (
 	datetime('now')
 );
 
-COMMIT;
-
--- Insertar información de la sesión
-BEGIN TRANSACTION;
-
 INSERT OR IGNORE INTO "classes" (
 	"school_id",
 	"teacher_id",
@@ -82,6 +76,8 @@ VALUES (
 	datetime('now'),
 	datetime('now')
 );
+
+alter table 'premises' add column 'periods' integer not null default 60;
 
 INSERT OR IGNORE INTO "premises" (
 	"game_id",
@@ -142,7 +138,7 @@ VALUES
 ('Ensamble 14', 'machine', 2000000, 12),
 ('Ensamble 15', 'machine', 112000, 120);
 
-INSERT INTO assets (name, category, maintenance_cost, production_rate)
+INSERT INTO 'assets' ('name', 'category', 'maintenance_cost', 'production_rate')
 VALUES
 ('Compu-001', 'computer', 15500.00, NULL),
 ('Compu-002', 'computer', 16500.00, NULL),
@@ -183,13 +179,13 @@ WHERE "name" = 'Business Finance Simulation'
 			AND "name" = 'Equipo Demo'
 	);
 
-INSERT INTO game_team_assets (
-    game_team_id,
-    asset_id,
-    quantity,
-    unit_price,
-    acquired_at,
-    status
+INSERT INTO 'game_team_assets' (
+    'game_team_id',
+    'asset_id',
+    'quantity',
+    'unit_price',
+    'acquired_at',
+    'status'
 )
 SELECT
     1,
@@ -200,10 +196,6 @@ SELECT
     'active'
 FROM assets
 WHERE category IN ('machine', 'computer', 'buildings', 'transport');
-
-
-
-COMMIT;
 
 
 -- Insert expenses
