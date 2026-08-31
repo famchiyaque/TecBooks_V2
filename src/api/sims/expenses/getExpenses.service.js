@@ -1,3 +1,10 @@
+import workerApi from "worker/src/utils/worker.util";
+
+export default async function getExpenses() {
+  const response = await workerApi.get("/api/expenses");
+  return response;
+}
+
 export const SAMPLE_YEARS = [
   2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035,
 ];

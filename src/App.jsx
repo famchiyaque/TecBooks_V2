@@ -25,6 +25,11 @@ import { AuthProvider } from "./contexts/AuthContext";
 import GlobalSidebar from "./components/global/GlobalSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Create a client
+const queryClient = new QueryClient();
+
 function App() {
   console.log("app loaded");
 
@@ -32,48 +37,53 @@ function App() {
     <OrientationProvider>
       <Router>
         <ScrollToTop />
-        <AuthProvider>
-          <NavigationProvider>
-            <GlobalSidebar />
-            <div className="App blue-to-white">
-              <RotateMessage />
-              <Routes>
-                <Route path="/" element={<Navigate to="/home" />} />
-                <Route path="/home" element={<HomePage />} />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <NavigationProvider>
+              <GlobalSidebar />
+              <div className="App blue-to-white">
+                <RotateMessage />
+                <Routes>
+                  <Route path="/" element={<Navigate to="/home" />} />
+                  <Route path="/home" element={<HomePage />} />
 
-                <Route path="/dashboard/*" element={<Dashboard />} />
+                  <Route path="/dashboard/*" element={<Dashboard />} />
 
-                <Route
-                  path="/modules/templates"
-                  element={<TemplateSelector />}
-                />
-                <Route
-                  path="/modules/templates/upload"
-                  element={<TemplateUpload />}
-                />
-                <Route
-                  path="/modules/custom-excel"
-                  element={<CustomExcelBuilder />}
-                />
-
-                <Route path="/mxrep/*" element={<MxRepRouter />} />
-
-                <Route path="/sims" element={<Outlet />}>
-                  <Route path="project-evaluation" element={<Investments />} />
-                  <Route path="forecasting" element={<Forecasts />} />
                   <Route
-                    path="project-feasibility"
-                    element={<ProjectFeasibility />}
+                    path="/modules/templates"
+                    element={<TemplateSelector />}
                   />
-                </Route>
+                  <Route
+                    path="/modules/templates/upload"
+                    element={<TemplateUpload />}
+                  />
+                  <Route
+                    path="/modules/custom-excel"
+                    element={<CustomExcelBuilder />}
+                  />
 
-                <Route path="/login" element={<Login />} />
+                  <Route path="/mxrep/*" element={<MxRepRouter />} />
 
-                <Route path="/faq" element={<FAQ />} />
-              </Routes>
-            </div>
-          </NavigationProvider>
-        </AuthProvider>
+                  <Route path="/sims" element={<Outlet />}>
+                    <Route
+                      path="project-evaluation"
+                      element={<Investments />}
+                    />
+                    <Route path="forecasting" element={<Forecasts />} />
+                    <Route
+                      path="project-feasibility"
+                      element={<ProjectFeasibility />}
+                    />
+                  </Route>
+
+                  <Route path="/login" element={<Login />} />
+
+                  <Route path="/faq" element={<FAQ />} />
+                </Routes>
+              </div>
+            </NavigationProvider>
+          </AuthProvider>
+        </QueryClientProvider>
       </Router>
     </OrientationProvider>
   );
