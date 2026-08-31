@@ -15,6 +15,8 @@ import Investments from "./pages/sims/Investments";
 import ProjectFeasibility from "./pages/sims/ProjectFeasibility";
 import RequireAuth from "./sims/project-feasibility/pages/RequireAuth.jsx";
 import ProgramsPortal from "./sims/project-feasibility/pages/ProgramsPortal.jsx";
+import ProgramProjects from "./sims/project-feasibility/pages/ProgramProjects.jsx";
+import ProjectCostTable from "./sims/project-feasibility/pages/ProjectCostTable.jsx";
 import NewProgram from "./sims/project-feasibility/pages/NewProgram.jsx";
 import { StagingProvider } from "./sims/project-feasibility/staging/StagingContext.jsx";
 import Login from "./pages/Login";
@@ -64,6 +66,8 @@ function App() {
                         </StagingProvider>
                       }
                     />
+                    <Route path="programs/:programId" element={<ProgramProjects />} />
+                    <Route path="programs/:programId/projects/:projectId" element={<ProjectCostTable />} />
                   </Route>
                 </Route>
               </Route>
