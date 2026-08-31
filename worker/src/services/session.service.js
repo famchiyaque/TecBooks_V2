@@ -12,7 +12,8 @@ async function createSessionToken(env, user) {
         school_id: user.school_id,
         exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
       },
-      env.JWT_SECRET
+      env.JWT_SECRET,
+      'HS256'
     );
   } catch (error) {
     console.error('[session.service] createSessionToken failed:', error);
