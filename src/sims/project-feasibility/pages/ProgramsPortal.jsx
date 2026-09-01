@@ -3,8 +3,27 @@ import { Link as RouterLink } from 'react-router-dom'
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import { useAuth } from '@/contexts/AuthContext'
+import { PageTour } from '@/tours/PageTour'
+import TourButton from '@/components/global/TourButton'
 import { projectDisplayName } from '../model/programExtractors'
 import { usePrograms } from './ProgramsContext.jsx'
+
+const programsPortalTour = new PageTour([
+  {
+    element: '#add-project-btn',
+    popover: {
+      title: 'Upload a project',
+      description: 'Upload your InputNovus Excel file here to create a new program.',
+    },
+  },
+  {
+    element: '#programs-list',
+    popover: {
+      title: 'Your programs',
+      description: 'Click any project link to open its dashboard and cost table.',
+    },
+  },
+])
 
 function ProgramsPortal() {
   const { user } = useAuth()
@@ -13,16 +32,20 @@ function ProgramsPortal() {
   return (
     <Box sx={{ p: 4, textAlign: 'left' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
-            Project Feasibility Simulation
-          </Typography>
-          <Typography sx={{ mt: 1, opacity: 0.8 }}>
-            Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
+              Project Feasibility Simulation
+            </Typography>
+            <Typography sx={{ mt: 1, opacity: 0.8 }}>
+              Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
+            </Typography>
+          </Box>
+          <TourButton tour={programsPortalTour} />
         </Box>
 
         <Button
+          id="add-project-btn"
           component={RouterLink}
           to="new"
           variant="contained"
@@ -52,7 +75,7 @@ function ProgramsPortal() {
       )}
 
       {status === 'ready' && programs.length > 0 && (
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2, mt: 4 }}>
+        <Box id="programs-list" sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2, mt: 4 }}>
           {programs.map((program) => (
             <Card key={program.id} sx={{ borderRadius: 2, boxShadow: '0 0 0 1px rgba(7, 58, 90, 0.12)' }}>
               <CardContent>
