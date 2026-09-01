@@ -17,7 +17,7 @@ export default async function getExpenses() {
 
 export const SAMPLE_FINANCIAL_EXPENSES = [
   {
-    concept: "Amortización Crédito",
+    concept: "Loan Amortization",
     values: {
       2025: 8203976.11,
       2026: 8203976.11,
@@ -27,7 +27,7 @@ export const SAMPLE_FINANCIAL_EXPENSES = [
     },
   },
   {
-    concept: "Interés Devengado",
+    concept: "Accrued Interest",
     values: {
       2025: 5961555.97,
       2026: 4648919.8,

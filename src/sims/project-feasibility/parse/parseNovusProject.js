@@ -28,7 +28,7 @@ function readWorkbook(input) {
   if (input instanceof Uint8Array) {
     return XLSX.read(input, { type: 'array' })
   }
-  throw new Error('Se esperaba un ArrayBuffer o un workbook de xlsx')
+  throw new Error('Expected an ArrayBuffer or an xlsx workbook')
 }
 
 /**
@@ -44,7 +44,7 @@ export function parseNovusProject(input, { fileName } = {}) {
       project: null,
       validation: {
         valid: false,
-        errors: missing.map((name) => `Falta la hoja "${name}"`),
+        errors: missing.map((name) => `Missing sheet "${name}"`),
         warnings: [],
       },
     }

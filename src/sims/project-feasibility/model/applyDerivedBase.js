@@ -6,6 +6,25 @@ function pct(value) {
   return asNumber(value)
 }
 
+const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES']
+
+/**
+ * Mirrors src/adapters/excel/employee-table/Employee.js's category getter -
+ * same Empleados_2 template, same classification rules. Keep both in sync.
+ */
+function classifyEmployeeCategory(name, type) {
+  const upperName = String(name ?? '').toUpperCase()
+  if (upperName.startsWith('MOD ')) return 'direct'
+  if (upperName.startsWith('MOID ')) return 'indirect'
+  if (upperName.startsWith('IM ') || upperName.includes('INGENIERO')) return 'engineering'
+  if (ENGINEERING_EXACT_NAMES.includes(upperName)) return 'engineering'
+
+  const normalizedType = String(type ?? '').trim().toLowerCase()
+  if (normalizedType === 'administracion') return 'administrative'
+  if (normalizedType === 'operacion') return 'indirect'
+  return null
+}
+
 /**
  * Completes ProjectClass with values implied by inputs (not dashboard statements).
  */
@@ -41,6 +60,8 @@ export function applyDerivedBase(project) {
   const yearZeroOrdersSum = project.demand.yearZeroOrders.reduce((acc, n) => acc + asNumber(n), 0)
 
   const employees = project.employees.map((employee) => {
+    // ISR is withheld from the employee, not added to employer cost - excluded here
+    // to match the template's own "Salario Integrado" column.
     const benefitsTotal =
       asNumber(employee.percepcion) *
       (pct(employee.imss) +
@@ -49,10 +70,11 @@ export function applyDerivedBase(project) {
         pct(employee.primaVacacional) +
         pct(employee.aguinaldo) +
         pct(employee.fondoAhorro) +
-        pct(employee.comedor) +
-        pct(employee.isr))
+        pct(employee.comedor))
     return {
       name: employee.name,
+      category: classifyEmployeeCategory(employee.name, employee.type),
+      quantity: employee.cantidad,
       benefitsTotal,
       salarioIntegrado: asNumber(employee.percepcion) + benefitsTotal,
     }

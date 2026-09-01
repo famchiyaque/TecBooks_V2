@@ -95,6 +95,7 @@ export function readCOs(rows, project) {
   }
   project.demand.history = history
   project.demand.yearZeroYear = toNumberOrUndefined(rows[1]?.[7])
+  project.demand.yearZeroTotal = toNumberOrUndefined(rows[1]?.[8])
 }
 
 export function readCapacidad(rows, project) {
@@ -192,6 +193,7 @@ export function readEmpleados2(rows, project) {
       fondoAhorro: toNumberOrUndefined(row[8]),
       comedor: toNumberOrUndefined(row[9]),
       isr: toNumberOrUndefined(row[10]),
+      cantidad: toNumberOrUndefined(row[13]),
     })
   }
 }

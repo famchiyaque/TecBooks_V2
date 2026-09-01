@@ -13,16 +13,38 @@ import {
   Typography,
 } from '@mui/material'
 import Construction from '@mui/icons-material/Construction'
+import Expenses from '@/components/sims/program/Expenses'
+import CollapsibleSection from '@/components/global/CollapsibleSection'
+import { PageTour } from '@/tours/PageTour'
+import TourButton from '@/components/global/TourButton'
 import { HORIZON_YEARS } from '../constants'
 import { findProgramProject, projectDisplayName } from '../model/programExtractors'
 import { usePrograms } from './ProgramsContext.jsx'
+import ProjectCostSummary from '../costTable/ProjectCostSummary.jsx'
 
 const TABS = [
-  { id: 'balance', label: 'Balance General' },
-  { id: 'razones', label: 'Razones' },
-  { id: 'flujo', label: 'Flujo de Efectivo' },
-  { id: 'resultados', label: 'Estado de Resultados' },
+  { id: 'balance', label: 'Balance Sheet' },
+  { id: 'razones', label: 'Ratios' },
+  { id: 'flujo', label: 'Cash Flow' },
+  { id: 'resultados', label: 'Income Statement' },
 ]
+
+const projectDashboardTour = new PageTour([
+  {
+    element: '#project-dashboard-tabs',
+    popover: {
+      title: 'Financial statements',
+      description: 'Switch between Balance Sheet, Ratios, Cash Flow and Income Statement.',
+    },
+  },
+  {
+    element: '#project-dashboard-content',
+    popover: {
+      title: 'Ratios tab',
+      description: 'Expenses and your Cost Table live here, each collapsible so you can focus on one at a time.',
+    },
+  },
+])
 
 const MOCK_ROWS = ['Activo', 'Pasivo', 'Capital', 'Total']
 
@@ -32,13 +54,13 @@ function MockStatement({ title }) {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <Construction sx={{ color: '#c77800' }} />
         <Typography sx={{ color: '#073a5a' }}>
-          {title} — en construcción
+          {title} — under construction
         </Typography>
       </Box>
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 700 }}>Concepto</TableCell>
+            <TableCell sx={{ fontWeight: 700 }}>Concept</TableCell>
             {HORIZON_YEARS.slice(0, 4).map((year) => (
               <TableCell key={year} align="right" sx={{ fontWeight: 700 }}>
                 {year}
@@ -72,7 +94,7 @@ function ProjectDashboard() {
   if (status === 'error') {
     return (
       <Box sx={{ p: 4 }}>
-        <Alert severity="error">No se pudieron cargar los programas.</Alert>
+        <Alert severity="error">Couldn't load the programs.</Alert>
       </Box>
     )
   }
@@ -80,7 +102,7 @@ function ProjectDashboard() {
   if (!program || !project) {
     return (
       <Box sx={{ p: 4 }}>
-        <Alert severity="warning">No se encontró este proyecto.</Alert>
+        <Alert severity="warning">Project not found.</Alert>
       </Box>
     )
   }
@@ -92,11 +114,15 @@ function ProjectDashboard() {
       <Typography variant="overline" sx={{ color: '#073a5a' }}>
         {program.name}
       </Typography>
-      <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
-        {projectDisplayName(project)}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 0 }}>
+          {projectDisplayName(project)}
+        </Typography>
+        <TourButton tour={projectDashboardTour} />
+      </Box>
 
       <Tabs
+        id="project-dashboard-tabs"
         value={tab}
         onChange={(_, next) => setTab(next)}
         sx={{ borderBottom: 1, borderColor: 'divider' }}
@@ -106,7 +132,18 @@ function ProjectDashboard() {
         ))}
       </Tabs>
 
-      <MockStatement key={`${programId}-${projectId}-${activeTab.id}`} title={activeTab.label} />
+      <Box id="project-dashboard-content">
+        {activeTab.id === 'razones' ? (
+          <Box sx={{ mt: 2 }}>
+            <Expenses />
+            <CollapsibleSection title="Cost Table" defaultExpanded>
+              <ProjectCostSummary project={project} />
+            </CollapsibleSection>
+          </Box>
+        ) : (
+          <MockStatement key={`${programId}-${projectId}-${activeTab.id}`} title={activeTab.label} />
+        )}
+      </Box>
     </Box>
   )
 }

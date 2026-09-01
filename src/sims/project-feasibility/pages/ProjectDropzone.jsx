@@ -38,10 +38,10 @@ function ProjectDropzone() {
       <input {...getInputProps()} />
       <Typography sx={{ color: '#073a5a' }}>
         {isParsing
-          ? 'Leyendo Excel…'
+          ? 'Reading Excel…'
           : isDragActive
-            ? 'Suelta los archivos aquí'
-            : 'Arrastra uno o más Excel de proyecto (.xlsx), o haz clic para elegir'}
+            ? 'Drop the files here'
+            : 'Drag one or more project Excel files (.xlsx), or click to choose'}
       </Typography>
     </Box>
   )

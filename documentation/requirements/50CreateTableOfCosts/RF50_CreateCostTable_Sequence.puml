@@ -1,0 +1,114 @@
+@startuml RF 50 Create Cost Table - Sequence Diagram
+title Sequence Diagram - RF 50 Create Cost Table
+
+skinparam sequenceArrowThickness 1
+skinparam roundcorner 8
+skinparam maxmessagesize 160
+skinparam sequence {
+  ActorBorderColor #073a5a
+  LifeLineBorderColor #073a5a
+  ParticipantBorderColor #073a5a
+  ParticipantBackgroundColor #e4f1fe
+  ParticipantFontColor #073a5a
+  ActorBackgroundColor #eec60a
+  NoteBackgroundColor #fff8dc
+  NoteBorderColor #eec60a
+}
+
+actor User
+
+participant "TemplateUpload\n(React component)" as UI
+participant "MexicoManufacturingAdapter\n(src/adapters/excel)" as Adapter
+participant "CanonicalBusinessModel\nValidators" as Validator
+participant "Derivations\n(src/utils/dashboard)" as Derivations
+participant "sessionStorage" as Storage
+participant "React Router" as Router
+participant "ProjectEvaluation Dashboard\n(src/pages/dashboard)" as Dashboard
+
+User -> UI : Select / drop .xlsx file\nand click "Generate Dashboard"
+activate UI
+
+UI -> UI : handleUpload()\nXLSX.read(file) -> excelData
+
+UI -> Adapter : adaptMexicoManufacturingToBusinessModel(excelData)
+activate Adapter
+Adapter -> Adapter : access Premises / Production / Workforce\nsheets (object that stores cost data)
+
+alt costs are NOT numeric values
+  Adapter --> UI : throws / returns errors
+  UI --> User : Show error message\n"Incorrect data types"
+  deactivate Adapter
+  deactivate UI
+else costs are numeric values
+
+  Adapter -> Adapter : build yearZeroDemand\n(firstYearDemand.months / units)
+
+  alt year zero record does NOT exist
+    Adapter --> UI : businessModel without yearZeroDemand
+    UI --> User : keep file staged (file name +\n"Remove" button) and unlock\n"Confirm" ("Generate Dashboard") button
+    deactivate Adapter
+    deactivate UI
+  else year zero record exists
+
+    Adapter -> Adapter : extract Workforce sheet\n(registered employees)
+
+    alt there are NO registered employees
+      Adapter --> UI : workforce data empty
+      UI --> User : Display staging screen\nfor the program
+      deactivate Adapter
+      deactivate UI
+    else there are registered employees
+
+      Adapter -> Validator : validateCanonicalBusinessModel(model)
+      activate Validator
+
+      alt an employee is missing its registered quantity
+        Validator --> Adapter : errors: ["Registered employees do not\nhave their employee count recorded"]
+        deactivate Validator
+        Adapter --> UI : validation.errors
+        UI --> User : Show error message\n"Registered employees do not have\ntheir employee count recorded"
+        deactivate Adapter
+        deactivate UI
+      else all employees have a registered quantity
+        Validator --> Adapter : { valid: true }
+        deactivate Validator
+
+        alt employees w/ quantity, purchase orders, quality yield\nand purchase orders after year zero all present
+          Adapter -> Derivations : deriveWorkforceSalaries(workforce)
+          activate Derivations
+          Derivations -> Derivations : sum directLabor + indirectLabor +\nengineering + administrative salaries\n(by category)
+          Derivations --> Adapter : totalMonthlySalaries
+          deactivate Derivations
+
+          Adapter -> Derivations : deriveProduction(purchaseOrders, qualityYield)
+          activate Derivations
+          Derivations -> Derivations : WO = CO * Quality yield
+          Derivations --> Adapter : production.workOrders[]
+          deactivate Derivations
+
+          Adapter -> Adapter : indirectMaterialCosts =\nnetSales * indirectProductPercentage
+
+          Adapter --> UI : businessModel\n(cost table populated)
+          deactivate Adapter
+
+          UI -> Storage : setItem('currentBusinessModel', model)
+          UI -> Router : navigate('/dashboard/project-evaluation')
+          deactivate UI
+
+          Router -> Dashboard : render cost table
+          activate Dashboard
+          Dashboard --> User : View the created cost table
+          deactivate Dashboard
+
+        else missing data (no quantity, purchase orders,\nquality yield or POs after year zero)
+          Adapter --> UI : reject project
+          deactivate Adapter
+          UI --> User : "Invalid project,\ntry another file"
+          deactivate UI
+        end
+      end
+    end
+  end
+end
+
+@enduml

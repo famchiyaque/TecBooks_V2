@@ -11,8 +11,8 @@ import TableContainer from "@/components/global/TableContainer";
 export default function InvestmentTable({ items }) {
   const columns = useMemo(
     () => [
-      { key: "concept", label: "Categoría" },
-      { key: "amount", label: "Costo", align: "right", type: "currency" },
+      { key: "concept", label: "Category" },
+      { key: "amount", label: "Cost", align: "right", type: "currency" },
     ],
     [],
   );
@@ -29,7 +29,7 @@ export default function InvestmentTable({ items }) {
     <>
       {items && (
         <TableContainer
-          title="Inversión"
+          title="Investment"
           columns={columns}
           rows={rows}
           className="max-w-xl"

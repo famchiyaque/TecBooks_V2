@@ -24,7 +24,7 @@ export default function AdminExpensesTable({ years, expenses }) {
   );
 
   const rows = useMemo(() => {
-    const row = { concept: "Gastos Administrativos" };
+    const row = { concept: "Administrative Expenses" };
     years.forEach((year) => {
       row[String(year)] = expenses?.[year];
     });
@@ -33,7 +33,7 @@ export default function AdminExpensesTable({ years, expenses }) {
 
   return (
     <TableContainer
-      title="Gastos Administrativos"
+      title="Administrative Expenses"
       columns={columns}
       rows={rows}
     />

@@ -60,7 +60,7 @@ function ProgramsSidebar() {
           variant="overline"
           sx={{ color: '#073a5a', letterSpacing: 1, textDecoration: 'none' }}
         >
-          Programas
+          Programs
         </Typography>
       </Box>
 
@@ -72,13 +72,13 @@ function ProgramsSidebar() {
 
       {status === 'error' && (
         <Typography sx={{ px: 2, fontSize: 14, color: 'error.main' }}>
-          No se pudieron cargar los programas.
+          Couldn't load the programs.
         </Typography>
       )}
 
       {status === 'ready' && sidebarPrograms.length === 0 && (
         <Typography sx={{ px: 2, fontSize: 14, opacity: 0.7 }}>
-          Aún no hay programas.
+          No programs yet.
         </Typography>
       )}
 

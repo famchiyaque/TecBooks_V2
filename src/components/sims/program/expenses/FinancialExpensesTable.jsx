@@ -3,7 +3,7 @@ import TableContainer from "@/components/global/TableContainer";
 
 /**
  * FinancialExpensesTable
- * Several concepts (Amortización, Interés devengado, ...) spread across
+ * Several concepts (Amortization, Accrued Interest, ...) spread across
  * every year.
  *
  * Props:
@@ -37,6 +37,6 @@ export default function FinancialExpensesTable({ years, items }) {
   );
 
   return (
-    <TableContainer title="Gastos Financieros" columns={columns} rows={rows} />
+    <TableContainer title="Financial Expenses" columns={columns} rows={rows} />
   );
 }

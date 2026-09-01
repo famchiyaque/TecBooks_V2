@@ -47,11 +47,11 @@ function calculateAdminExpenses(data) {
 // Invetment Table
 function formatExpenses(data) {
   const pairName = {
-    buildings: "Edificio",
-    computer: "Equipo de Cómputo",
-    machine: "Maquinaria y Equipo",
-    transport: "Transporte",
-    workCapital: "Capital de Trabajo",
+    buildings: "Building",
+    computer: "Computer Equipment",
+    machine: "Machinery and Equipment",
+    transport: "Transportation",
+    workCapital: "Working Capital",
   };
   const investments = [];
 
@@ -72,7 +72,7 @@ function formatExpenses(data) {
   });
 
   investments.push({
-    concept: "Obra civil Maquinaria y Equipo",
+    concept: "Civil Works - Machinery and Equipment",
     amount: machineExpense * 0.35,
   });
 
@@ -85,11 +85,11 @@ function formatServices(data) {
   if (!Array.isArray(items)) return [];
 
   return items.map((item) => ({
-    categoria: item.category,
-    subcategoria: item.subcategory,
-    descripcion: item.description,
-    rangoMensual: item.default_cost,
-    notas: item.notes,
+    category: item.category,
+    subcategory: item.subcategory,
+    description: item.description,
+    monthlyRange: item.default_cost,
+    notes: item.notes,
   }));
 }
 
@@ -129,11 +129,11 @@ function formatFinancialExpenses(data) {
 
   return [
     {
-      concept: "Amortización Crédito",
+      concept: "Loan Amortization",
       values: amortizationValues,
     },
     {
-      concept: "Interés Devengado",
+      concept: "Accrued Interest",
       values: interestValues,
     },
   ];

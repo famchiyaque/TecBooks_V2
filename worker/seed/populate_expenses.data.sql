@@ -400,6 +400,11 @@ VALUES
 -- CREAR EMPLEADOS
 -- ============================================================
 
+-- employees.schedule references schedules(name); seed the 'full-time' row
+-- every employee below uses, or the FK on the employees insert fails.
+INSERT OR IGNORE INTO "schedules" ("name", "description", "hours_per_week", "days_per_week", "hours_per_day", "start_time", "end_time")
+VALUES ('full-time', 'Full-time schedule', 40, 5, 8, '09:00', '18:00');
+
 INSERT INTO employees (
     name,
     job_title,

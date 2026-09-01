@@ -8,7 +8,7 @@ import formatCurrency from "@/utils/sims/program/formatCurrency.util";
  * with Tailwind. Drop this in and feed it columns + rows — it handles
  * currency formatting, signed-amount coloring, grouped/merged first
  * columns, and total rows, so every table in the app (Gastos
- * Administrativos, Inversión, Gastos Financieros, Servicios, …) looks
+ * Administrative Expenses, Investment, Financial Expenses, Services, …) looks
  * consistent without re-writing table markup each time.
  *
  * ------------------------------- Usage ---------------------------------
@@ -25,14 +25,14 @@ import formatCurrency from "@/utils/sims/program/formatCurrency.util";
  *   ]}
  * />
  *
- * Grouped first column (e.g. Servicios grouped by Categoría):
+ * Grouped first column (e.g. Services grouped by Category):
  *
  * <TableContainer
- *   title="Servicios"
+ *   title="Services"
  *   columns={[
- *     { key: "categoria", label: "Categoría de Gasto", group: true },
- *     { key: "subcategoria", label: "Subcategoría" },
- *     { key: "rango", label: "Rango Mensual Est.", align: "right", type: "currency" },
+ *     { key: "category", label: "Expense Category", group: true },
+ *     { key: "subcategory", label: "Subcategory" },
+ *     { key: "range", label: "Est. Monthly Range", align: "right", type: "currency" },
  *   ]}
  *   rows={services}
  * />
@@ -89,7 +89,7 @@ export default function TableContainer({
   rows,
   actions,
   dense = false,
-  emptyLabel = "No hay información disponible.",
+  emptyLabel = "No information available.",
   className = "",
   layout = "auto",
   scrollBody = false,

@@ -5,31 +5,31 @@ export default function ServicesTable({ services }) {
   const columns = useMemo(
     () => [
       {
-        key: "categoria",
-        label: "Categoría de Gasto",
+        key: "category",
+        label: "Expense Category",
         group: true,
         width: "9rem",
       },
-      { key: "subcategoria", label: "Subcategoría", wrap: true, width: "9rem" },
-      { key: "descripcion", label: "Descripción", wrap: true },
+      { key: "subcategory", label: "Subcategory", wrap: true, width: "9rem" },
+      { key: "description", label: "Description", wrap: true },
       {
-        key: "rangoMensual",
-        label: "Rango Mensual Est.",
+        key: "monthlyRange",
+        label: "Est. Monthly Range",
         align: "right",
         type: "currency",
         width: "8rem",
       },
-      { key: "notas", label: "Notas y Consideraciones", wrap: true },
+      { key: "notes", label: "Notes and Considerations", wrap: true },
     ],
     [],
   );
 
   return (
     <TableContainer
-      title="Servicios"
+      title="Services"
       columns={columns}
       rows={services}
-      emptyLabel="No hay servicios registrados."
+      emptyLabel="No services registered."
       layout="fixed"
       scrollBody
       className="h-full flex-1 min-w-0"

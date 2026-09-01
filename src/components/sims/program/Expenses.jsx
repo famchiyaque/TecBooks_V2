@@ -6,6 +6,7 @@ import ServicesTable from "./expenses/ServicesTable";
 import getExpenses from "@/api/sims/expenses/getExpenses.service";
 import { useQuery } from "@tanstack/react-query";
 import useExpenses from "@/hooks/sims/project/useExpenses";
+import CollapsibleSection from "@/components/global/CollapsibleSection";
 
 function Expenses() {
   const investmentRef = useRef(null);
@@ -31,29 +32,35 @@ function Expenses() {
   const { adminExpenses, investment, services, finances } = useExpenses(data);
 
   return (
-    <div className="flex flex-col gap-3 mt-3 p-3">
+    <div className="flex flex-col mt-3 p-3">
       {isLoading && <p>Loading...</p>}
       {error && <p>Error</p>}
       {!isLoading && !error && data && (
         <>
-          <AdminExpensesTable years={data.years} expenses={adminExpenses} />
+          <CollapsibleSection title="Administrative Expenses" defaultExpanded>
+            <AdminExpensesTable years={data.years} expenses={adminExpenses} />
+          </CollapsibleSection>
 
-          <div className="flex items-start gap-3">
-            <div ref={investmentRef}>
-              <InvestmentTable items={investment} />
+          <CollapsibleSection title="Investment & Services">
+            <div className="flex items-start gap-3">
+              <div ref={investmentRef}>
+                <InvestmentTable items={investment} />
+              </div>
+
+              <div
+                className="min-w-0 flex-1"
+                style={
+                  investmentHeight ? { height: investmentHeight } : undefined
+                }
+              >
+                <ServicesTable services={services} />
+              </div>
             </div>
+          </CollapsibleSection>
 
-            <div
-              className="min-w-0 flex-1"
-              style={
-                investmentHeight ? { height: investmentHeight } : undefined
-              }
-            >
-              <ServicesTable services={services} />
-            </div>
-          </div>
-
-          <FinancialExpensesTable years={data.years} items={finances} />
+          <CollapsibleSection title="Financial Expenses">
+            <FinancialExpensesTable years={data.years} items={finances} />
+          </CollapsibleSection>
         </>
       )}
     </div>
