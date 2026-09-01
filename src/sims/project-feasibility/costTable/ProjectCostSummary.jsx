@@ -29,7 +29,7 @@ function buildCostOfSales(cbm) {
   const netSales = computeNetSales(production)
   const indirectMaterials = computeIndirectMaterialCosts(premises, netSales)
   const costOfSalesByYear = buildCostOfSalesTable(years, {
-    MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials,
+    MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials, netSales,
   })
   const unclassifiedEmployees = findUnclassifiedEmployees(employees)
 

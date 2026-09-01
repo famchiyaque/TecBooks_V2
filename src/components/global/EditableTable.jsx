@@ -128,9 +128,13 @@ function EditableLabelCell({ label, onCommit }) {
  * @param {(rowKey: string, columnKey: string|number) => number} getValue
  * @param {string} [totalLabel]
  * @param {(value: number) => string} [formatValue]
+ * @param {{key: string, label: string, compute: (effectiveTotal: number, columnKey: string|number) => number}[]} [summaryRows]
+ *   Read-only derived rows rendered after the Total row (e.g. Gross Profit) -
+ *   not editable, not counted into the Total sum, recomputed live from the
+ *   already override-aware column total so they stay in sync with edits.
  */
 function EditableTable({
-  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat,
+  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat, summaryRows = [],
 }) {
   const dispatch = useDispatch()
   const overrides = useSelector(slice.selectOverrides)
@@ -257,6 +261,21 @@ function EditableTable({
               ))}
               <TableCell className="border-t border-slate-300" />
             </TableRow>
+
+            {summaryRows.map(({ key, label, compute }) => (
+              <TableRow key={key}>
+                <TableCell className={`${CELL_PAD} whitespace-nowrap font-medium text-slate-700`}>{label}</TableCell>
+                {columns.map(({ key: columnKey }, index) => {
+                  const value = compute(totalsByColumn[index], columnKey)
+                  return (
+                    <TableCell key={columnKey} align="right" className={`${CELL_PAD} whitespace-nowrap`}>
+                      <span className={`tabular-nums font-medium ${valueColorClass(value)}`}>{formatValue(value)}</span>
+                    </TableCell>
+                  )
+                })}
+                <TableCell />
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
