@@ -7,9 +7,7 @@ import getExpenses from "@/api/sims/expenses/getExpenses.service";
 import { useQuery } from "@tanstack/react-query";
 import useExpenses from "@/hooks/sims/project/useExpenses";
 
-import { SAMPLE_FINANCIAL_EXPENSES } from "@/api/sims/expenses/getExpenses.service";
-
-function Expenses({ financialExpenses = SAMPLE_FINANCIAL_EXPENSES }) {
+function Expenses() {
   const investmentRef = useRef(null);
   const [investmentHeight, setInvestmentHeight] = useState(null);
 
@@ -30,7 +28,7 @@ function Expenses({ financialExpenses = SAMPLE_FINANCIAL_EXPENSES }) {
     return () => ro.disconnect();
   }, []);
 
-  const { adminExpenses, investment, services } = useExpenses(data);
+  const { adminExpenses, investment, services, finances } = useExpenses(data);
 
   return (
     <div className="flex flex-col gap-3 mt-3">
@@ -55,10 +53,7 @@ function Expenses({ financialExpenses = SAMPLE_FINANCIAL_EXPENSES }) {
             </div>
           </div>
 
-          <FinancialExpensesTable
-            years={data.years}
-            items={financialExpenses}
-          />
+          <FinancialExpensesTable years={data.years} items={finances} />
         </>
       )}
     </div>
