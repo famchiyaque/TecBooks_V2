@@ -1,8 +1,21 @@
-import { getTeam } from "../models/games.model";
+import { getTeam, getYears } from "../models/games.model";
 import { getPremises } from "../models/premises.model";
 import { getTeamAssetsTotalExpense } from "../models/assets.model";
-import { getTotalExpenses } from "../models/services.model";
+import { getExpenses, getTotalExpenses } from "../models/services.model";
 import { getEmployeesTotalSalaries } from "../models/employees.model";
+
+export async function fetchYears(db, gameId) {
+  return await getYears(db, gameId);
+}
+
+export async function getServieInvestments(db, gameId) {
+  return await getExpenses(db, gameId);
+}
+
+export async function fetchInflation(db, gameId) {
+  const premises = await getPremises(db, gameId);
+  return premises.national_inflation;
+}
 
 // Retrieve session information of investment
 // Calculate investment types and total investment

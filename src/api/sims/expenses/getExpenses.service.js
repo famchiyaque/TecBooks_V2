@@ -1,40 +1,23 @@
-import workerApi from "worker/src/utils/worker.util";
+import workerApi from "@/utils/worker.util";
 
 export default async function getExpenses() {
   const response = await workerApi.get("/api/expenses");
-  return response;
+
+  if (response.status !== 200) {
+    console.error(response.error);
+    const error = new Error("Error fetching data");
+    error.status = response.status;
+    throw error;
+  }
+
+  console.log(response.data);
+
+  return response.data;
 }
-
-export const SAMPLE_YEARS = [
-  2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035,
-];
-
-export const SAMPLE_ADMIN_EXPENSES = {
-  2025: 5316000,
-  2026: 5496744,
-  2027: 5683633.3,
-  2028: 5876876.83,
-  2029: 6076690.64,
-  2030: 6283298.12,
-  2031: 6496930.26,
-  2032: 6717825.89,
-  2033: 6946231.97,
-  2034: 7182403.85,
-  2035: 7426605.58,
-};
-
-export const SAMPLE_INVESTMENT = [
-  { concepto: "Edificio", monto: 6053000 },
-  { concepto: "Maquinaria y Equipo", monto: 8060000 },
-  { concepto: "Equipo de Cómputo", monto: 217350 },
-  { concepto: "Transporte", monto: 1440000 },
-  { concepto: "Capital de Trabajo", monto: 22428530.56 },
-  { concepto: "Obra Civil Maquinaria y Equipo", monto: 2821000 },
-];
 
 export const SAMPLE_FINANCIAL_EXPENSES = [
   {
-    concepto: "Amortización Crédito",
+    concept: "Amortización Crédito",
     values: {
       2025: 8203976.11,
       2026: 8203976.11,
@@ -44,7 +27,7 @@ export const SAMPLE_FINANCIAL_EXPENSES = [
     },
   },
   {
-    concepto: "Interés Devengado",
+    concept: "Interés Devengado",
     values: {
       2025: 5961555.97,
       2026: 4648919.8,

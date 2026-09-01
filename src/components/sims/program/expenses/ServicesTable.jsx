@@ -10,7 +10,7 @@ export default function ServicesTable({ services }) {
         group: true,
         width: "9rem",
       },
-      { key: "subcategoria", label: "Subcategoría", width: "8rem" },
+      { key: "subcategoria", label: "Subcategoría", wrap: true, width: "9rem" },
       { key: "descripcion", label: "Descripción", wrap: true },
       {
         key: "rangoMensual",

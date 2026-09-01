@@ -59,6 +59,8 @@ INSERT OR IGNORE INTO "games" (
 	"created_by",
 	"name",
 	"status",
+    "start_date",
+    "end_date",
 	"created_at",
 	"updated_at"
 )
@@ -73,6 +75,8 @@ VALUES (
 	(SELECT "id" FROM "users" WHERE "email" = 'teacher@tecbooks.local'),
 	'Business Finance Simulation',
 	'draft',
+    '2025',
+    '2035',
 	datetime('now'),
 	datetime('now')
 );

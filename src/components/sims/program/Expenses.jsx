@@ -5,22 +5,11 @@ import FinancialExpensesTable from "./expenses/FinancialExpensesTable";
 import ServicesTable from "./expenses/ServicesTable";
 import getExpenses from "@/api/sims/expenses/getExpenses.service";
 import { useQuery } from "@tanstack/react-query";
+import useExpenses from "@/hooks/sims/project/useExpenses";
 
-import {
-  SAMPLE_YEARS,
-  SAMPLE_ADMIN_EXPENSES,
-  SAMPLE_INVESTMENT,
-  SAMPLE_FINANCIAL_EXPENSES,
-  SAMPLE_SERVICES,
-} from "@/api/sims/expenses/getExpenses.service";
+import { SAMPLE_FINANCIAL_EXPENSES } from "@/api/sims/expenses/getExpenses.service";
 
-function Expenses({
-  years = SAMPLE_YEARS,
-  adminExpenses = SAMPLE_ADMIN_EXPENSES,
-  investment = SAMPLE_INVESTMENT,
-  financialExpenses = SAMPLE_FINANCIAL_EXPENSES,
-  services = SAMPLE_SERVICES,
-}) {
+function Expenses({ financialExpenses = SAMPLE_FINANCIAL_EXPENSES }) {
   const investmentRef = useRef(null);
   const [investmentHeight, setInvestmentHeight] = useState(null);
 
@@ -41,12 +30,15 @@ function Expenses({
     return () => ro.disconnect();
   }, []);
 
+  const { adminExpenses, investment, services } = useExpenses(data);
+
   return (
     <div className="flex flex-col gap-3 mt-3">
-      {(isLoading) => <p>Loading...</p>}
-      {(data) => (
+      {isLoading && <p>Loading...</p>}
+      {error && <p>Error</p>}
+      {!isLoading && !error && data && (
         <>
-          <AdminExpensesTable years={years} expenses={adminExpenses} />
+          <AdminExpensesTable years={data.years} expenses={adminExpenses} />
 
           <div className="flex items-start gap-3">
             <div ref={investmentRef}>
@@ -63,7 +55,10 @@ function Expenses({
             </div>
           </div>
 
-          <FinancialExpensesTable years={years} items={financialExpenses} />
+          <FinancialExpensesTable
+            years={data.years}
+            items={financialExpenses}
+          />
         </>
       )}
     </div>

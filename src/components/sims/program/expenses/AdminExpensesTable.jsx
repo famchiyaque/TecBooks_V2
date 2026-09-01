@@ -12,7 +12,7 @@ import TableContainer from "@/components/global/TableContainer";
 export default function AdminExpensesTable({ years, expenses }) {
   const columns = useMemo(
     () => [
-      { key: "concepto", label: "Concepto" },
+      { key: "concept", label: "" },
       ...years.map((year) => ({
         key: String(year),
         label: String(year),
@@ -24,7 +24,7 @@ export default function AdminExpensesTable({ years, expenses }) {
   );
 
   const rows = useMemo(() => {
-    const row = { concepto: "Gastos Administrativos" };
+    const row = { concept: "Gastos Administrativos" };
     years.forEach((year) => {
       row[String(year)] = expenses?.[year];
     });

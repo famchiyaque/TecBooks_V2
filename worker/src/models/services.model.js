@@ -1,8 +1,9 @@
 export async function getExpenses(db, gameId) {
-  return db
+  const { results } = await db
     .prepare("SELECT * FROM expenses WHERE game_id = ?")
     .bind(gameId)
-    .first();
+    .all();
+  return results;
 }
 
 export async function getTotalExpenses(db, gameId) {

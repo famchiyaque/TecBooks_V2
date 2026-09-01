@@ -7,7 +7,13 @@ import { websocketRoute } from "./routes/websocket.route.js";
 
 const app = new Hono();
 
-app.use("*", cors());
+app.use(
+  "*",
+  cors({
+    origin: (origin) => origin,
+    credentials: true,
+  }),
+);
 app.onError(errorHandler);
 
 app.route("/health", healthRoute);

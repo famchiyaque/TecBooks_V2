@@ -8,12 +8,12 @@ import TableContainer from "@/components/global/TableContainer";
  *
  * Props:
  *  - years: number[]
- *  - items: { concepto: string, values: { [year]: number } }[]
+ *  - items: { concept: string, values: { [year]: number } }[]
  */
 export default function FinancialExpensesTable({ years, items }) {
   const columns = useMemo(
     () => [
-      { key: "concepto", label: "Concepto" },
+      { key: "concept", label: "concept" },
       ...years.map((year) => ({
         key: String(year),
         label: String(year),
@@ -27,7 +27,7 @@ export default function FinancialExpensesTable({ years, items }) {
   const rows = useMemo(
     () =>
       items.map((item) => {
-        const row = { concepto: item.concepto };
+        const row = { concept: item.concept };
         years.forEach((year) => {
           row[String(year)] = item.values?.[year];
         });

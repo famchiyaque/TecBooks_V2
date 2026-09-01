@@ -16,12 +16,12 @@ import formatCurrency from "@/utils/sims/program/formatCurrency.util";
  * <TableContainer
  *   title="Gastos Administrativos"
  *   columns={[
- *     { key: "concepto", label: "Concepto" },
+ *     { key: "concept", label: "concept" },
  *     { key: "y2025", label: "2025", align: "right", type: "currency" },
  *     { key: "y2026", label: "2026", align: "right", type: "currency" },
  *   ]}
  *   rows={[
- *     { concepto: "Gastos Administrativos", y2025: 5316000, y2026: 5496744 },
+ *     { concept: "Gastos Administrativos", y2025: 5316000, y2026: 5496744 },
  *   ]}
  * />
  *
@@ -92,10 +92,6 @@ export default function TableContainer({
   emptyLabel = "No hay información disponible.",
   className = "",
   layout = "auto",
-  // Cuando es true: la tarjeta ocupa el alto del contenedor (h-full),
-  // el título queda fijo, y solo el cuerpo de la tabla hace scroll
-  // vertical con el header pegado arriba. Úsalo para tablas que deben
-  // "caber" en una altura definida por un hermano (ver Expenses.jsx).
   scrollBody = false,
 }) {
   const groupColumn = columns.find((c) => c.group);
@@ -170,80 +166,86 @@ export default function TableContainer({
           </thead>
 
           <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className={cellPad + " text-center text-sm text-slate-400"}
-                >
-                  {emptyLabel}
-                </td>
-              </tr>
-            ) : (
-              rows.map((row, rowIndex) => {
-                const isTotal = row.rowVariant === "total";
-                return (
-                  <tr
-                    key={row.id ?? rowIndex}
-                    className={
-                      isTotal
-                        ? "bg-slate-50/80"
-                        : "transition-colors hover:bg-slate-50/60 " +
-                          (rowIndex % 2 === 1 ? "bg-slate-50/30" : "")
-                    }
-                  >
-                    {columns.map((col) => {
-                      if (groupColumn && col.key === groupColumn.key) {
-                        const span = groupSpans[rowIndex];
-                        if (span === 0) return null;
+            {rows.length === 0
+              ? emptyRows(emptyLabel, columns, cellPad)
+              : rows.map((row, rowIndex) => {
+                  const isTotal = row.rowVariant === "total";
+                  return (
+                    <tr
+                      key={row.id ?? rowIndex}
+                      className={
+                        isTotal
+                          ? "bg-slate-50/80"
+                          : "transition-colors hover:bg-slate-50/60 " +
+                            (rowIndex % 2 === 1 ? "bg-slate-50/30" : "")
+                      }
+                    >
+                      {columns.map((col) => {
+                        if (groupColumn && col.key === groupColumn.key) {
+                          const span = groupSpans[rowIndex];
+                          if (span === 0) return null;
+                          return (
+                            <td
+                              key={col.key}
+                              rowSpan={span}
+                              className={
+                                cellPad +
+                                " align-top border-r border-slate-100 bg-slate-50/50 font-medium text-slate-700 " +
+                                (isFixed ? "break-words" : "whitespace-nowrap")
+                              }
+                              style={
+                                col.width ? { width: col.width } : undefined
+                              }
+                            >
+                              {row[col.key]}
+                            </td>
+                          );
+                        }
                         return (
                           <td
                             key={col.key}
-                            rowSpan={span}
                             className={
                               cellPad +
-                              " align-top border-r border-slate-100 bg-slate-50/50 font-medium text-slate-700 " +
-                              (isFixed ? "break-words" : "whitespace-nowrap")
+                              " " +
+                              (col.wrap
+                                ? "whitespace-normal break-words"
+                                : "whitespace-nowrap") +
+                              " " +
+                              (col.align === "right"
+                                ? "text-right"
+                                : "text-left") +
+                              " " +
+                              (isTotal
+                                ? "border-t border-slate-300 font-semibold text-slate-900"
+                                : "text-slate-700") +
+                              (col.wrap && !isFixed ? " min-w-[14rem]" : "") +
+                              (col.wrap ? " text-slate-500" : "")
                             }
                             style={col.width ? { width: col.width } : undefined}
                           >
-                            {row[col.key]}
+                            <CellValue column={col} value={row[col.key]} />
                           </td>
                         );
-                      }
-                      return (
-                        <td
-                          key={col.key}
-                          className={
-                            cellPad +
-                            " " +
-                            (col.wrap
-                              ? "whitespace-normal break-words"
-                              : "whitespace-nowrap") +
-                            " " +
-                            (col.align === "right"
-                              ? "text-right"
-                              : "text-left") +
-                            " " +
-                            (isTotal
-                              ? "border-t border-slate-300 font-semibold text-slate-900"
-                              : "text-slate-700") +
-                            (col.wrap && !isFixed ? " min-w-[14rem]" : "") +
-                            (col.wrap ? " text-slate-500" : "")
-                          }
-                          style={col.width ? { width: col.width } : undefined}
-                        >
-                          <CellValue column={col} value={row[col.key]} />
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })
-            )}
+                      })}
+                    </tr>
+                  );
+                })}
           </tbody>
         </table>
       </div>
     </section>
+  );
+}
+
+function emptyRows(emptyLabel, columns, cellPad) {
+  return (
+    <tr>
+      <td
+        colSpan={columns.length}
+        className={cellPad + " text-center text-sm text-slate-400"}
+      >
+        {emptyLabel}
+      </td>
+    </tr>
   );
 }

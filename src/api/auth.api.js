@@ -1,4 +1,4 @@
-import workerApi from "worker/src/utils/worker.util";
+import workerApi from "@/utils/worker.util";
 
 export async function loginRequest(email, password) {
   const { data } = await workerApi.post("/api/auth/login", { email, password });

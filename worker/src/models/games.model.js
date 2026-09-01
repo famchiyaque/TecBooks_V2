@@ -15,3 +15,10 @@ export async function getTeam(db, gameId) {
     .bind(gameId)
     .first();
 }
+
+export async function getYears(db, gameId) {
+  return db
+    .prepare("SELECT start_date, end_date FROM games WHERE id = ?")
+    .bind(gameId)
+    .first();
+}
