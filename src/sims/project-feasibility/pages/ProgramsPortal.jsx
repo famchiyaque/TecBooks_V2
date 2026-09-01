@@ -1,39 +1,17 @@
 import React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Box, Button, Typography, CircularProgress, Alert } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import { useAuth } from '@/contexts/AuthContext'
-import SimCard from '@/components/home/SimCard'
-import { listProgramsRequest } from '../api/programs.api'
-
-const PROGRAM_CARD_TITLE = 'Project Feasibility Simulation'
-const PROGRAM_CARD_DESC = 'Evaluate whether a project is financially and operationally viable before committing resources.'
-const PROGRAM_CARD_IMAGE = 'business_landing.png'
+import { projectDisplayName } from '../model/programExtractors'
+import { usePrograms } from './ProgramsContext.jsx'
 
 function ProgramsPortal() {
   const { user } = useAuth()
-  const [programs, setPrograms] = React.useState([])
-  const [status, setStatus] = React.useState('loading')
-
-  React.useEffect(() => {
-    let cancelled = false
-
-    listProgramsRequest()
-      .then((data) => {
-        if (cancelled) return
-        setPrograms(data)
-        setStatus('ready')
-      })
-      .catch(() => {
-        if (cancelled) return
-        setStatus('error')
-      })
-
-    return () => { cancelled = true }
-  }, [])
+  const { programs, status } = usePrograms()
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 4, textAlign: 'left' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
@@ -74,16 +52,28 @@ function ProgramsPortal() {
       )}
 
       {status === 'ready' && programs.length > 0 && (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mt: 4 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2, mt: 4 }}>
           {programs.map((program) => (
-            <SimCard
-              key={program.id}
-              title={PROGRAM_CARD_TITLE}
-              desc={PROGRAM_CARD_DESC}
-              img_path={PROGRAM_CARD_IMAGE}
-              sim_route={`/sims/project-feasibility/programs/${program.id}`}
-              requireAuth
-            />
+            <Card key={program.id} sx={{ borderRadius: 2, boxShadow: '0 0 0 1px rgba(7, 58, 90, 0.12)' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#073a5a' }}>
+                  {program.name}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7, mb: 1.5 }}>
+                  {program.projects?.length ?? 0} proyecto{(program.projects?.length ?? 0) === 1 ? '' : 's'}
+                </Typography>
+                {(program.projects ?? []).map((project) => (
+                  <Typography key={project.id} variant="body2" sx={{ mb: 0.5 }}>
+                    <RouterLink
+                      to={`${program.id}/${project.id}`}
+                      style={{ color: '#1e90ff', textDecoration: 'none' }}
+                    >
+                      {projectDisplayName(project) || `Proyecto ${project.id}`}
+                    </RouterLink>
+                  </Typography>
+                ))}
+              </CardContent>
+            </Card>
           ))}
         </Box>
       )}

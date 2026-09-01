@@ -13,3 +13,4 @@ export { validateProjectClass, validateProgram } from './model/validateProjectCl
 export { getFileGateError, getProgramFileCountError } from './parse/fileGates.js'
 export { parseNovusProject, parseNovusProjectFile } from './parse/parseNovusProject.js'
 export { createProgramRequest, listProgramsRequest } from './api/programs.api.js'
+export { projectDisplayName, toSidebarPrograms, findProgramProject } from './model/programExtractors.js'
