@@ -1,115 +1,28 @@
 import React from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import {
-  Box, Button, Typography, CircularProgress, Alert,
-  Card, CardMedia, CardContent, CardActions,
-} from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import EastIcon from '@mui/icons-material/East'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageTour } from '@/tours/PageTour'
-import TourButton from '@/components/global/TourButton'
-import { listProgramsRequest } from '../api/programs.api'
-
-const programsPortalTour = new PageTour([
-  {
-    element: '#add-project-btn',
-    popover: {
-      title: 'Upload a project',
-      description: 'Upload your InputNovus Excel file here to create a new program.',
-    },
-  },
-  {
-    element: '#programs-list',
-    popover: {
-      title: 'Your programs',
-      description: 'Click any card to see its projects and cost table.',
-    },
-  },
-])
-
-const PROGRAM_CARD_IMAGE = 'business_landing.png'
-
-function ProgramCard({ program, onClick }) {
-  const projectNames = program.projects.map((project) => project.name)
-
-  return (
-    <Card
-      onClick={onClick}
-      sx={{
-        width: 345,
-        cursor: 'pointer',
-        boxShadow: 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, navy 0px 0px 0px 1px',
-        borderRadius: '15px',
-      }}
-    >
-      <CardMedia sx={{ height: 140 }} image={`/imgs/${PROGRAM_CARD_IMAGE}`} title={program.name} />
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="div" sx={{ fontWeight: 600 }}>
-          {program.name}
-        </Typography>
-        {projectNames.length === 0 ? (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            No projects yet.
-          </Typography>
-        ) : (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {projectNames.length} project{projectNames.length === 1 ? '' : 's'}: {projectNames.join(', ')}
-          </Typography>
-        )}
-      </CardContent>
-      <CardActions>
-        <div style={{ width: '100%', marginLeft: 'auto', paddingRight: '1rem' }}>
-          <button className="learn-more continue-btn" style={{ color: '#eec60a' }}>
-            Go To Sim
-            <EastIcon sx={{ height: '100%', fontSize: '120%', fontWeight: 600 }} />
-          </button>
-        </div>
-      </CardActions>
-    </Card>
-  )
-}
+import { projectDisplayName } from '../model/programExtractors'
+import { usePrograms } from './ProgramsContext.jsx'
 
 function ProgramsPortal() {
   const { user } = useAuth()
-  const navigate = useNavigate()
-  const [programs, setPrograms] = React.useState([])
-  const [status, setStatus] = React.useState('loading')
-
-  React.useEffect(() => {
-    let cancelled = false
-
-    listProgramsRequest()
-      .then((data) => {
-        if (cancelled) return
-        setPrograms(data)
-        setStatus('ready')
-      })
-      .catch(() => {
-        if (cancelled) return
-        setStatus('error')
-      })
-
-    return () => { cancelled = true }
-  }, [])
+  const { programs, status } = usePrograms()
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 4, textAlign: 'left' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
-              Project Feasibility Simulation
-            </Typography>
-            <Typography sx={{ mt: 1, opacity: 0.8 }}>
-              Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
-            </Typography>
-          </Box>
-          <TourButton tour={programsPortalTour} />
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
+            Project Feasibility Simulation
+          </Typography>
+          <Typography sx={{ mt: 1, opacity: 0.8 }}>
+            Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
+          </Typography>
         </Box>
 
         <Button
-          id="add-project-btn"
           component={RouterLink}
           to="new"
           variant="contained"
@@ -139,13 +52,28 @@ function ProgramsPortal() {
       )}
 
       {status === 'ready' && programs.length > 0 && (
-        <Box id="programs-list" sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mt: 4 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2, mt: 4 }}>
           {programs.map((program) => (
-            <ProgramCard
-              key={program.id}
-              program={program}
-              onClick={() => navigate(`/sims/project-feasibility/programs/${program.id}`)}
-            />
+            <Card key={program.id} sx={{ borderRadius: 2, boxShadow: '0 0 0 1px rgba(7, 58, 90, 0.12)' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#073a5a' }}>
+                  {program.name}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7, mb: 1.5 }}>
+                  {program.projects?.length ?? 0} project{(program.projects?.length ?? 0) === 1 ? '' : 's'}
+                </Typography>
+                {(program.projects ?? []).map((project) => (
+                  <Typography key={project.id} variant="body2" sx={{ mb: 0.5 }}>
+                    <RouterLink
+                      to={`${program.id}/${project.id}`}
+                      style={{ color: '#1e90ff', textDecoration: 'none' }}
+                    >
+                      {projectDisplayName(project) || `Project ${project.id}`}
+                    </RouterLink>
+                  </Typography>
+                ))}
+              </CardContent>
+            </Card>
           ))}
         </Box>
       )}

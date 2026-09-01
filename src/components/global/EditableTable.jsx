@@ -1,11 +1,14 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
-  IconButton, TextField,
-} from '@mui/material'
+import { Table, TableBody, TableCell, TableHead, TableRow, IconButton, TextField } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutline from '@mui/icons-material/DeleteOutline'
+
+// Same Tailwind look as components/global/TableContainer.jsx (the shared
+// card+table shell for financial data) - kept as its own component here
+// because this one needs double-click-to-edit + hover add/delete, which
+// TableContainer doesn't support.
+const CELL_PAD = 'px-5 py-3'
 
 function defaultFormat(value) {
   return `$${Math.round(value || 0).toLocaleString('es-MX')}`
@@ -17,8 +20,14 @@ function parseCellInput(raw) {
   return Number.isFinite(value) ? value : 0
 }
 
+function valueColorClass(value) {
+  const isEmpty = value === undefined || value === null || value === ''
+  if (isEmpty) return 'text-slate-300'
+  return value < 0 ? 'text-rose-600' : 'text-emerald-700'
+}
+
 /** Double-click a value to edit it inline; Enter/blur commits, Escape cancels. */
-function EditableValueCell({ value, onCommit, align = 'right', formatValue }) {
+function EditableValueCell({ value, onCommit, formatValue }) {
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState('')
 
@@ -34,7 +43,7 @@ function EditableValueCell({ value, onCommit, align = 'right', formatValue }) {
 
   if (editing) {
     return (
-      <TableCell align={align}>
+      <TableCell align="right" className={CELL_PAD}>
         <TextField
           autoFocus
           size="small"
@@ -45,7 +54,7 @@ function EditableValueCell({ value, onCommit, align = 'right', formatValue }) {
             if (event.key === 'Enter') commit()
             if (event.key === 'Escape') setEditing(false)
           }}
-          inputProps={{ style: { textAlign: align } }}
+          inputProps={{ style: { textAlign: 'right' } }}
           sx={{ width: 130 }}
         />
       </TableCell>
@@ -53,8 +62,12 @@ function EditableValueCell({ value, onCommit, align = 'right', formatValue }) {
   }
 
   return (
-    <TableCell align={align} onDoubleClick={startEditing} sx={{ cursor: 'text' }}>
-      {formatValue(value)}
+    <TableCell
+      align="right"
+      onDoubleClick={startEditing}
+      className={`${CELL_PAD} whitespace-nowrap cursor-text`}
+    >
+      <span className={`tabular-nums ${valueColorClass(value)}`}>{formatValue(value)}</span>
     </TableCell>
   )
 }
@@ -75,7 +88,7 @@ function EditableLabelCell({ label, onCommit }) {
 
   if (editing) {
     return (
-      <TableCell>
+      <TableCell className={CELL_PAD}>
         <TextField
           autoFocus
           size="small"
@@ -92,7 +105,10 @@ function EditableLabelCell({ label, onCommit }) {
   }
 
   return (
-    <TableCell onDoubleClick={startEditing} sx={{ cursor: 'text' }}>
+    <TableCell
+      onDoubleClick={startEditing}
+      className={`${CELL_PAD} whitespace-nowrap cursor-text font-medium text-slate-700`}
+    >
       {label}
     </TableCell>
   )
@@ -135,19 +151,26 @@ function EditableTable({
   })
 
   return (
-    <>
+    <section className="mt-3 rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
       {title && (
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#073a5a', mt: 3 }}>
-          {title}
-        </Typography>
+        <div className="border-b border-slate-100 px-6 py-4">
+          <h3 className="text-[15px] font-semibold text-slate-900">{title}</h3>
+        </div>
       )}
-      <TableContainer component={Card} sx={{ mt: 1, borderRadius: '15px', border: 'solid #073a5a 1px' }}>
-        <Table size="small">
+
+      <div className="overflow-x-auto">
+        <Table size="small" className="w-full min-w-max border-collapse text-sm">
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#073a5a' }}>
-              <TableCell sx={{ color: '#fff', fontWeight: 600 }}>Concepto</TableCell>
+            <TableRow className="border-b border-slate-200 bg-slate-50/60">
+              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[13px] font-medium text-slate-500`}>
+                Concept
+              </TableCell>
               {columns.map(({ key, label }) => (
-                <TableCell key={key} align="right" sx={{ color: '#fff', fontWeight: 600 }}>
+                <TableCell
+                  key={key}
+                  align="right"
+                  className={`${CELL_PAD} whitespace-nowrap text-[13px] font-medium text-slate-500`}
+                >
                   {label}
                 </TableCell>
               ))}
@@ -155,9 +178,12 @@ function EditableTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.key} sx={{ '&:hover .row-actions': { opacity: 1 } }}>
-                <TableCell>{row.label}</TableCell>
+            {rows.map((row, rowIndex) => (
+              <TableRow
+                key={row.key}
+                className={`group transition-colors hover:bg-slate-50/60 ${rowIndex % 2 === 1 ? 'bg-slate-50/30' : ''}`}
+              >
+                <TableCell className={`${CELL_PAD} whitespace-nowrap text-slate-700`}>{row.label}</TableCell>
                 {columns.map(({ key: columnKey }) => (
                   <EditableValueCell
                     key={columnKey}
@@ -166,13 +192,12 @@ function EditableTable({
                     formatValue={formatValue}
                   />
                 ))}
-                <TableCell align="right">
+                <TableCell align="right" className={CELL_PAD}>
                   <IconButton
                     size="small"
-                    className="row-actions"
                     aria-label="add row"
                     onClick={() => dispatch(slice.actions.addCustomRow())}
-                    sx={{ opacity: 0, transition: 'opacity 0.15s' }}
+                    className="opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <AddIcon fontSize="small" />
                   </IconButton>
@@ -181,7 +206,7 @@ function EditableTable({
             ))}
 
             {customRows.map((customRow) => (
-              <TableRow key={customRow.id} sx={{ '&:hover .row-actions': { opacity: 1 } }}>
+              <TableRow key={customRow.id} className="group transition-colors hover:bg-slate-50/60">
                 <EditableLabelCell
                   label={customRow.label}
                   onCommit={(label) => dispatch(slice.actions.setCustomRowLabel({ id: customRow.id, label }))}
@@ -196,22 +221,20 @@ function EditableTable({
                     formatValue={formatValue}
                   />
                 ))}
-                <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                <TableCell align="right" className={`${CELL_PAD} whitespace-nowrap`}>
                   <IconButton
                     size="small"
-                    className="row-actions"
                     aria-label="add row"
                     onClick={() => dispatch(slice.actions.addCustomRow())}
-                    sx={{ opacity: 0, transition: 'opacity 0.15s' }}
+                    className="opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <AddIcon fontSize="small" />
                   </IconButton>
                   <IconButton
                     size="small"
-                    className="row-actions"
                     aria-label="delete row"
                     onClick={() => dispatch(slice.actions.removeCustomRow(customRow.id))}
-                    sx={{ opacity: 0, transition: 'opacity 0.15s' }}
+                    className="opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <DeleteOutline fontSize="small" />
                   </IconButton>
@@ -219,19 +242,25 @@ function EditableTable({
               </TableRow>
             ))}
 
-            <TableRow sx={{ backgroundColor: '#e4f1fe' }}>
-              <TableCell sx={{ fontWeight: 700, color: '#073a5a' }}>{totalLabel}</TableCell>
+            <TableRow className="bg-slate-50/80">
+              <TableCell className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}>
+                {totalLabel}
+              </TableCell>
               {columns.map(({ key: columnKey }, index) => (
-                <TableCell key={columnKey} align="right" sx={{ fontWeight: 700, color: '#073a5a' }}>
+                <TableCell
+                  key={columnKey}
+                  align="right"
+                  className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}
+                >
                   {formatValue(totalsByColumn[index])}
                 </TableCell>
               ))}
-              <TableCell />
+              <TableCell className="border-t border-slate-300" />
             </TableRow>
           </TableBody>
         </Table>
-      </TableContainer>
-    </>
+      </div>
+    </section>
   )
 }
 

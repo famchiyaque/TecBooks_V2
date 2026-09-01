@@ -3,12 +3,12 @@ import EditableTable from '@/components/global/EditableTable'
 import { costTableEditsSlice } from '@/store/costTable.store'
 
 const COST_ROWS = [
-  { key: 'rawMaterial', label: 'Costo de Materias Primas (MP)' },
-  { key: 'directLabour', label: 'Mano de Obra Directa (MOD)' },
-  { key: 'indirectManufacturing', label: 'Mano de Obra Indirecta' },
-  { key: 'engineeringSalaries', label: 'Costos de Ingenieria' },
-  { key: 'administrativeExpenses', label: 'Costos de Administracion' },
-  { key: 'indirectMaterials', label: 'Costos Materiales Indirectos' },
+  { key: 'rawMaterial', label: 'Raw Material Cost (MP)' },
+  { key: 'directLabour', label: 'Direct Labor (MOD)' },
+  { key: 'indirectManufacturing', label: 'Indirect Labor' },
+  { key: 'engineeringSalaries', label: 'Engineering Costs' },
+  { key: 'administrativeExpenses', label: 'Administrative Costs' },
+  { key: 'indirectMaterials', label: 'Indirect Material Costs' },
 ]
 
 function CostOfSalesTable({ costOfSalesByYear }) {
@@ -17,12 +17,12 @@ function CostOfSalesTable({ costOfSalesByYear }) {
 
   return (
     <EditableTable
-      title="Tabla de costos"
+      title="Cost Table"
       slice={costTableEditsSlice}
       columns={columns}
       rows={COST_ROWS}
       getValue={getValue}
-      totalLabel="Total de Costos"
+      totalLabel="Total Cost"
     />
   )
 }

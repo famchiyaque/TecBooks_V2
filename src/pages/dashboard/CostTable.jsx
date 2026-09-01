@@ -148,8 +148,8 @@ function CostTableContent() {
 
         {isValid && status === 'ready' && unclassifiedEmployees.length > 0 && (
           <Alert severity="warning" sx={{ mt: 2 }}>
-            {unclassifiedEmployees.length} empleado{unclassifiedEmployees.length === 1 ? '' : 's'} sin categoría
-            reconocida, no se contaron en la tabla: {unclassifiedEmployees.join(', ')}
+            {unclassifiedEmployees.length} employee{unclassifiedEmployees.length === 1 ? '' : 's'} with an unrecognized
+            category weren't counted in this table: {unclassifiedEmployees.join(', ')}
           </Alert>
         )}
 

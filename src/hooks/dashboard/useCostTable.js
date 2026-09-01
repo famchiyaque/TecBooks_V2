@@ -30,7 +30,7 @@ export default function useCostTable() {
 
     // RF-00-01: costs must be numeric values
     if (!areCostsNumeric(employees, production)) {
-      return { isValid: false, status: 'error', error: 'Tipos de datos incorrectos' };
+      return { isValid: false, status: 'error', error: 'Incorrect data types' };
     }
 
     // RF-00-05: year zero record must exist
@@ -48,7 +48,7 @@ export default function useCostTable() {
       return {
         isValid: false,
         status: 'error',
-        error: 'Empleados registrados no tienen su cantidad de empleados registrada',
+        error: 'Registered employees are missing their headcount (quantity)',
       };
     }
 
@@ -59,7 +59,7 @@ export default function useCostTable() {
       (production.purchaseOrders[year] ?? 0) > 0 && (production.qualityYield[year] ?? 0) > 0
     ));
     if (!hasCompleteProductionData) {
-      return { isValid: false, status: 'rejected', error: 'Proyecto invalido, intenta otro archivo' };
+      return { isValid: false, status: 'rejected', error: 'Invalid project, try another file' };
     }
 
     const { MOD, MOIndirecta, Ingenieria, Administracion } = sumSalariesByCategory(employees);
