@@ -15,15 +15,15 @@ const programsPortalTour = new PageTour([
   {
     element: '#add-project-btn',
     popover: {
-      title: 'Sube un proyecto',
-      description: 'Aquí subes el Excel de InputNovus y creas un programa nuevo.',
+      title: 'Upload a project',
+      description: 'Upload your InputNovus Excel file here to create a new program.',
     },
   },
   {
     element: '#programs-list',
     popover: {
-      title: 'Tus programas',
-      description: 'Click en cualquier card para ver los proyectos que tiene y su tabla de costos.',
+      title: 'Your programs',
+      description: 'Click any card to see its projects and cost table.',
     },
   },
 ])

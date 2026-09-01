@@ -3,7 +3,9 @@ import { useParams } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import BackButton from '@/components/global/BackButton'
+import TourButton from '@/components/global/TourButton'
 import CostOfSalesTable from '@/components/dashboard/CostOfSalesTable'
+import { PageTour } from '@/tours/PageTour'
 import { costTableEditsSlice } from '@/store/costTable.store'
 import {
   areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
@@ -38,6 +40,16 @@ function buildCostOfSales(cbm) {
 
   return { costOfSalesByYear, unclassifiedEmployees }
 }
+
+const projectCostTableTour = new PageTour([
+  {
+    element: '#cost-table',
+    popover: {
+      title: 'Cost table',
+      description: 'Double-click any value to override it. Hover a row to add a new cost row or delete a custom one.',
+    },
+  },
+])
 
 function ProjectCostTable() {
   const { programId, projectId } = useParams()
@@ -74,9 +86,12 @@ function ProjectCostTable() {
 
       {status === 'ready' && project && (
         <>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
-            {project.name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a' }}>
+              {project.name}
+            </Typography>
+            {result?.costOfSalesByYear && <TourButton tour={projectCostTableTour} />}
+          </Box>
 
           {result?.error && <Alert severity="warning">{result.error}</Alert>}
           {result?.unclassifiedEmployees?.length > 0 && (
@@ -86,9 +101,11 @@ function ProjectCostTable() {
             </Alert>
           )}
           {result?.costOfSalesByYear && (
-            <Provider store={editsStore}>
-              <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
-            </Provider>
+            <Box id="cost-table">
+              <Provider store={editsStore}>
+                <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
+              </Provider>
+            </Box>
           )}
         </>
       )}

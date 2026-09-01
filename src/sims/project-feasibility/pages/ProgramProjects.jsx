@@ -5,7 +5,19 @@ import {
 } from '@mui/material'
 import EastIcon from '@mui/icons-material/East'
 import BackButton from '@/components/global/BackButton'
+import TourButton from '@/components/global/TourButton'
+import { PageTour } from '@/tours/PageTour'
 import { useProgram } from '../hooks/useProgram'
+
+const programProjectsTour = new PageTour([
+  {
+    element: '#projects-list',
+    popover: {
+      title: 'Projects in this program',
+      description: 'Each card is one uploaded Excel file. Click one to open its cost table.',
+    },
+  },
+])
 
 function ProjectCard({ project, onClick }) {
   return (
@@ -63,14 +75,17 @@ function ProgramProjects() {
 
       {status === 'ready' && program && (
         <>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a', mb: 3 }}>
-            {program.name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
+              {program.name}
+            </Typography>
+            <TourButton tour={programProjectsTour} />
+          </Box>
 
           {program.projects.length === 0 ? (
             <Typography sx={{ opacity: 0.85 }}>This program has no projects.</Typography>
           ) : (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
+            <Box id="projects-list" sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
               {program.projects.map((project) => (
                 <ProjectCard
                   key={project.id}

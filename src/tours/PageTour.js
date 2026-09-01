@@ -9,18 +9,18 @@ const DEFAULT_CONFIG = {
   stagePadding: 6,
   stageRadius: 8,
   popoverClass: 'tecbooks-tour-popover',
-  nextBtnText: 'Siguiente',
-  prevBtnText: 'Atrás',
-  doneBtnText: 'Listo',
-  progressText: '{{current}} de {{total}}',
+  nextBtnText: 'Next',
+  prevBtnText: 'Previous',
+  doneBtnText: 'Done',
+  progressText: '{{current}} of {{total}}',
 }
 
 /**
  * Reusable guided-tour wrapper around driver.js. One instance per page:
  *
  *   export const programsPortalTour = new PageTour([
- *     { element: '#add-project-btn', popover: { title: 'Nuevo programa', description: 'Sube un Excel aquí.' } },
- *     { element: '#program-card-0', popover: { title: 'Tus programas', description: 'Click para ver sus proyectos.' } },
+ *     { element: '#add-project-btn', popover: { title: 'New program', description: 'Upload an Excel file here.' } },
+ *     { element: '#program-card-0', popover: { title: 'Your programs', description: 'Click to see its projects.' } },
  *   ])
  *
  * Then drop a <TourButton tour={programsPortalTour} /> anywhere on that page.
