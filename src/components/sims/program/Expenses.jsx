@@ -26,12 +26,12 @@ function Expenses() {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [data]);
 
   const { adminExpenses, investment, services, finances } = useExpenses(data);
 
   return (
-    <div className="flex flex-col gap-3 mt-3">
+    <div className="flex flex-col gap-3 mt-3 p-3">
       {isLoading && <p>Loading...</p>}
       {error && <p>Error</p>}
       {!isLoading && !error && data && (

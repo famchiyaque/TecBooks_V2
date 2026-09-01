@@ -25,6 +25,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Personal work directories for markdown files
+work/
+
 # Make config file now private
 .env
 .env.production

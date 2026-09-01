@@ -1,54 +1,41 @@
-import React, { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import React from "react";
 import GenericHeader from "@/components/global/GenericHeader";
-import GenericSubheader from "@/components/global/GenericSubheader";
-import { useAuth } from "@/contexts/AuthContext";
 import Expenses from "@/components/sims/program/Expenses";
-import Button from "@mui/material/Button";
+import RequireAuth from "@/sims/project-feasibility/pages/RequireAuth.jsx";
+import ProgramsPortal from "@/sims/project-feasibility/pages/ProgramsPortal.jsx";
+import ProgramsWorkspace from "@/sims/project-feasibility/pages/ProgramsWorkspace.jsx";
+import ProjectDashboard from "@/sims/project-feasibility/pages/ProjectDashboard.jsx";
+import NewProgram from "@/sims/project-feasibility/pages/NewProgram.jsx";
+import { StagingProvider } from "@/sims/project-feasibility/staging/StagingContext.jsx";
+import { Route, Routes, Navigate } from "react-router-dom";
 
 function ProjectFeasibility() {
-  const { user } = useAuth();
-  const [showNavside, setShowNavside] = useState(false);
-  const [activePage, setActivePage] = useState("home");
-
-  const pages = [
-    { content: <div>Home</div>, title: "home" },
-    { content: <Expenses />, title: "expenses" },
-  ];
-
   return (
     <>
       <GenericHeader pageName="Project Feasibility Simulation" />
-      <GenericSubheader
-        subheader={"Define Your Business Structure"}
-        onOpenSidebar={() => setShowNavside((prev) => !prev)}
-      />
-      {showNavside && (
-        <ul>
-          {pages.map((p, idx) => (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                setActivePage(p.title);
-              }}
-              key={idx}
-            >
-              {p.title}
-            </Button>
-          ))}
-        </ul>
-      )}
-      <Box sx={{ p: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: "#073a5a" }}>
-          Project Feasibility Simulation
-        </Typography>
-        <Typography sx={{ mt: 1, opacity: 0.8 }}>
-          Bienvenido{user?.first_name ? `, ${user.first_name}` : ""}. Simulador
-          en construcción.
-        </Typography>
-        {pages.filter((c) => c.title == activePage)[0].content}
-      </Box>
+      <Routes>
+        <Route index element={<Navigate to="programs" replace />} />
+
+        <Route element={<RequireAuth />}>
+          <Route element={<ProgramsWorkspace />}>
+            <Route path="programs" element={<ProgramsPortal />} />
+            <Route
+              path="programs/:programId/:projectId"
+              element={<ProjectDashboard />}
+            />
+          </Route>
+
+          <Route
+            path="programs/new"
+            element={
+              <StagingProvider>
+                <NewProgram />
+              </StagingProvider>
+            }
+          />
+        </Route>
+        <Route path="expenses" element={<Expenses />} />
+      </Routes>
     </>
   );
 }

@@ -11,8 +11,8 @@ import TableContainer from "@/components/global/TableContainer";
 export default function InvestmentTable({ items }) {
   const columns = useMemo(
     () => [
-      { key: "concept", label: "concept" },
-      { key: "amount", label: "amount", align: "right", type: "currency" },
+      { key: "concept", label: "Categoría" },
+      { key: "amount", label: "Costo", align: "right", type: "currency" },
     ],
     [],
   );

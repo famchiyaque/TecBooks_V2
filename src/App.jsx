@@ -71,7 +71,7 @@ function App() {
                     />
                     <Route path="forecasting" element={<Forecasts />} />
                     <Route
-                      path="project-feasibility"
+                      path="project-feasibility/*"
                       element={<ProjectFeasibility />}
                     />
                   </Route>

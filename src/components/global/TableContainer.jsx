@@ -175,7 +175,7 @@ export default function TableContainer({
                       key={row.id ?? rowIndex}
                       className={
                         isTotal
-                          ? "bg-slate-50/80"
+                          ? "bg-slate-50/80 rounded-b-md"
                           : "transition-colors hover:bg-slate-50/60 " +
                             (rowIndex % 2 === 1 ? "bg-slate-50/30" : "")
                       }
