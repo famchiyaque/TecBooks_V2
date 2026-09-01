@@ -7,7 +7,26 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import EastIcon from '@mui/icons-material/East'
 import { useAuth } from '@/contexts/AuthContext'
+import { PageTour } from '@/tours/PageTour'
+import TourButton from '@/components/global/TourButton'
 import { listProgramsRequest } from '../api/programs.api'
+
+const programsPortalTour = new PageTour([
+  {
+    element: '#add-project-btn',
+    popover: {
+      title: 'Sube un proyecto',
+      description: 'Aquí subes el Excel de InputNovus y creas un programa nuevo.',
+    },
+  },
+  {
+    element: '#programs-list',
+    popover: {
+      title: 'Tus programas',
+      description: 'Click en cualquier card para ver los proyectos que tiene y su tabla de costos.',
+    },
+  },
+])
 
 const PROGRAM_CARD_IMAGE = 'business_landing.png'
 
@@ -77,16 +96,20 @@ function ProgramsPortal() {
   return (
     <Box sx={{ p: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
-            Project Feasibility Simulation
-          </Typography>
-          <Typography sx={{ mt: 1, opacity: 0.8 }}>
-            Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#073a5a' }}>
+              Project Feasibility Simulation
+            </Typography>
+            <Typography sx={{ mt: 1, opacity: 0.8 }}>
+              Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
+            </Typography>
+          </Box>
+          <TourButton tour={programsPortalTour} />
         </Box>
 
         <Button
+          id="add-project-btn"
           component={RouterLink}
           to="new"
           variant="contained"
@@ -116,7 +139,7 @@ function ProgramsPortal() {
       )}
 
       {status === 'ready' && programs.length > 0 && (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mt: 4 }}>
+        <Box id="programs-list" sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mt: 4 }}>
           {programs.map((program) => (
             <ProgramCard
               key={program.id}
