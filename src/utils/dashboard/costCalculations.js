@@ -116,14 +116,17 @@ export function computeGrossProfit(netSales, totalCostOfSales) {
 /**
  * Builds the per-year cost-of-sales table consumed by the "Estado" cost table.
  * Salary categories are treated as flat annual totals applied to every year of the projection.
+ * RF-55: Administracion (admin salaries) is NOT part of cost of sales / gross profit -
+ * the reference Estado R template only ever subtracts it later, in Gastos de Operacion.
+ * See computeAdministrativeExpenses / computeOperatingExpenses for where it's used.
  */
 export function buildCostOfSalesTable(years, {
-  MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials, netSales,
+  MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
 }) {
   return years.map((year) => {
     const rawMaterial = MP[year] || 0;
     const indirectMaterialsForYear = indirectMaterials[year] || 0;
-    const totalCostOfSales = rawMaterial + MOD + MOIndirecta + Ingenieria + Administracion + indirectMaterialsForYear;
+    const totalCostOfSales = rawMaterial + MOD + MOIndirecta + Ingenieria + indirectMaterialsForYear;
     const netSalesForYear = netSales?.[year] || 0;
 
     return {
@@ -132,11 +135,74 @@ export function buildCostOfSalesTable(years, {
       directLabour: MOD,
       indirectManufacturing: MOIndirecta,
       engineeringSalaries: Ingenieria,
-      administrativeExpenses: Administracion,
       indirectMaterials: indirectMaterialsForYear,
       totalCostOfSales,
       netSales: netSalesForYear,
       grossProfit: computeGrossProfit(netSalesForYear, totalCostOfSales),
     };
   });
+}
+
+/**
+ * RF-55: depreciationByYear = rate[year] * cumulative acquisition cost of the
+ * asset class through that year (assets already owned keep depreciating in
+ * later years, new acquisitions join the base from their acquisition year on).
+ * Reused for buildings/transport/compute (assets.*) and machinery
+ * (capacity.machines - same {acquisitionByYear} shape, just no "name").
+ */
+export function computeAssetDepreciation(assets, depreciationRateByYear, years) {
+  const depreciationByYear = {};
+  let cumulativeAcquisition = 0;
+
+  for (const year of years) {
+    cumulativeAcquisition += assets.reduce((sum, asset) => sum + (asset.acquisitionByYear[year] || 0), 0);
+    depreciationByYear[year] = cumulativeAcquisition * (depreciationRateByYear[year] || 0);
+  }
+
+  return depreciationByYear;
+}
+
+/**
+ * salesExpenses[year] = netSales[year] * salesExpensePct[year] (Premisas "Porcentaje de gasto de venta")
+ */
+export function computeSalesExpenses(netSalesByYear, salesExpensePctByYear, years) {
+  const salesExpensesByYear = {};
+  for (const year of years) {
+    salesExpensesByYear[year] = (netSalesByYear[year] || 0) * (salesExpensePctByYear[year] || 0);
+  }
+  return salesExpensesByYear;
+}
+
+/**
+ * Gastos de Administracion = admin salaries (flat, from Empleados_2) + admin
+ * general expenses (Premisas "Porcentaje de administracion" * net sales).
+ */
+export function computeAdministrativeExpenses(administracionSalary, adminPctByYear, netSalesByYear, years) {
+  const administrativeByYear = {};
+  for (const year of years) {
+    administrativeByYear[year] = administracionSalary + (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
+  }
+  return administrativeByYear;
+}
+
+/**
+ * Gastos de Operacion = Gastos de Administracion + total depreciation + Gastos de Ventas
+ */
+export function computeOperatingExpenses(administrativeByYear, depreciationTotalByYear, salesExpensesByYear, years) {
+  const operatingExpensesByYear = {};
+  for (const year of years) {
+    operatingExpensesByYear[year] = (administrativeByYear[year] || 0)
+      + (depreciationTotalByYear[year] || 0)
+      + (salesExpensesByYear[year] || 0);
+  }
+  return operatingExpensesByYear;
+}
+
+/**
+ * RF-55: operatingProfit = grossProfit - operatingExpenses. Same
+ * single-value in/out shape as computeGrossProfit, for the same reason -
+ * reused both statically and for a live, override-aware recompute.
+ */
+export function computeOperatingProfit(grossProfit, operatingExpenses) {
+  return grossProfit - operatingExpenses;
 }

@@ -1,8 +1,10 @@
 import {
   areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
   computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
+  computeAssetDepreciation, computeSalesExpenses, computeAdministrativeExpenses,
+  computeOperatingExpenses, computeOperatingProfit,
 } from '@/utils/dashboard/costCalculations'
-import { cbmToCostTableInputs } from './cbmToCostTableInputs'
+import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 
 /**
  * Shared by ProjectCostSummary (Cost Table section) and ProfitSummary
@@ -30,9 +32,35 @@ export function buildCostOfSales(cbm) {
   const netSales = computeNetSales(production)
   const indirectMaterials = computeIndirectMaterialCosts(premises, netSales)
   const costOfSalesByYear = buildCostOfSalesTable(years, {
-    MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials, netSales,
+    MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
   })
   const unclassifiedEmployees = findUnclassifiedEmployees(employees)
 
-  return { costOfSalesByYear, unclassifiedEmployees }
+  const opex = cbmToOperatingExpenseInputs(cbm, years)
+  const depreciationBuildings = computeAssetDepreciation(opex.assets.buildings, opex.depreciationBuildings, years)
+  const depreciationTransport = computeAssetDepreciation(opex.assets.transport, opex.depreciationTransport, years)
+  const depreciationCompute = computeAssetDepreciation(opex.assets.compute, opex.depreciationCompute, years)
+  const depreciationMachinery = computeAssetDepreciation(opex.machines, opex.depreciationMachinery, years)
+  const depreciationTotal = {}
+  years.forEach((year) => {
+    depreciationTotal[year] = depreciationBuildings[year] + depreciationTransport[year]
+      + depreciationCompute[year] + depreciationMachinery[year]
+  })
+  const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
+  const administrativeExpenses = computeAdministrativeExpenses(Administracion, opex.adminPct, netSales, years)
+  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
+
+  const incomeStatementByYear = costOfSalesByYear.map((row) => ({
+    ...row,
+    administrativeExpenses: administrativeExpenses[row.year],
+    depreciationBuildings: depreciationBuildings[row.year],
+    depreciationTransport: depreciationTransport[row.year],
+    depreciationMachinery: depreciationMachinery[row.year],
+    depreciationCompute: depreciationCompute[row.year],
+    salesExpenses: salesExpenses[row.year],
+    operatingExpenses: operatingExpenses[row.year],
+    operatingProfit: computeOperatingProfit(row.grossProfit, operatingExpenses[row.year]),
+  }))
+
+  return { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }
 }
