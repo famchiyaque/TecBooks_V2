@@ -70,4 +70,21 @@ export class EditableTableSlice {
     const overrides = this.selectOverrides(state)
     return key in overrides ? overrides[key] : computedValue
   }
+
+  /**
+   * Same total EditableTable shows in its Total row (fixed rows with any
+   * overrides applied + custom rows), but callable from anywhere that reads
+   * this slice's state - e.g. a sibling "results" table that needs to react
+   * live to edits made in the actual editable table instead of only
+   * reflecting the value at the moment it was computed.
+   */
+  effectiveTotal({ overrides, customRows }, rows, getValue, columnKey) {
+    const fixedTotal = rows.reduce((sum, row) => {
+      const key = `${row.key}:${columnKey}`
+      const base = getValue(row.key, columnKey)
+      return sum + (key in overrides ? overrides[key] : base)
+    }, 0)
+    const customTotal = customRows.reduce((sum, row) => sum + (row.values[columnKey] || 0), 0)
+    return fixedTotal + customTotal
+  }
 }

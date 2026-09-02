@@ -52,7 +52,7 @@ function ProgramsPortal() {
           startIcon={<AddIcon />}
           sx={{ bgcolor: '#1e90ff', fontWeight: 600, borderRadius: 2, whiteSpace: 'nowrap' }}
         >
-          Add Project
+          Add Program
         </Button>
       </Box>
 
