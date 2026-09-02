@@ -8,10 +8,13 @@ import DeleteOutline from '@mui/icons-material/DeleteOutline'
 // card+table shell for financial data) - kept as its own component here
 // because this one needs double-click-to-edit + hover add/delete, which
 // TableContainer doesn't support.
-const CELL_PAD = 'px-5 py-3'
+const CELL_PAD = 'px-2 py-2'
 
+// Full figure, rounded only to cents (2 decimals) - no K/M abbreviation,
+// that throws away real precision on values like 1996263.45414.
 function defaultFormat(value) {
-  return `$${Math.round(value || 0).toLocaleString('es-MX')}`
+  const num = value || 0
+  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function parseCellInput(raw) {
@@ -128,9 +131,13 @@ function EditableLabelCell({ label, onCommit }) {
  * @param {(rowKey: string, columnKey: string|number) => number} getValue
  * @param {string} [totalLabel]
  * @param {(value: number) => string} [formatValue]
+ * @param {{key: string, label: string, compute: (effectiveTotal: number, columnKey: string|number) => number}[]} [summaryRows]
+ *   Read-only derived rows rendered after the Total row (e.g. Gross Profit) -
+ *   not editable, not counted into the Total sum, recomputed live from the
+ *   already override-aware column total so they stay in sync with edits.
  */
 function EditableTable({
-  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat,
+  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat, summaryRows = [],
 }) {
   const dispatch = useDispatch()
   const overrides = useSelector(slice.selectOverrides)
@@ -141,14 +148,9 @@ function EditableTable({
     return key in overrides ? overrides[key] : computedValue
   }
 
-  const totalsByColumn = columns.map(({ key: columnKey }) => {
-    const fixedTotal = rows.reduce(
-      (sum, row) => sum + effectiveValue(row.key, columnKey, getValue(row.key, columnKey)),
-      0
-    )
-    const customTotal = customRows.reduce((sum, row) => sum + (row.values[columnKey] || 0), 0)
-    return fixedTotal + customTotal
-  })
+  const totalsByColumn = columns.map(({ key: columnKey }) => (
+    slice.effectiveTotal({ overrides, customRows }, rows, getValue, columnKey)
+  ))
 
   return (
     <section className="mt-3 rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
@@ -159,22 +161,22 @@ function EditableTable({
       )}
 
       <div className="overflow-x-auto">
-        <Table size="small" className="w-full min-w-max border-collapse text-sm">
+        <Table size="small" className="w-full border-collapse text-xs">
           <TableHead>
             <TableRow className="border-b border-slate-200 bg-slate-50/60">
-              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[13px] font-medium text-slate-500`}>
+              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}>
                 Concept
               </TableCell>
               {columns.map(({ key, label }) => (
                 <TableCell
                   key={key}
                   align="right"
-                  className={`${CELL_PAD} whitespace-nowrap text-[13px] font-medium text-slate-500`}
+                  className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}
                 >
                   {label}
                 </TableCell>
               ))}
-              <TableCell sx={{ width: 120 }} />
+              <TableCell sx={{ width: 64 }} />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -257,6 +259,21 @@ function EditableTable({
               ))}
               <TableCell className="border-t border-slate-300" />
             </TableRow>
+
+            {summaryRows.map(({ key, label, compute }) => (
+              <TableRow key={key}>
+                <TableCell className={`${CELL_PAD} whitespace-nowrap font-medium text-slate-700`}>{label}</TableCell>
+                {columns.map(({ key: columnKey }, index) => {
+                  const value = compute(totalsByColumn[index], columnKey)
+                  return (
+                    <TableCell key={columnKey} align="right" className={`${CELL_PAD} whitespace-nowrap`}>
+                      <span className={`tabular-nums font-medium ${valueColorClass(value)}`}>{formatValue(value)}</span>
+                    </TableCell>
+                  )
+                })}
+                <TableCell />
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

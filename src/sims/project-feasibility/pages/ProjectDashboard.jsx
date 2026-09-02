@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Provider } from 'react-redux'
 import {
   Alert,
   Box,
@@ -21,6 +22,8 @@ import { HORIZON_YEARS } from '../constants'
 import { findProgramProject, projectDisplayName } from '../model/programExtractors'
 import { usePrograms } from './ProgramsContext.jsx'
 import ProjectCostSummary from '../costTable/ProjectCostSummary.jsx'
+import ProfitSummary from '../costTable/ProfitSummary.jsx'
+import { costTableEditsSlice } from '@/store/costTable.store'
 
 const TABS = [
   { id: 'balance', label: 'Balance Sheet' },
@@ -89,6 +92,11 @@ function ProjectDashboard() {
   const [tab, setTab] = useState(0)
   const { program, project } = findProgramProject(programs, programId, projectId)
 
+  // Shared by Cost Table + Utilidades so an edit in one is instantly visible
+  // in the other (RF-54-07) - fresh store per project so nothing leaks when
+  // navigating the sidebar. Hook must run before the early returns below.
+  const editsStore = React.useMemo(() => costTableEditsSlice.createStore(), [project?.id])
+
   if (status === 'loading') return null
 
   if (status === 'error') {
@@ -136,9 +144,14 @@ function ProjectDashboard() {
         {activeTab.id === 'razones' ? (
           <Box sx={{ mt: 2 }}>
             <Expenses />
-            <CollapsibleSection title="Cost Table" defaultExpanded>
-              <ProjectCostSummary project={project} />
-            </CollapsibleSection>
+            <Provider store={editsStore}>
+              <CollapsibleSection title="Cost Table" defaultExpanded>
+                <ProjectCostSummary project={project} />
+              </CollapsibleSection>
+              <CollapsibleSection title="Utilidades" defaultExpanded>
+                <ProfitSummary project={project} />
+              </CollapsibleSection>
+            </Provider>
           </Box>
         ) : (
           <MockStatement key={`${programId}-${projectId}-${activeTab.id}`} title={activeTab.label} />

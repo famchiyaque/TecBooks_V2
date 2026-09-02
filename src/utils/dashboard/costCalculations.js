@@ -104,14 +104,27 @@ export function computeIndirectMaterialCosts(premises, netSalesByYear) {
 }
 
 /**
+ * RF-54: grossProfit = netSales - totalCostOfSales.
+ * Single-value in/out on purpose - reused both for the static value baked
+ * into buildCostOfSalesTable's rows and for the live, override-aware
+ * recompute EditableTable's summary row does on every render.
+ */
+export function computeGrossProfit(netSales, totalCostOfSales) {
+  return netSales - totalCostOfSales;
+}
+
+/**
  * Builds the per-year cost-of-sales table consumed by the "Estado" cost table.
  * Salary categories are treated as flat annual totals applied to every year of the projection.
  */
-export function buildCostOfSalesTable(years, { MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials }) {
+export function buildCostOfSalesTable(years, {
+  MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials, netSales,
+}) {
   return years.map((year) => {
     const rawMaterial = MP[year] || 0;
     const indirectMaterialsForYear = indirectMaterials[year] || 0;
     const totalCostOfSales = rawMaterial + MOD + MOIndirecta + Ingenieria + Administracion + indirectMaterialsForYear;
+    const netSalesForYear = netSales?.[year] || 0;
 
     return {
       year,
@@ -122,6 +135,8 @@ export function buildCostOfSalesTable(years, { MP, MOD, MOIndirecta, Ingenieria,
       administrativeExpenses: Administracion,
       indirectMaterials: indirectMaterialsForYear,
       totalCostOfSales,
+      netSales: netSalesForYear,
+      grossProfit: computeGrossProfit(netSalesForYear, totalCostOfSales),
     };
   });
 }

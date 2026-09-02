@@ -2,7 +2,7 @@ import React from 'react'
 import EditableTable from '@/components/global/EditableTable'
 import { costTableEditsSlice } from '@/store/costTable.store'
 
-const COST_ROWS = [
+export const COST_ROWS = [
   { key: 'rawMaterial', label: 'Raw Material Cost (MP)' },
   { key: 'directLabour', label: 'Direct Labor (MOD)' },
   { key: 'indirectManufacturing', label: 'Indirect Labor' },
