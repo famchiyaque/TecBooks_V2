@@ -8,9 +8,10 @@ import { useQuery } from "@tanstack/react-query";
 import useExpenses from "@/hooks/sims/project/useExpenses";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 
-function Expenses() {
+function Expenses({ project }) {
   const investmentRef = useRef(null);
   const [investmentHeight, setInvestmentHeight] = useState(null);
+  console.log(project);
 
   const { isLoading, error, data } = useQuery({
     queryKey: ["expenses"],
@@ -37,10 +38,12 @@ function Expenses() {
       {error && <p>Error</p>}
       {!isLoading && !error && data && (
         <>
+          {/* Admin Table */}
           <CollapsibleSection title="Administrative Expenses" defaultExpanded>
             <AdminExpensesTable years={data.years} expenses={adminExpenses} />
           </CollapsibleSection>
 
+          {/* Investments and services */}
           <CollapsibleSection title="Investment & Services">
             <div className="flex items-start gap-3">
               <div ref={investmentRef}>
@@ -58,6 +61,7 @@ function Expenses() {
             </div>
           </CollapsibleSection>
 
+          {/* Financial Expenses */}
           <CollapsibleSection title="Financial Expenses">
             <FinancialExpensesTable years={data.years} items={finances} />
           </CollapsibleSection>
