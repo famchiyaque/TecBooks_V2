@@ -2,13 +2,14 @@ import {
   areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
   computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
   computeAssetDepreciation, computeSalesExpenses, computeAdministrativeExpenses,
-  computeOperatingExpenses, computeOperatingProfit,
+  computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
+  computeFinancingAmount, computeAmortizationSchedule,
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 
 /**
  * Shared by ProjectCostSummary (Cost Table section) and ProfitSummary
- * (Utilidades section) - both need the same computed costOfSalesByYear,
+ * (Profit Summary section) - both need the same computed costOfSalesByYear,
  * just render different rows from it. One source of truth for the
  * validation + calculation pipeline so they can't drift apart.
  */
@@ -27,7 +28,7 @@ export function buildCostOfSales(cbm) {
     return { error: 'This project has no year-zero record.' }
   }
 
-  const { MOD, MOIndirecta, Ingenieria, Administracion } = sumSalariesByCategory(employees)
+  const { MOD, MOIndirecta, Ingenieria, Administrative } = sumSalariesByCategory(employees)
   const MP = computeRawMaterialCost(production)
   const netSales = computeNetSales(production)
   const indirectMaterials = computeIndirectMaterialCosts(premises, netSales)
@@ -47,8 +48,25 @@ export function buildCostOfSales(cbm) {
       + depreciationCompute[year] + depreciationMachinery[year]
   })
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
-  const administrativeExpenses = computeAdministrativeExpenses(Administracion, opex.adminPct, netSales, years)
+  const administrativeExpenses = computeAdministrativeExpenses(Administrative, opex.adminPct, netSales, years)
   const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
+
+  const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
+  const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
+  const machineryInvestment = computeCumulativeInvestment([opex.machines], years)
+  const managementBills = {}
+  years.forEach((year) => { managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0) })
+  const financingAmount = computeFinancingAmount(investment, salariesTotal, managementBills, machineryInvestment, years)
+
+  const financialExpenses = {}
+  const creditPayment = {}
+  years.forEach((year) => {
+    const schedule = computeAmortizationSchedule(
+      financingAmount[year], opex.financingPeriods, opex.nationalLeadingRate[year]
+    )
+    financialExpenses[year] = schedule.financialExpenses
+    creditPayment[year] = schedule.creditPayment
+  })
 
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
@@ -60,6 +78,11 @@ export function buildCostOfSales(cbm) {
     salesExpenses: salesExpenses[row.year],
     operatingExpenses: operatingExpenses[row.year],
     operatingProfit: computeOperatingProfit(row.grossProfit, operatingExpenses[row.year]),
+    financialExpenses: financialExpenses[row.year],
+    creditPayment: creditPayment[row.year],
+    // RF-56 "Financial Income" ("Productos Financieros") has no source field
+    // in InputNovus - base 0, manual/overridable only, same as any other row.
+    financialIncome: 0,
   }))
 
   return { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }

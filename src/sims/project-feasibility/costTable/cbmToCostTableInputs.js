@@ -100,11 +100,12 @@ function mapAssetsToYears(assetList, years) {
 }
 
 /**
- * RF-55: assets (buildings/transport/compute), machinery (capacity.machines -
- * Inversion has no "maquinaria" block, machine acquisition cost lives in
- * Capacidad instead) and the Premisas rates depreciation/admin/sales-expense
- * need, all re-keyed from HORIZON_YEARS-indexed arrays to {year: value} maps
- * matching cbmToCostTableInputs' own output shape.
+ * RF-55/RF-56: assets (buildings/transport/compute), machinery
+ * (capacity.machines - Inversion has no "maquinaria" block, machine
+ * acquisition cost lives in Capacidad instead) and the Premisas rates
+ * depreciation/admin/sales-expense/financing need, all re-keyed from
+ * HORIZON_YEARS-indexed arrays to {year: value} maps matching
+ * cbmToCostTableInputs' own output shape.
  */
 export function cbmToOperatingExpenseInputs(cbm, years) {
   return {
@@ -120,5 +121,9 @@ export function cbmToOperatingExpenseInputs(cbm, years) {
     depreciationTransport: yearMapFromSeries(cbm.premises?.depreciationTransport, years),
     depreciationMachinery: yearMapFromSeries(cbm.premises?.depreciationMachinery, years),
     depreciationCompute: yearMapFromSeries(cbm.premises?.depreciationCompute, years),
+    // RF-56 "Tasa": Premisas "Tasa lider nacional" - the closest match to a
+    // generic bank lending rate InputNovus actually provides.
+    financingPeriods: cbm.timeline?.financingPeriods,
+    nationalLeadingRate: yearMapFromSeries(cbm.premises?.nationalLeadingRate, years),
   }
 }

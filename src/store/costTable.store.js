@@ -10,6 +10,10 @@ export const costTableEditsSlice = new EditableTableSlice('costTableEdits');
 // Expenses' total, and vice versa - each table owns its own custom rows.
 export const operatingExpenseEditsSlice = new EditableTableSlice('operatingExpenseEdits');
 
+// RF-56: same reasoning - Financial Result (Financial Expenses, Credit
+// Payment, Financial Income) owns its own custom rows/overrides.
+export const financialResultEditsSlice = new EditableTableSlice('financialResultEdits');
+
 const costTableSlice = createSlice({
   name: 'costTable',
   initialState: {

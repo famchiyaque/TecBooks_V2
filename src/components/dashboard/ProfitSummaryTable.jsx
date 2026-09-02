@@ -2,8 +2,8 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { IconButton } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { costTableEditsSlice, operatingExpenseEditsSlice } from '@/store/costTable.store'
-import { computeGrossProfit, computeOperatingProfit } from '@/utils/dashboard/costCalculations'
+import { costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice } from '@/store/costTable.store'
+import { computeGrossProfit, computeOperatingProfit, computeIncomeBeforeTaxes } from '@/utils/dashboard/costCalculations'
 import { COST_ROWS } from './CostOfSalesTable'
 import { OPERATING_EXPENSE_ROWS } from './OperatingExpensesTable'
 
@@ -18,6 +18,13 @@ const ROWS = [
   {
     key: 'operatingProfit', label: 'Operating Profit', emphasize: true,
     formula: 'Gross Profit − Total Operating Expenses',
+  },
+  { key: 'financialExpenses', label: 'Financial Expenses' },
+  { key: 'creditPayment', label: 'Credit Payment' },
+  { key: 'financialIncome', label: 'Financial Income' },
+  {
+    key: 'incomeBeforeTaxes', label: 'Income Before Taxes', emphasize: true,
+    formula: 'Operating Profit − Financial Expenses − Credit Payment + Financial Income',
   },
 ]
 
@@ -49,6 +56,9 @@ function valueColorClass(value) {
  * Table / Operating Expenses table above, so no need to scroll up to check
  * what's included), profit rows unfold into the plain-text formula since
  * their operands are already visible as other rows in this same table.
+ * RF-56: Financial Expenses/Credit Payment/Financial Income are atomic (no
+ * breakdown of their own, same as Net Sales) but stay live against
+ * financialResultEditsSlice, same override mechanism as everything else.
  */
 function ProfitSummaryTable({ costOfSalesByYear }) {
   const [expandedRows, setExpandedRows] = React.useState(() => new Set())
@@ -57,8 +67,14 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
   const customRows = useSelector(costTableEditsSlice.selectCustomRows)
   const opexOverrides = useSelector(operatingExpenseEditsSlice.selectOverrides)
   const opexCustomRows = useSelector(operatingExpenseEditsSlice.selectCustomRows)
+  const finOverrides = useSelector(financialResultEditsSlice.selectOverrides)
 
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
+
+  const finLineValue = (rowKey, year) => {
+    const overrideKey = `${rowKey}:${year}`
+    return overrideKey in finOverrides ? finOverrides[overrideKey] : getValue(rowKey, year)
+  }
 
   const rows = costOfSalesByYear.map((row) => {
     const totalCostOfSales = costTableEditsSlice.effectiveTotal(
@@ -68,13 +84,21 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
     const operatingExpenses = operatingExpenseEditsSlice.effectiveTotal(
       { overrides: opexOverrides, customRows: opexCustomRows }, OPERATING_EXPENSE_ROWS, getValue, row.year
     )
+    const operatingProfit = computeOperatingProfit(grossProfit, operatingExpenses)
+    const financialExpenses = finLineValue('financialExpenses', row.year)
+    const creditPayment = finLineValue('creditPayment', row.year)
+    const financialIncome = finLineValue('financialIncome', row.year)
     return {
       year: row.year,
       netSales: row.netSales,
       totalCostOfSales,
       grossProfit,
       operatingExpenses,
-      operatingProfit: computeOperatingProfit(grossProfit, operatingExpenses),
+      operatingProfit,
+      financialExpenses,
+      creditPayment,
+      financialIncome,
+      incomeBeforeTaxes: computeIncomeBeforeTaxes(operatingProfit, financialExpenses, creditPayment, financialIncome),
     }
   })
 
@@ -113,7 +137,7 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
   return (
     <section className="mt-3 rounded-2xl border-2 border-sky-200 bg-sky-50/30 shadow-sm">
       <div className="border-b border-sky-200 bg-sky-100/60 px-6 py-4">
-        <h3 className="text-[15px] font-semibold text-sky-900">Utilidades</h3>
+        <h3 className="text-[15px] font-semibold text-sky-900">Profit Summary</h3>
       </div>
 
       <div className="overflow-x-auto">

@@ -1,6 +1,6 @@
 /**
  * Cost table (RF 50) calculations.
- * Consolidates MP, MOD, MO indirecta, Ingenieria and Administracion into
+ * Consolidates MP, MOD, MO indirecta, Ingenieria and Administrative into
  * the per-year cost-of-sales table shown in the "Estado" statement.
  */
 
@@ -8,7 +8,7 @@ const CATEGORY_TO_KEY = {
   direct: 'MOD',
   indirect: 'MOIndirecta',
   engineering: 'Ingenieria',
-  administrative: 'Administracion',
+  administrative: 'Administrative',
 };
 
 function isFiniteNumber(value) {
@@ -34,12 +34,12 @@ export function areCostsNumeric(employees, production) {
 }
 
 /**
- * Sums annual salaries by category: MOD, MO indirecta, Ingenieria, Administracion.
+ * Sums annual salaries by category: MOD, MO indirecta, Ingenieria, Administrative.
  * Employees whose category didn't match any of the 4 known buckets are skipped -
  * use findUnclassifiedEmployees to surface those instead of losing them silently.
  */
 export function sumSalariesByCategory(employees) {
-  const totals = { MOD: 0, MOIndirecta: 0, Ingenieria: 0, Administracion: 0 };
+  const totals = { MOD: 0, MOIndirecta: 0, Ingenieria: 0, Administrative: 0 };
 
   for (const emp of employees) {
     const key = CATEGORY_TO_KEY[emp.category];
@@ -116,8 +116,8 @@ export function computeGrossProfit(netSales, totalCostOfSales) {
 /**
  * Builds the per-year cost-of-sales table consumed by the "Estado" cost table.
  * Salary categories are treated as flat annual totals applied to every year of the projection.
- * RF-55: Administracion (admin salaries) is NOT part of cost of sales / gross profit -
- * the reference Estado R template only ever subtracts it later, in Gastos de Operacion.
+ * RF-55: Administrative (admin salaries) is NOT part of cost of sales / gross profit -
+ * the reference Estado R template only ever subtracts it later, in Operating Expenses.
  * See computeAdministrativeExpenses / computeOperatingExpenses for where it's used.
  */
 export function buildCostOfSalesTable(years, {
@@ -174,19 +174,19 @@ export function computeSalesExpenses(netSalesByYear, salesExpensePctByYear, year
 }
 
 /**
- * Gastos de Administracion = admin salaries (flat, from Empleados_2) + admin
+ * Administrative Expenses = admin salaries (flat, from Empleados_2) + admin
  * general expenses (Premisas "Porcentaje de administracion" * net sales).
  */
-export function computeAdministrativeExpenses(administracionSalary, adminPctByYear, netSalesByYear, years) {
+export function computeAdministrativeExpenses(administrativeSalary, adminPctByYear, netSalesByYear, years) {
   const administrativeByYear = {};
   for (const year of years) {
-    administrativeByYear[year] = administracionSalary + (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
+    administrativeByYear[year] = administrativeSalary + (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
   }
   return administrativeByYear;
 }
 
 /**
- * Gastos de Operacion = Gastos de Administracion + total depreciation + Gastos de Ventas
+ * Operating Expenses = Administrative Expenses + total depreciation + Sales Expenses
  */
 export function computeOperatingExpenses(administrativeByYear, depreciationTotalByYear, salesExpensesByYear, years) {
   const operatingExpensesByYear = {};
@@ -205,4 +205,71 @@ export function computeOperatingExpenses(administrativeByYear, depreciationTotal
  */
 export function computeOperatingProfit(grossProfit, operatingExpenses) {
   return grossProfit - operatingExpenses;
+}
+
+/**
+ * RF-56: cumulative acquisition cost (not depreciated) of one or more asset
+ * groups through each year - the "Investment"/"Machinery" inputs the
+ * financing amount is built from. Same cumulative-sum shape as
+ * computeAssetDepreciation, just without the rate multiplication.
+ */
+export function computeCumulativeInvestment(assetGroups, years) {
+  const cumulativeByYear = {};
+  let cumulative = 0;
+
+  for (const year of years) {
+    cumulative += assetGroups.reduce(
+      (groupSum, assets) => groupSum + assets.reduce((sum, asset) => sum + (asset.acquisitionByYear[year] || 0), 0),
+      0
+    );
+    cumulativeByYear[year] = cumulative;
+  }
+
+  return cumulativeByYear;
+}
+
+/**
+ * RF-56: "Amount" to finance = Investment (buildings + transport + compute,
+ * cumulative) + Salaries (flat annual total, all categories) + Management
+ * Bills (admin general expense) + Machinery and Equipment * 0.35.
+ */
+export function computeFinancingAmount(
+  investmentByYear, salariesTotal, managementBillsByYear, machineryInvestmentByYear, years
+) {
+  const amountByYear = {};
+  for (const year of years) {
+    amountByYear[year] = (investmentByYear[year] || 0)
+      + salariesTotal
+      + (managementBillsByYear[year] || 0)
+      + (machineryInvestmentByYear[year] || 0) * 0.35;
+  }
+  return amountByYear;
+}
+
+/**
+ * RF-56: straight-line loan amortization over `periods` - each period pays
+ * back an equal slice of principal (creditPayment) and accrues interest on
+ * the full financed amount (financialExpenses). Matches the activity
+ * diagram literally: "Bank interest" is computed against "All amount", not
+ * a declining balance - periods fully repay the amount financed that year.
+ */
+export function computeAmortizationSchedule(allAmount, periods, annualRate) {
+  if (!periods) return { financialExpenses: 0, creditPayment: 0 };
+
+  let financialExpenses = 0;
+  let creditPayment = 0;
+  for (let period = 0; period < periods; period += 1) {
+    creditPayment += allAmount / periods;
+    financialExpenses += (annualRate / 12) * allAmount;
+  }
+  return { financialExpenses, creditPayment };
+}
+
+/**
+ * RF-56: incomeBeforeTaxes = operatingProfit - Financial Expenses (bank
+ * interest) - Credit Payment (principal) + Financial Income ("Productos
+ * Financieros" - no source field in InputNovus, manual/overridable only).
+ */
+export function computeIncomeBeforeTaxes(operatingProfit, financialExpenses, creditPayment, financialIncome) {
+  return operatingProfit - financialExpenses - creditPayment + financialIncome;
 }
