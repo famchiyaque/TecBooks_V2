@@ -14,6 +14,9 @@ export const operatingExpenseEditsSlice = new EditableTableSlice('operatingExpen
 // Payment, Financial Income) owns its own custom rows/overrides.
 export const financialResultEditsSlice = new EditableTableSlice('financialResultEdits');
 
+// RF-57: same reasoning - Taxes (ISR, PTU) owns its own custom rows/overrides.
+export const taxesEditsSlice = new EditableTableSlice('taxesEdits');
+
 const costTableSlice = createSlice({
   name: 'costTable',
   initialState: {

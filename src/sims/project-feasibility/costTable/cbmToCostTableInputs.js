@@ -125,5 +125,8 @@ export function cbmToOperatingExpenseInputs(cbm, years) {
     // generic bank lending rate InputNovus actually provides.
     financingPeriods: cbm.timeline?.financingPeriods,
     nationalLeadingRate: yearMapFromSeries(cbm.premises?.nationalLeadingRate, years),
+    // RF-57: Premisas "Tasa ISR" / "Tasa de PTU".
+    isr: yearMapFromSeries(cbm.premises?.isr, years),
+    ptu: yearMapFromSeries(cbm.premises?.ptu, years),
   }
 }

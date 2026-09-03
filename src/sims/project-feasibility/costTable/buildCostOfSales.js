@@ -3,7 +3,8 @@ import {
   computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
   computeAssetDepreciation, computeSalesExpenses, computeAdministrativeExpenses,
   computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
-  computeFinancingAmount, computeAmortizationSchedule,
+  computeFinancingAmount, computeAmortizationSchedule, computeIncomeBeforeTaxes,
+  computeTaxes, computeNetIncome,
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 
@@ -68,6 +69,17 @@ export function buildCostOfSales(cbm) {
     creditPayment[year] = schedule.creditPayment
   })
 
+  const incomeBeforeTaxes = {}
+  costOfSalesByYear.forEach((row) => {
+    const operatingProfit = computeOperatingProfit(row.grossProfit, operatingExpenses[row.year])
+    // RF-56 "Financial Income" has no source field - base 0 here, only ever
+    // set through an override, same as this static row for every other year.
+    incomeBeforeTaxes[row.year] = computeIncomeBeforeTaxes(
+      operatingProfit, financialExpenses[row.year], creditPayment[row.year], 0
+    )
+  })
+  const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
+
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
     administrativeExpenses: administrativeExpenses[row.year],
@@ -83,6 +95,10 @@ export function buildCostOfSales(cbm) {
     // RF-56 "Financial Income" ("Productos Financieros") has no source field
     // in InputNovus - base 0, manual/overridable only, same as any other row.
     financialIncome: 0,
+    incomeBeforeTaxes: incomeBeforeTaxes[row.year],
+    isr: taxes[row.year].isr,
+    ptu: taxes[row.year].ptu,
+    netIncome: computeNetIncome(incomeBeforeTaxes[row.year], taxes[row.year].total),
   }))
 
   return { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }

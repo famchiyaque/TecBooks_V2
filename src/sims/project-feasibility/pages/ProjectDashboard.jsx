@@ -24,7 +24,9 @@ import { findProgramProject, projectDisplayName } from '../model/programExtracto
 import { usePrograms } from './ProgramsContext.jsx'
 import ProjectCostSummary from '../costTable/ProjectCostSummary.jsx'
 import ProfitSummary from '../costTable/ProfitSummary.jsx'
-import { costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice } from '@/store/costTable.store'
+import {
+  costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice, taxesEditsSlice,
+} from '@/store/costTable.store'
 
 const TABS = [
   { id: 'balance', label: 'Balance Sheet' },
@@ -93,17 +95,18 @@ function ProjectDashboard() {
   const [tab, setTab] = useState(0)
   const { program, project } = findProgramProject(programs, programId, projectId)
 
-  // Shared by Cost Table + Operating Expenses + Financial Result + Profit
-  // Summary so an edit in one is instantly visible in the others
-  // (RF-54-07/RF-55/RF-56) - fresh store per project so nothing leaks when
-  // navigating the sidebar. Separate slices (not one) so a custom row added
-  // to one table isn't also summed into another's total. Hook must run
-  // before the early returns below.
+  // Shared by Cost Table + Operating Expenses + Financial Result + Taxes +
+  // Profit Summary so an edit in one is instantly visible in the others
+  // (RF-54-07/RF-55/RF-56/RF-57) - fresh store per project so nothing leaks
+  // when navigating the sidebar. Separate slices (not one) so a custom row
+  // added to one table isn't also summed into another's total. Hook must
+  // run before the early returns below.
   const editsStore = React.useMemo(() => configureStore({
     reducer: {
       [costTableEditsSlice.name]: costTableEditsSlice.reducer,
       [operatingExpenseEditsSlice.name]: operatingExpenseEditsSlice.reducer,
       [financialResultEditsSlice.name]: financialResultEditsSlice.reducer,
+      [taxesEditsSlice.name]: taxesEditsSlice.reducer,
     },
   }), [project?.id])
 

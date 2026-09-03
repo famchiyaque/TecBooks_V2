@@ -273,3 +273,26 @@ export function computeAmortizationSchedule(allAmount, periods, annualRate) {
 export function computeIncomeBeforeTaxes(operatingProfit, financialExpenses, creditPayment, financialIncome) {
   return operatingProfit - financialExpenses - creditPayment + financialIncome;
 }
+
+/**
+ * RF-57: ISR + PTU, both a flat rate (Premisas "Tasa ISR" / "Tasa de PTU")
+ * applied to incomeBeforeTaxes for that year.
+ */
+export function computeTaxes(incomeBeforeTaxesByYear, isrRateByYear, ptuRateByYear, years) {
+  const taxesByYear = {};
+  for (const year of years) {
+    const base = incomeBeforeTaxesByYear[year] || 0;
+    const isr = base * (isrRateByYear[year] || 0);
+    const ptu = base * (ptuRateByYear[year] || 0);
+    taxesByYear[year] = { isr, ptu, total: isr + ptu };
+  }
+  return taxesByYear;
+}
+
+/**
+ * RF-57: netIncome = incomeBeforeTaxes - (ISR + PTU). Same single-value
+ * in/out shape as computeGrossProfit/computeOperatingProfit.
+ */
+export function computeNetIncome(incomeBeforeTaxes, taxesTotal) {
+  return incomeBeforeTaxes - taxesTotal;
+}
