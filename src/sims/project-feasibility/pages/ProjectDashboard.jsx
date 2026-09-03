@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import Construction from "@mui/icons-material/Construction";
 import Expenses from "@/components/sims/program/Expenses";
+import Income from "@/components/sims/program/Income";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 import { PageTour } from "@/tours/PageTour";
 import TourButton from "@/components/global/TourButton";
@@ -189,6 +190,12 @@ function TabContent({ activeTab, programId, projectId, editsStore, project }) {
     return (
       <Provider store={editsStore}>
         <Expenses project={project} />;
+      </Provider>
+    );
+  else if (activeTab.id === "resultados")
+    return (
+      <Provider store={editsStore}>
+        <Income project={project} />
       </Provider>
     );
   else
