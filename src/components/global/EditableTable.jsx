@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Table, TableBody, TableCell, TableHead, TableRow, IconButton, TextField } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutline from '@mui/icons-material/DeleteOutline'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 // Same Tailwind look as components/global/TableContainer.jsx (the shared
 // card+table shell for financial data) - kept as its own component here
@@ -142,6 +143,7 @@ function EditableTable({
   const dispatch = useDispatch()
   const overrides = useSelector(slice.selectOverrides)
   const customRows = useSelector(slice.selectCustomRows)
+  const [totalExpanded, setTotalExpanded] = React.useState(false)
 
   const effectiveValue = (rowKey, columnKey, computedValue) => {
     const key = `${rowKey}:${columnKey}`
@@ -151,6 +153,8 @@ function EditableTable({
   const totalsByColumn = columns.map(({ key: columnKey }) => (
     slice.effectiveTotal({ overrides, customRows }, rows, getValue, columnKey)
   ))
+
+  const totalFormula = [...rows.map((row) => row.label), ...customRows.map((row) => row.label)].join(' + ')
 
   return (
     <section className="mt-3 rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
@@ -246,7 +250,20 @@ function EditableTable({
 
             <TableRow className="bg-slate-50/80">
               <TableCell className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}>
-                {totalLabel}
+                <span className="inline-flex items-center gap-1">
+                  <IconButton
+                    size="small"
+                    aria-label={totalExpanded ? 'collapse' : 'expand'}
+                    onClick={() => setTotalExpanded((prev) => !prev)}
+                    className="!p-0.5"
+                  >
+                    <ExpandMoreIcon
+                      fontSize="small"
+                      className={`transition-transform ${totalExpanded ? 'rotate-180' : ''}`}
+                    />
+                  </IconButton>
+                  {totalLabel}
+                </span>
               </TableCell>
               {columns.map(({ key: columnKey }, index) => (
                 <TableCell
@@ -259,6 +276,14 @@ function EditableTable({
               ))}
               <TableCell className="border-t border-slate-300" />
             </TableRow>
+
+            {totalExpanded && (
+              <TableRow className="bg-slate-50/50">
+                <TableCell colSpan={columns.length + 2} className="whitespace-nowrap py-1.5 pl-9 pr-2 italic text-slate-500">
+                  = {totalFormula}
+                </TableCell>
+              </TableRow>
+            )}
 
             {summaryRows.map(({ key, label, compute }) => (
               <TableRow key={key}>
