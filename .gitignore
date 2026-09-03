@@ -31,6 +31,7 @@ work/
 # Make config file now private
 .env
 .env.production
+.env.develop
 
 pnpm-lock.yaml
 pnpm-workspace.yaml

@@ -1,4 +1,4 @@
-import { HORIZON_LENGTH, MONTHS } from '../constants.js'
+import { HORIZON_LENGTH, HORIZON_YEARS, MONTHS } from '../constants.js'
 
 function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value)
@@ -17,13 +17,14 @@ function checkYearSeries(errors, warnings, label, series, { rates = false } = {}
   }
   series.forEach((value, index) => {
     if (value === undefined) return
+    const year = HORIZON_YEARS[index] ?? `year ${index + 1}`
     if (!isFiniteNumber(value)) {
-      errors.push(`${label}[${index}] is not a number`)
+      errors.push(`${label} (${year}) is not a number`)
       return
     }
-    if (value < 0) errors.push(`${label}[${index}] cannot be negative`)
+    if (value < 0) errors.push(`${label} (${year}) cannot be negative`)
     if (rates && value > 1) {
-      warnings.push(`${label}[${index}] is ${value}; if it was meant to be a percentage, use a decimal (e.g. 0.18)`)
+      warnings.push(`${label} (${year}) is ${value}; if it was meant to be a percentage, use a decimal (e.g. 0.18)`)
     }
   })
 }
