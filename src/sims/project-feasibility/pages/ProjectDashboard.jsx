@@ -24,8 +24,12 @@ import { findProgramProject, projectDisplayName } from '../model/programExtracto
 import { usePrograms } from './ProgramsContext.jsx'
 import ProjectCostSummary from '../costTable/ProjectCostSummary.jsx'
 import ProfitSummary from '../costTable/ProfitSummary.jsx'
+import BreakEvenSummary from '../costTable/BreakEvenSummary.jsx'
+import CashTable from '../costTable/CashTable.jsx'
+import OutflowsTable from '../costTable/OutflowsTable.jsx'
 import {
   costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice, taxesEditsSlice,
+  cashFlowEditsSlice, outflowEditsSlice,
 } from '@/store/costTable.store'
 
 const TABS = [
@@ -107,6 +111,8 @@ function ProjectDashboard() {
       [operatingExpenseEditsSlice.name]: operatingExpenseEditsSlice.reducer,
       [financialResultEditsSlice.name]: financialResultEditsSlice.reducer,
       [taxesEditsSlice.name]: taxesEditsSlice.reducer,
+      [cashFlowEditsSlice.name]: cashFlowEditsSlice.reducer,
+      [outflowEditsSlice.name]: outflowEditsSlice.reducer,
     },
   }), [project?.id])
 
@@ -154,7 +160,7 @@ function ProjectDashboard() {
       </Tabs>
 
       <Box id="project-dashboard-content">
-        {activeTab.id === 'razones' ? (
+        {activeTab.id === 'razones' && (
           <Box sx={{ mt: 2 }}>
             <Expenses />
             <Provider store={editsStore}>
@@ -164,9 +170,25 @@ function ProjectDashboard() {
               <CollapsibleSection title="Profit Summary" defaultExpanded>
                 <ProfitSummary project={project} />
               </CollapsibleSection>
+              <CollapsibleSection title="Break-even Point">
+                <BreakEvenSummary project={project} />
+              </CollapsibleSection>
             </Provider>
           </Box>
-        ) : (
+        )}
+        {activeTab.id === 'flujo' && (
+          <Box sx={{ mt: 2 }}>
+            <Provider store={editsStore}>
+              <CollapsibleSection title="Cash Inflows" defaultExpanded>
+                <CashTable project={project} />
+              </CollapsibleSection>
+              <CollapsibleSection title="Cash Outflows">
+                <OutflowsTable project={project} />
+              </CollapsibleSection>
+            </Provider>
+          </Box>
+        )}
+        {activeTab.id !== 'razones' && activeTab.id !== 'flujo' && (
           <MockStatement key={`${programId}-${projectId}-${activeTab.id}`} title={activeTab.label} />
         )}
       </Box>

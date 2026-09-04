@@ -17,6 +17,13 @@ export const financialResultEditsSlice = new EditableTableSlice('financialResult
 // RF-57: same reasoning - Taxes (ISR, PTU) owns its own custom rows/overrides.
 export const taxesEditsSlice = new EditableTableSlice('taxesEdits');
 
+// RF-63: same reasoning - Cash Table (Entradas) owns its own custom rows/overrides.
+export const cashFlowEditsSlice = new EditableTableSlice('cashFlowEdits');
+
+// RF-63: Cash Outflows (Salidas) - separate from cashFlowEditsSlice (Entradas)
+// so an override/custom row on one side doesn't leak into the other's total.
+export const outflowEditsSlice = new EditableTableSlice('outflowEdits');
+
 const costTableSlice = createSlice({
   name: 'costTable',
   initialState: {
