@@ -24,6 +24,7 @@ import { findProgramProject, projectDisplayName } from '../model/programExtracto
 import { usePrograms } from './ProgramsContext.jsx'
 import ProjectCostSummary from '../costTable/ProjectCostSummary.jsx'
 import ProfitSummary from '../costTable/ProfitSummary.jsx'
+import BreakEvenSummary from '../costTable/BreakEvenSummary.jsx'
 import {
   costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice, taxesEditsSlice,
 } from '@/store/costTable.store'
@@ -163,6 +164,9 @@ function ProjectDashboard() {
               </CollapsibleSection>
               <CollapsibleSection title="Profit Summary" defaultExpanded>
                 <ProfitSummary project={project} />
+              </CollapsibleSection>
+              <CollapsibleSection title="Break-even Point">
+                <BreakEvenSummary project={project} />
               </CollapsibleSection>
             </Provider>
           </Box>
