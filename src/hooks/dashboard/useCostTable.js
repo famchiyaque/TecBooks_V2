@@ -62,12 +62,12 @@ export default function useCostTable() {
       return { isValid: false, status: 'rejected', error: 'Invalid project, try another file' };
     }
 
-    const { MOD, MOIndirecta, Ingenieria, Administracion } = sumSalariesByCategory(employees);
+    const { MOD, MOIndirecta, Ingenieria } = sumSalariesByCategory(employees);
     const MP = computeRawMaterialCost(production);
     const netSales = computeNetSales(production);
     const indirectMaterials = computeIndirectMaterialCosts(premises, netSales);
     const costOfSalesByYear = buildCostOfSalesTable(years, {
-      MP, MOD, MOIndirecta, Ingenieria, Administracion, indirectMaterials, netSales,
+      MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
     });
     const unclassifiedEmployees = findUnclassifiedEmployees(employees);
 

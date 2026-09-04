@@ -8,8 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:main": "vite build && wrangler pages deploy dist --project-name=tecbooks-frontend --branch=main",
-    "deploy:develop": "vite build && wrangler pages deploy dist --project-name=tecbooks-frontend-develop --branch=develop"
+    "deploy:main": "vite build --mode production && wrangler pages deploy dist --project-name=tecbooks-frontend --branch=main",
+    "deploy:develop": "vite build --mode develop && wrangler pages deploy dist --project-name=tecbooks-frontend-develop --branch=develop"
   },
   "dependencies": {
     "@clerk/react": "^6.14.7",

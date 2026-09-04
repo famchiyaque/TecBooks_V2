@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import {
   Alert,
   Box,
@@ -27,11 +28,17 @@ import {
 import { usePrograms } from "./ProgramsContext.jsx";
 import ProjectCostSummary from "../costTable/ProjectCostSummary.jsx";
 import ProfitSummary from "../costTable/ProfitSummary.jsx";
-import { costTableEditsSlice } from "@/store/costTable.store";
+import {
+  costTableEditsSlice,
+  operatingExpenseEditsSlice,
+  financialResultEditsSlice,
+  taxesEditsSlice,
+} from "@/store/costTable.store";
 
 const TABS = [
   { id: "balance", label: "Balance Sheet" },
   { id: "razones", label: "Ratios" },
+  { id: "ingresos", label: "Income" },
   { id: "egresos", label: "Expenses" },
   { id: "flujo", label: "Cash Flow" },
   { id: "resultados", label: "Income Statement" },
@@ -105,11 +112,22 @@ function ProjectDashboard() {
     projectId,
   );
 
-  // Shared by Cost Table + Utilidades so an edit in one is instantly visible
-  // in the other (RF-54-07) - fresh store per project so nothing leaks when
-  // navigating the sidebar. Hook must run before the early returns below.
+  // Shared by Cost Table + Operating Expenses + Financial Result + Taxes +
+  // Profit Summary so an edit in one is instantly visible in the others
+  // (RF-54-07/RF-55/RF-56/RF-57) - fresh store per project so nothing leaks
+  // when navigating the sidebar. Separate slices (not one) so a custom row
+  // added to one table isn't also summed into another's total. Hook must
+  // run before the early returns below.
   const editsStore = React.useMemo(
-    () => costTableEditsSlice.createStore(),
+    () =>
+      configureStore({
+        reducer: {
+          [costTableEditsSlice.name]: costTableEditsSlice.reducer,
+          [operatingExpenseEditsSlice.name]: operatingExpenseEditsSlice.reducer,
+          [financialResultEditsSlice.name]: financialResultEditsSlice.reducer,
+          [taxesEditsSlice.name]: taxesEditsSlice.reducer,
+        },
+      }),
     [project?.id],
   );
 
@@ -160,44 +178,35 @@ function ProjectDashboard() {
       </Tabs>
 
       <Box id="project-dashboard-content">
-        <TabContent
-          activeTab={activeTab}
-          programId={programId}
-          projectId={projectId}
-          editsStore={editsStore}
-          project={project}
-        />
+        <Box sx={{ mt: 2 }}>
+          <Provider store={editsStore}>
+            <TabContent
+              activeTab={activeTab}
+              programId={programId}
+              projectId={projectId}
+              project={project}
+            />
+          </Provider>
+        </Box>
       </Box>
     </Box>
   );
 }
 
-function TabContent({ activeTab, programId, projectId, editsStore, project }) {
+function TabContent({ activeTab, programId, projectId, project }) {
   if (activeTab.id === "razones")
     return (
-      <Box sx={{ mt: 2 }}>
-        <Provider store={editsStore}>
-          <CollapsibleSection title="Cost Table" defaultExpanded>
-            <ProjectCostSummary project={project} />
-          </CollapsibleSection>
-          <CollapsibleSection title="Utilidades" defaultExpanded>
-            <ProfitSummary project={project} />
-          </CollapsibleSection>
-        </Provider>
-      </Box>
+      <>
+        <CollapsibleSection title="Cost Table" defaultExpanded>
+          <ProjectCostSummary project={project} />
+        </CollapsibleSection>
+        <CollapsibleSection title="Profit Summary" defaultExpanded>
+          <ProfitSummary project={project} />
+        </CollapsibleSection>
+      </>
     );
-  else if (activeTab.id === "egresos")
-    return (
-      <Provider store={editsStore}>
-        <Expenses project={project} />;
-      </Provider>
-    );
-  else if (activeTab.id === "resultados")
-    return (
-      <Provider store={editsStore}>
-        <Income project={project} />
-      </Provider>
-    );
+  else if (activeTab.id === "egresos") return <Expenses />;
+  else if (activeTab.id === "ingresos") return <Income project={project} />;
   else
     return (
       <MockStatement

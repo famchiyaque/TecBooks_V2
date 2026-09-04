@@ -7,7 +7,6 @@ export const COST_ROWS = [
   { key: 'directLabour', label: 'Direct Labor (MOD)' },
   { key: 'indirectManufacturing', label: 'Indirect Labor' },
   { key: 'engineeringSalaries', label: 'Engineering Costs' },
-  { key: 'administrativeExpenses', label: 'Administrative Costs' },
   { key: 'indirectMaterials', label: 'Indirect Material Costs' },
 ]
 

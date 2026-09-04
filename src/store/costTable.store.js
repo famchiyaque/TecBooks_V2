@@ -5,6 +5,18 @@ import { EditableTableSlice } from './EditableTableSlice.js';
 // the reusable pattern (any other table just needs its own instance of this).
 export const costTableEditsSlice = new EditableTableSlice('costTableEdits');
 
+// RF-55: separate instance (not reused from costTableEditsSlice) so a custom
+// row added to the Cost Table doesn't also get summed into Operating
+// Expenses' total, and vice versa - each table owns its own custom rows.
+export const operatingExpenseEditsSlice = new EditableTableSlice('operatingExpenseEdits');
+
+// RF-56: same reasoning - Financial Result (Financial Expenses, Credit
+// Payment, Financial Income) owns its own custom rows/overrides.
+export const financialResultEditsSlice = new EditableTableSlice('financialResultEdits');
+
+// RF-57: same reasoning - Taxes (ISR, PTU) owns its own custom rows/overrides.
+export const taxesEditsSlice = new EditableTableSlice('taxesEdits');
+
 const costTableSlice = createSlice({
   name: 'costTable',
   initialState: {

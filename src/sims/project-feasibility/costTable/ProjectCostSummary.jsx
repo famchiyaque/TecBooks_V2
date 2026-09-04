@@ -6,7 +6,7 @@ import { buildCostOfSales } from './buildCostOfSales'
 /**
  * Cost breakdown table for one project's parsed Excel (cbm). Reads/writes
  * the costTableEditsSlice store provided by the parent (ProjectDashboard) -
- * shared with ProfitSummary/Utilidades so edits here are reflected there
+ * shared with ProfitSummary so edits here are reflected there
  * live (RF-54-07). Must be rendered under that shared <Provider>.
  */
 function ProjectCostSummary({ project }) {
