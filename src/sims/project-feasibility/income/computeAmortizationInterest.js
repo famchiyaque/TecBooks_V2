@@ -12,11 +12,10 @@
  *   yearInterest: number[]
  * }} Objeto con la cuota de amortización fija, el desglose mensual de intereses y sus agregados anuales.
  */
-export default function computeAmortizationInterest(
-  totalInvestment,
-  periods,
-  interestRate,
-) {
+export default function computeAmortizationInterest(totalInvestment, project) {
+  const periods = project.timeline.financingPeriods;
+  const interestRate = project.premises.nationalLeadingRate;
+
   const years = Math.floor(periods / 12);
 
   const amortization = totalInvestment / periods;
