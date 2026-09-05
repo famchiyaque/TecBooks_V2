@@ -83,6 +83,12 @@ export function buildCostOfSales(cbm) {
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
     administrativeExpenses: administrativeExpenses[row.year],
+    // Split out of administrativeExpenses (= administrativeSalary + netSales
+    // * adminPct) so the Cash Outflows table can show "Administrative
+    // Salaries" and "General Administrative Expenses" as separate lines,
+    // same as Flujo sheet rows 18-19 (Egresos!B154 / Egresos!B206).
+    administrativeSalary: Administrative,
+    financingAmount: financingAmount[row.year],
     depreciationBuildings: depreciationBuildings[row.year],
     depreciationTransport: depreciationTransport[row.year],
     depreciationMachinery: depreciationMachinery[row.year],

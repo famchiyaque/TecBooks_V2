@@ -17,7 +17,8 @@ import {
 import Construction from "@mui/icons-material/Construction";
 import Expenses from "@/components/sims/program/Expenses";
 import Income from "@/components/sims/program/Income";
-import CollapsibleSection from "@/components/global/CollapsibleSection";
+import Ratios from "@/components/sims/program/Ratios";
+import CashFlow from "@/components/sims/program/CashFlow";
 import { PageTour } from "@/tours/PageTour";
 import TourButton from "@/components/global/TourButton";
 import { HORIZON_YEARS } from "../constants";
@@ -26,13 +27,13 @@ import {
   projectDisplayName,
 } from "../model/programExtractors";
 import { usePrograms } from "./ProgramsContext.jsx";
-import ProjectCostSummary from "../costTable/ProjectCostSummary.jsx";
-import ProfitSummary from "../costTable/ProfitSummary.jsx";
 import {
   costTableEditsSlice,
   operatingExpenseEditsSlice,
   financialResultEditsSlice,
   taxesEditsSlice,
+  cashFlowEditsSlice,
+  outflowEditsSlice,
 } from "@/store/costTable.store";
 
 const TABS = [
@@ -126,6 +127,8 @@ function ProjectDashboard() {
           [operatingExpenseEditsSlice.name]: operatingExpenseEditsSlice.reducer,
           [financialResultEditsSlice.name]: financialResultEditsSlice.reducer,
           [taxesEditsSlice.name]: taxesEditsSlice.reducer,
+          [cashFlowEditsSlice.name]: cashFlowEditsSlice.reducer,
+          [outflowEditsSlice.name]: outflowEditsSlice.reducer,
         },
       }),
     [project?.id],
@@ -194,17 +197,8 @@ function ProjectDashboard() {
 }
 
 function TabContent({ activeTab, programId, projectId, project }) {
-  if (activeTab.id === "razones")
-    return (
-      <>
-        <CollapsibleSection title="Cost Table" defaultExpanded>
-          <ProjectCostSummary project={project} />
-        </CollapsibleSection>
-        <CollapsibleSection title="Profit Summary" defaultExpanded>
-          <ProfitSummary project={project} />
-        </CollapsibleSection>
-      </>
-    );
+  if (activeTab.id === "razones") return <Ratios project={project} />;
+  else if (activeTab.id === "flujo") return <CashFlow project={project} />;
   else if (activeTab.id === "egresos") return <Expenses project={project} />;
   else if (activeTab.id === "ingresos") return <Income project={project} />;
   else
