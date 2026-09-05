@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import {
   Alert,
   Box,
@@ -13,57 +13,65 @@ import {
   TableRow,
   Tabs,
   Typography,
-} from '@mui/material'
-import Construction from '@mui/icons-material/Construction'
-import Expenses from '@/components/sims/program/Expenses'
-import CollapsibleSection from '@/components/global/CollapsibleSection'
-import { PageTour } from '@/tours/PageTour'
-import TourButton from '@/components/global/TourButton'
-import { HORIZON_YEARS } from '../constants'
-import { findProgramProject, projectDisplayName } from '../model/programExtractors'
-import { usePrograms } from './ProgramsContext.jsx'
-import ProjectCostSummary from '../costTable/ProjectCostSummary.jsx'
-import ProfitSummary from '../costTable/ProfitSummary.jsx'
-import BreakEvenSummary from '../costTable/BreakEvenSummary.jsx'
-import CashTable from '../costTable/CashTable.jsx'
-import OutflowsTable from '../costTable/OutflowsTable.jsx'
+} from "@mui/material";
+import Construction from "@mui/icons-material/Construction";
+import Expenses from "@/components/sims/program/Expenses";
+import Income from "@/components/sims/program/Income";
+import Ratios from "@/components/sims/program/Ratios";
+import CashFlow from "@/components/sims/program/CashFlow";
+import { PageTour } from "@/tours/PageTour";
+import TourButton from "@/components/global/TourButton";
+import { HORIZON_YEARS } from "../constants";
 import {
-  costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice, taxesEditsSlice,
-  cashFlowEditsSlice, outflowEditsSlice,
-} from '@/store/costTable.store'
+  findProgramProject,
+  projectDisplayName,
+} from "../model/programExtractors";
+import { usePrograms } from "./ProgramsContext.jsx";
+import {
+  costTableEditsSlice,
+  operatingExpenseEditsSlice,
+  financialResultEditsSlice,
+  taxesEditsSlice,
+  cashFlowEditsSlice,
+  outflowEditsSlice,
+} from "@/store/costTable.store";
 
 const TABS = [
-  { id: 'balance', label: 'Balance Sheet' },
-  { id: 'razones', label: 'Ratios' },
-  { id: 'flujo', label: 'Cash Flow' },
-  { id: 'resultados', label: 'Income Statement' },
-]
+  { id: "balance", label: "Balance Sheet" },
+  { id: "razones", label: "Ratios" },
+  { id: "ingresos", label: "Income" },
+  { id: "egresos", label: "Expenses" },
+  { id: "flujo", label: "Cash Flow" },
+  { id: "resultados", label: "Income Statement" },
+];
 
 const projectDashboardTour = new PageTour([
   {
-    element: '#project-dashboard-tabs',
+    element: "#project-dashboard-tabs",
     popover: {
-      title: 'Financial statements',
-      description: 'Switch between Balance Sheet, Ratios, Cash Flow and Income Statement.',
+      title: "Financial statements",
+      description:
+        "Switch between Balance Sheet, Ratios, Cash Flow and Income Statement.",
     },
   },
   {
-    element: '#project-dashboard-content',
+    element: "#project-dashboard-content",
     popover: {
-      title: 'Ratios tab',
-      description: 'Expenses and your Cost Table live here, each collapsible so you can focus on one at a time.',
+      title: "Ratios tab",
+      description:
+        "Expenses and your Cost Table live here, each collapsible so you can focus on one at a time.",
     },
   },
-])
+]);
 
-const MOCK_ROWS = ['Activo', 'Pasivo', 'Capital', 'Total']
+const MOCK_ROWS = ["Activo", "Pasivo", "Capital", "Total"];
 
 function MockStatement({ title }) {
   return (
     <Box sx={{ mt: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Construction sx={{ color: '#c77800' }} />
-        <Typography sx={{ color: '#073a5a' }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <Construction sx={{ color: "#c77800" }} />
+        <Typography sx={{ color: "#073a5a" }}>
           {title} — under construction
         </Typography>
       </Box>
@@ -83,21 +91,27 @@ function MockStatement({ title }) {
             <TableRow key={row}>
               <TableCell>{row}</TableCell>
               {HORIZON_YEARS.slice(0, 4).map((year) => (
-                <TableCell key={year} align="right">—</TableCell>
+                <TableCell key={year} align="right">
+                  —
+                </TableCell>
               ))}
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </Box>
-  )
+  );
 }
 
 function ProjectDashboard() {
-  const { programId, projectId } = useParams()
-  const { programs, status } = usePrograms()
-  const [tab, setTab] = useState(0)
-  const { program, project } = findProgramProject(programs, programId, projectId)
+  const { programId, projectId } = useParams();
+  const { programs, status } = usePrograms();
+  const [tab, setTab] = useState(0);
+  const { program, project } = findProgramProject(
+    programs,
+    programId,
+    projectId,
+  );
 
   // Shared by Cost Table + Operating Expenses + Financial Result + Taxes +
   // Profit Summary so an edit in one is instantly visible in the others
@@ -105,25 +119,29 @@ function ProjectDashboard() {
   // when navigating the sidebar. Separate slices (not one) so a custom row
   // added to one table isn't also summed into another's total. Hook must
   // run before the early returns below.
-  const editsStore = React.useMemo(() => configureStore({
-    reducer: {
-      [costTableEditsSlice.name]: costTableEditsSlice.reducer,
-      [operatingExpenseEditsSlice.name]: operatingExpenseEditsSlice.reducer,
-      [financialResultEditsSlice.name]: financialResultEditsSlice.reducer,
-      [taxesEditsSlice.name]: taxesEditsSlice.reducer,
-      [cashFlowEditsSlice.name]: cashFlowEditsSlice.reducer,
-      [outflowEditsSlice.name]: outflowEditsSlice.reducer,
-    },
-  }), [project?.id])
+  const editsStore = React.useMemo(
+    () =>
+      configureStore({
+        reducer: {
+          [costTableEditsSlice.name]: costTableEditsSlice.reducer,
+          [operatingExpenseEditsSlice.name]: operatingExpenseEditsSlice.reducer,
+          [financialResultEditsSlice.name]: financialResultEditsSlice.reducer,
+          [taxesEditsSlice.name]: taxesEditsSlice.reducer,
+          [cashFlowEditsSlice.name]: cashFlowEditsSlice.reducer,
+          [outflowEditsSlice.name]: outflowEditsSlice.reducer,
+        },
+      }),
+    [project?.id],
+  );
 
-  if (status === 'loading') return null
+  if (status === "loading") return null;
 
-  if (status === 'error') {
+  if (status === "error") {
     return (
       <Box sx={{ p: 4 }}>
         <Alert severity="error">Couldn't load the programs.</Alert>
       </Box>
-    )
+    );
   }
 
   if (!program || !project) {
@@ -131,18 +149,21 @@ function ProjectDashboard() {
       <Box sx={{ p: 4 }}>
         <Alert severity="warning">Project not found.</Alert>
       </Box>
-    )
+    );
   }
 
-  const activeTab = TABS[tab]
+  const activeTab = TABS[tab];
 
   return (
-    <Box sx={{ p: 4, textAlign: 'left' }}>
-      <Typography variant="overline" sx={{ color: '#073a5a' }}>
+    <Box sx={{ p: 4, textAlign: "left" }}>
+      <Typography variant="overline" sx={{ color: "#073a5a" }}>
         {program.name}
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 0 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, color: "#073a5a", mb: 0 }}
+        >
           {projectDisplayName(project)}
         </Typography>
         <TourButton tour={projectDashboardTour} />
@@ -152,7 +173,7 @@ function ProjectDashboard() {
         id="project-dashboard-tabs"
         value={tab}
         onChange={(_, next) => setTab(next)}
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
+        sx={{ borderBottom: 1, borderColor: "divider" }}
       >
         {TABS.map((item) => (
           <Tab key={item.id} label={item.label} />
@@ -160,40 +181,33 @@ function ProjectDashboard() {
       </Tabs>
 
       <Box id="project-dashboard-content">
-        {activeTab.id === 'razones' && (
-          <Box sx={{ mt: 2 }}>
-            <Expenses />
-            <Provider store={editsStore}>
-              <CollapsibleSection title="Cost Table" defaultExpanded>
-                <ProjectCostSummary project={project} />
-              </CollapsibleSection>
-              <CollapsibleSection title="Profit Summary" defaultExpanded>
-                <ProfitSummary project={project} />
-              </CollapsibleSection>
-              <CollapsibleSection title="Break-even Point">
-                <BreakEvenSummary project={project} />
-              </CollapsibleSection>
-            </Provider>
-          </Box>
-        )}
-        {activeTab.id === 'flujo' && (
-          <Box sx={{ mt: 2 }}>
-            <Provider store={editsStore}>
-              <CollapsibleSection title="Cash Inflows" defaultExpanded>
-                <CashTable project={project} />
-              </CollapsibleSection>
-              <CollapsibleSection title="Cash Outflows">
-                <OutflowsTable project={project} />
-              </CollapsibleSection>
-            </Provider>
-          </Box>
-        )}
-        {activeTab.id !== 'razones' && activeTab.id !== 'flujo' && (
-          <MockStatement key={`${programId}-${projectId}-${activeTab.id}`} title={activeTab.label} />
-        )}
+        <Box sx={{ mt: 2 }}>
+          <Provider store={editsStore}>
+            <TabContent
+              activeTab={activeTab}
+              programId={programId}
+              projectId={projectId}
+              project={project}
+            />
+          </Provider>
+        </Box>
       </Box>
     </Box>
-  )
+  );
 }
 
-export default ProjectDashboard
+function TabContent({ activeTab, programId, projectId, project }) {
+  if (activeTab.id === "razones") return <Ratios project={project} />;
+  else if (activeTab.id === "flujo") return <CashFlow project={project} />;
+  else if (activeTab.id === "egresos") return <Expenses project={project} />;
+  else if (activeTab.id === "ingresos") return <Income project={project} />;
+  else
+    return (
+      <MockStatement
+        key={`${programId}-${projectId}-${activeTab.id}`}
+        title={activeTab.label}
+      />
+    );
+}
+
+export default ProjectDashboard;
