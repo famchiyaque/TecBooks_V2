@@ -1,22 +1,14 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState, useMemo } from "react";
 import AdminExpensesTable from "./expenses/AdminExpensesTable";
 import InvestmentTable from "./expenses/InvestmentTable";
-import FinancialExpensesTable from "./expenses/FinancialExpensesTable";
 import ServicesTable from "./expenses/ServicesTable";
-import getExpenses from "@/api/sims/expenses/getExpenses.service";
-import { useQuery } from "@tanstack/react-query";
 import useExpenses from "@/hooks/sims/project/useExpenses";
+import AmortizationInterestTable from "./income/AmortizationInterestTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 
 function Expenses({ project }) {
   const investmentRef = useRef(null);
   const [investmentHeight, setInvestmentHeight] = useState(null);
-  console.log(project);
-
-  const { isLoading, error, data } = useQuery({
-    queryKey: ["expenses"],
-    queryFn: getExpenses,
-  });
 
   useLayoutEffect(() => {
     const el = investmentRef.current;
@@ -28,45 +20,43 @@ function Expenses({ project }) {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [data]);
+  }, [project]);
 
-  const { adminExpenses, investment, services, finances } = useExpenses(data);
+  const years = project.cbm.timeline.years;
+
+  const { adminExpenses, investment, services, amortizationInterests } =
+    useExpenses(project.cbm);
 
   return (
     <div className="flex flex-col mt-3 p-3">
-      {isLoading && <p>Loading...</p>}
-      {error && <p>Error</p>}
-      {!isLoading && !error && data && (
-        <>
-          {/* Admin Table */}
-          <CollapsibleSection title="Administrative Expenses" defaultExpanded>
-            <AdminExpensesTable years={data.years} expenses={adminExpenses} />
-          </CollapsibleSection>
+      {/* Admin Table */}
+      <CollapsibleSection title="Administrative Expenses" defaultExpanded>
+        <AdminExpensesTable years={years} expenses={adminExpenses} />
+      </CollapsibleSection>
 
-          {/* Investments and services */}
-          <CollapsibleSection title="Investment & Services">
-            <div className="flex items-start gap-3">
-              <div ref={investmentRef}>
-                <InvestmentTable items={investment} />
-              </div>
+      {/* Investments and services */}
+      <CollapsibleSection title="Investment & Services">
+        <div className="flex items-start gap-3">
+          <div ref={investmentRef}>
+            <InvestmentTable items={investment} />
+          </div>
 
-              <div
-                className="min-w-0 flex-1"
-                style={
-                  investmentHeight ? { height: investmentHeight } : undefined
-                }
-              >
-                <ServicesTable services={services} />
-              </div>
-            </div>
-          </CollapsibleSection>
+          <div
+            className="min-w-0 flex-1"
+            style={investmentHeight ? { height: investmentHeight } : undefined}
+          >
+            <ServicesTable services={services} />
+          </div>
+        </div>
+      </CollapsibleSection>
 
-          {/* Financial Expenses */}
-          <CollapsibleSection title="Financial Expenses">
-            <FinancialExpensesTable years={data.years} items={finances} />
-          </CollapsibleSection>
-        </>
-      )}
+      {/* Financial Expenses */}
+      <CollapsibleSection title="Amortization & Interest">
+        <AmortizationInterestTable
+          amortizationInterests={amortizationInterests}
+          baseYear={years[0]}
+        />
+      </CollapsibleSection>
     </div>
   );
 }

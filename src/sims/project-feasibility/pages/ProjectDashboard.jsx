@@ -205,7 +205,7 @@ function TabContent({ activeTab, programId, projectId, project }) {
         </CollapsibleSection>
       </>
     );
-  else if (activeTab.id === "egresos") return <Expenses />;
+  else if (activeTab.id === "egresos") return <Expenses project={project} />;
   else if (activeTab.id === "ingresos") return <Income project={project} />;
   else
     return (

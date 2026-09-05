@@ -17,8 +17,6 @@ function Income({ project }) {
     return years[0];
   }, [income]);
 
-  console.log(baseYear);
-
   return (
     <div className="flex flex-col mt-3 p-3">
       <CollapsibleSection title="ProductionCost" defaultExpanded>
