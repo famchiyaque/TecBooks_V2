@@ -21,7 +21,7 @@ import {
  */
 export default function computeInvestment(project) {
   const { employees, production } = cbmToCostTableInputs(project);
-  const years = Object.keys(production.purchaseOrders).map(Number);
+  const years = Object.keys(production.purchaseOrders ?? {}).map(Number);
 
   const { assets, machines } = cbmToOperatingExpenseInputs(project, years);
   const assetCosts = calculateTotalAssetCost(assets, machines);
