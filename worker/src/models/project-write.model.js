@@ -180,7 +180,7 @@ export async function insertPremises(database, gameId, premises, periods) {
     database
       .prepare(
         `INSERT INTO premises_deprecations_yearly (game_id, year, building, transport, compute, machinery)
-         VALUES (?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?)`
       )
       .bind(
         gameId,
