@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   createProgramRequest,
   getFileGateError,
@@ -18,6 +19,7 @@ export function useStaging() {
 }
 
 export function StagingProvider({ children }) {
+  const queryClient = useQueryClient()
   const [programName, setProgramName] = useState('')
   const [items, setItems] = useState([])
   const [fileErrors, setFileErrors] = useState([])
@@ -59,6 +61,7 @@ export function StagingProvider({ children }) {
       }
       accepted.push({
         fileName: file.name,
+        file,
         project,
         validation,
       })
@@ -84,10 +87,14 @@ export function StagingProvider({ children }) {
     setConfirmError(null)
     const payload = {
       name: programName.trim(),
-      projects: items.map(({ project }) => ({
-        name: project.metadata.name,
-        cbm: project,
-      })),
+      projects: items.map(({ project }) => {
+        const { derivedBase: _derivedBase, ...cbm } = project
+        return {
+          name: project.metadata.name,
+          cbm,
+        }
+      }),
+      files: items.map(({ file }) => file),
     }
     const programCheck = validateProgram(payload)
     if (!programCheck.valid) {
@@ -97,6 +104,7 @@ export function StagingProvider({ children }) {
     setIsSubmitting(true)
     try {
       const createdProgram = await createProgramRequest(payload)
+      await queryClient.invalidateQueries({ queryKey: ['programs'] })
       setItems([])
       setFileErrors([])
       return createdProgram
@@ -110,7 +118,7 @@ export function StagingProvider({ children }) {
     } finally {
       setIsSubmitting(false)
     }
-  }, [programName, items])
+  }, [programName, items, queryClient])
 
   const value = {
     programName,

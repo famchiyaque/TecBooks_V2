@@ -22,22 +22,21 @@ export async function listFeasibilityProgramsByCreatedBy(database, createdBy) {
   return results;
 }
 
-export async function insertFeasibilityProjects(database, programId, projects) {
-  const statements = projects.map((project) =>
-    database
-      .prepare(
-        `INSERT INTO feasibility_projects (program_id, name, cbm_json)
-         VALUES (?, ?, ?)`
-      )
-      .bind(programId, project.name, JSON.stringify(project.cbm))
-  );
-  await database.batch(statements);
+export async function insertFeasibilityProject(database, programId, { name, gameId, r2Key }) {
+  return database
+    .prepare(
+      `INSERT INTO feasibility_projects (program_id, name, game_id, r2_key)
+       VALUES (?, ?, ?, ?)
+       RETURNING id, program_id, name, game_id, r2_key`
+    )
+    .bind(programId, name, gameId, r2Key)
+    .first();
 }
 
 export async function listFeasibilityProjectsByProgramId(database, programId) {
   const { results } = await database
     .prepare(
-      `SELECT id, program_id, name, cbm_json
+      `SELECT id, program_id, name, game_id, r2_key
        FROM feasibility_projects
        WHERE program_id = ?
        ORDER BY id`
