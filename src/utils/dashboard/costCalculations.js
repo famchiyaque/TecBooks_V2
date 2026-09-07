@@ -80,10 +80,10 @@ export function computeNetSales(production) {
  * WO = CO * Quality yield (work orders needed to fulfill purchase orders at the given quality yield)
  */
 export function computeRawMaterialCost(production) {
-  const { purchaseOrders, qualityYield, materialCostPerUnit } = production;
+  const { purchaseOrders, qualityYield, materialCostPerUnit } = production ?? {};
   const rawMaterialByYear = {};
 
-  for (const year of Object.keys(purchaseOrders)) {
+  for (const year of Object.keys(purchaseOrders ?? {})) {
     const workOrders = (purchaseOrders[year] || 0) * (qualityYield[year] || 0);
     rawMaterialByYear[year] = workOrders * (materialCostPerUnit || 0);
   }
@@ -419,5 +419,5 @@ export function computeNetIncome(incomeBeforeTaxes, taxesTotal) {
  * @returns float
  */
 function getInflation(premises, idx) {
-  return Math.pow(1 + premises.nationalInflation[idx], idx);
+  return Math.pow(1 + (premises?.nationalInflation?.[idx] ?? 0), idx);
 }

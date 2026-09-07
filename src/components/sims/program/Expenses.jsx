@@ -22,10 +22,11 @@ function Expenses({ project }) {
     return () => ro.disconnect();
   }, [project]);
 
-  const years = project.cbm.timeline.years;
+  const cbm = project?.cbm
+  const years = cbm?.timeline?.years ?? []
 
   const { adminExpenses, investment, services, amortizationInterests } =
-    useExpenses(project.cbm);
+    useExpenses(cbm ?? {})
 
   return (
     <div className="flex flex-col mt-3 p-3">

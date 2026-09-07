@@ -2,8 +2,21 @@ import computeProductionCost from "@/sims/project-feasibility/income/computeProd
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
 import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
 
+function emptyIncome() {
+  return {
+    productionCosts: { total: {}, costRawMaterials: {}, workForce: {}, adminExpenses: {} },
+    amortizationInterests: { yearAmortization: [], yearInterest: [] },
+    totalFinancialExpenses: [],
+    utilityCost: { 10: [], 20: [], 30: [] },
+    competitivaPrice: [],
+  }
+}
+
 function useIncome(project) {
-  project = project.cbm;
+  project = project?.cbm
+  if (!project?.timeline || !project?.bom || !project?.premises) {
+    return emptyIncome()
+  }
 
   const productionCosts = computeProductionCost(project);
   const { total } = computeInvestment(project);

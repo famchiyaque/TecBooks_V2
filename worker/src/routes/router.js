@@ -3,12 +3,14 @@ import { exampleRoute } from "./example.route";
 import { expensesRoute } from "./expenses.route";
 import { authRoute } from "./auth.route.js";
 import { programsRoute } from "./programs.route.js";
+import { feasibilityRoute } from "./feasibility.route.js";
 
 const router = new Hono();
 
 router.route("/example", exampleRoute);
 router.route("/expenses", expensesRoute);
 router.route("/programs", programsRoute);
+router.route("/feasibility", feasibilityRoute);
 router.route("/auth", authRoute);
 
 export default router;
