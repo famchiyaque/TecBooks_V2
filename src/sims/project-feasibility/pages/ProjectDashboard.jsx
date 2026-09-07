@@ -27,6 +27,7 @@ import ProfitSummary from '../costTable/ProfitSummary.jsx'
 import BreakEvenSummary from '../costTable/BreakEvenSummary.jsx'
 import CashTable from '../costTable/CashTable.jsx'
 import OutflowsTable from '../costTable/OutflowsTable.jsx'
+import ProjectEvaluationSummary from '../costTable/ProjectEvaluationSummary.jsx'
 import {
   costTableEditsSlice, operatingExpenseEditsSlice, financialResultEditsSlice, taxesEditsSlice,
   cashFlowEditsSlice, outflowEditsSlice,
@@ -184,6 +185,9 @@ function ProjectDashboard() {
               </CollapsibleSection>
               <CollapsibleSection title="Cash Outflows">
                 <OutflowsTable project={project} />
+              </CollapsibleSection>
+              <CollapsibleSection title="TREMA / TIR / VNA">
+                <ProjectEvaluationSummary project={project} />
               </CollapsibleSection>
             </Provider>
           </Box>
