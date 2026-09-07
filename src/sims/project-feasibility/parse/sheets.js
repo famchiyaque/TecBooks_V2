@@ -177,23 +177,57 @@ export function readInversion(rows, project) {
   }
 }
 
-export function readEmpleados2(rows, project) {
+const EMPLOYEE_HEADER = {
+  nombre: 'name',
+  tipo: 'type',
+  percepcion: 'percepcion',
+  imss: 'imss',
+  infonavit: 'infonavit',
+  'vales de despensa': 'valesDespensa',
+  'prima vacacional': 'primaVacacional',
+  aguinaldo: 'aguinaldo',
+  'fondo de ahorro': 'fondoAhorro',
+  comedor: 'comedor',
+  isr: 'isr',
+  cantidad: 'cantidad',
+}
+
+function employeeColumnIndex(headerRow, label) {
+  return (headerRow ?? []).findIndex((cell) => normalizeLabel(cell) === label)
+}
+
+/**
+ * Tabular Empleados sheet (same columns as the old Empleados_2, including Cantidad).
+ */
+export function readEmpleados(rows, project) {
+  const header = rows[0] ?? []
+  const columns = {}
+  for (const [label, field] of Object.entries(EMPLOYEE_HEADER)) {
+    const index = employeeColumnIndex(header, label)
+    if (index >= 0) columns[field] = index
+  }
+
+  const nameCol = columns.name ?? 0
+  const typeCol = columns.type ?? 1
+  const percepcionCol = columns.percepcion ?? 2
+  const cantidadCol = columns.cantidad
+
   for (const row of rows.slice(1)) {
-    const name = toStringOrUndefined(row?.[0])
+    const name = toStringOrUndefined(row?.[nameCol])
     if (!name) break
     project.employees.push({
       name,
-      type: toStringOrUndefined(row[1]),
-      percepcion: toNumberOrUndefined(row[2]),
-      imss: toNumberOrUndefined(row[3]),
-      infonavit: toNumberOrUndefined(row[4]),
-      valesDespensa: toNumberOrUndefined(row[5]),
-      primaVacacional: toNumberOrUndefined(row[6]),
-      aguinaldo: toNumberOrUndefined(row[7]),
-      fondoAhorro: toNumberOrUndefined(row[8]),
-      comedor: toNumberOrUndefined(row[9]),
-      isr: toNumberOrUndefined(row[10]),
-      cantidad: toNumberOrUndefined(row[13]),
+      type: toStringOrUndefined(row[typeCol]),
+      percepcion: toNumberOrUndefined(row[percepcionCol]),
+      imss: toNumberOrUndefined(row[columns.imss ?? 3]),
+      infonavit: toNumberOrUndefined(row[columns.infonavit ?? 4]),
+      valesDespensa: toNumberOrUndefined(row[columns.valesDespensa ?? 5]),
+      primaVacacional: toNumberOrUndefined(row[columns.primaVacacional ?? 6]),
+      aguinaldo: toNumberOrUndefined(row[columns.aguinaldo ?? 7]),
+      fondoAhorro: toNumberOrUndefined(row[columns.fondoAhorro ?? 8]),
+      comedor: toNumberOrUndefined(row[columns.comedor ?? 9]),
+      isr: toNumberOrUndefined(row[columns.isr ?? 10]),
+      cantidad: toNumberOrUndefined(row[cantidadCol]) ?? 1,
     })
   }
 }

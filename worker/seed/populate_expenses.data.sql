@@ -81,8 +81,6 @@ VALUES (
 	datetime('now')
 );
 
-alter table 'premises' add column 'periods' integer not null default 60;
-
 INSERT OR IGNORE INTO "premises" (
 	"game_id",
 	"starting_money",

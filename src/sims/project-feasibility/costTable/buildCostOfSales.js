@@ -15,6 +15,9 @@ import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTa
  * validation + calculation pipeline so they can't drift apart.
  */
 export function buildCostOfSales(cbm) {
+  if (!cbm) {
+    return { error: 'This project is stored as rows. Cost tables will load from the server in a follow-up.' }
+  }
   const { employees, production, premises } = cbmToCostTableInputs(cbm)
 
   if (employees.length === 0) {

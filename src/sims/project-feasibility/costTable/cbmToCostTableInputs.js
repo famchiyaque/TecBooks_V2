@@ -44,6 +44,9 @@ function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
  * fed from the already-parsed program data instead of a fresh Excel upload.
  */
 export function cbmToCostTableInputs(cbm) {
+  if (!cbm) {
+    return { employees: [], production: {}, premises: {} }
+  }
   const employees = (cbm.derivedBase?.employees ?? []).map((employee, index) => ({
     id: index,
     name: employee.name,
