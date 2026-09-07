@@ -5,8 +5,14 @@ const workerApi = axios.create({
   withCredentials: true,
 })
 
-export async function createProgramRequest({ name, projects }) {
-  const { data } = await workerApi.post('/api/programs', { name, projects })
+export async function createProgramRequest({ name, projects, files }) {
+  const formData = new FormData()
+  formData.append('name', name)
+  formData.append('projects', JSON.stringify(projects))
+  for (const file of files) {
+    formData.append('files', file)
+  }
+  const { data } = await workerApi.post('/api/programs', formData)
   return data
 }
 

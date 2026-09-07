@@ -52,7 +52,10 @@ function BreakEvenSummary({ project }) {
   const [desiredProfit, setDesiredProfit] = React.useState(0)
 
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
-  const { production } = React.useMemo(() => cbmToCostTableInputs(project.cbm), [project])
+  const { production } = React.useMemo(
+    () => (project.cbm ? cbmToCostTableInputs(project.cbm) : { production: {} }),
+    [project]
+  )
 
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>
