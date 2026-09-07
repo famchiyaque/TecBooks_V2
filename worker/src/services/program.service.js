@@ -104,7 +104,10 @@ export async function listPrograms(database, createdBy) {
   const programRows = await listFeasibilityProgramsByCreatedBy(database, createdBy);
   const programs = [];
   for (const programRow of programRows) {
-    const projectRows = await listFeasibilityProjectsByProgramId(database, programRow.id);
+    const projectRows = await listFeasibilityProjectsByProgramId(
+      database,
+      programRow.id,
+    );
     programs.push(toProgramResponse(programRow, projectRows));
   }
   return programs;
