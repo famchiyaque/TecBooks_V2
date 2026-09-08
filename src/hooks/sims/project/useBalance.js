@@ -7,7 +7,6 @@ import computeUtility from "@/sims/project-feasibility/balance/computeUtility";
 
 function useBalance(project) {
   project = project.cbm;
-  console.log(project);
 
   const flow = computeFlow(project);
   const investments = computeInvestment(project);

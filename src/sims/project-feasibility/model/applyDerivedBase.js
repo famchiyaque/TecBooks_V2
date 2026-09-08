@@ -10,7 +10,7 @@ const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES']
 
 /**
  * Mirrors src/adapters/excel/employee-table/Employee.js's category getter -
- * same Empleados_2 template, same classification rules. Keep both in sync.
+ * same Empleados template, same classification rules. Keep both in sync.
  */
 function classifyEmployeeCategory(name, type) {
   const upperName = String(name ?? '').toUpperCase()

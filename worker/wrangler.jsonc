@@ -18,6 +18,12 @@
 			"migrations_dir": "./migrations"
 		}
 	],
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "tecbooks-testing"
+		}
+	],
 	"env": {
 		"develop": {
 			"name": "tecbooks-worker-develop",
@@ -30,6 +36,12 @@
 					"database_name": "tecbooks-db-develop",
 					"database_id": "02cd1c1f-037b-4a05-b715-7a2c8533ed7c",
 					"migrations_dir": "./migrations"
+				}
+			],
+			"r2_buckets": [
+				{
+					"binding": "R2",
+					"bucket_name": "tecbooks-testing"
 				}
 			]
 		}

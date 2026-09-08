@@ -20,6 +20,7 @@ import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
 import Balance from "@/components/sims/program/Balance";
 import CashFlow from "@/components/sims/program/CashFlow";
+import useFeasibilityModel from "@/hooks/sims/project/useFeasibilityModel";
 import { PageTour } from "@/tours/PageTour";
 import TourButton from "@/components/global/TourButton";
 import { HORIZON_YEARS } from "../constants";
@@ -198,18 +199,41 @@ function ProjectDashboard() {
 }
 
 function TabContent({ activeTab, programId, projectId, project }) {
-  if (activeTab.id === "razones") return <Ratios project={project} />;
-  else if (activeTab.id === "balance") return <Balance project={project} />;
-  else if (activeTab.id === "flujo") return <CashFlow project={project} />;
-  else if (activeTab.id === "egresos") return <Expenses project={project} />;
-  else if (activeTab.id === "ingresos") return <Income project={project} />;
-  else
+  const { data: cbm, isPending, isError } = useFeasibilityModel(project.gameId);
+  const projectWithCbm = { ...project, cbm };
+
+  if (!project.gameId) {
     return (
-      <MockStatement
-        key={`${programId}-${projectId}-${activeTab.id}`}
-        title={activeTab.label}
-      />
+      <Alert severity="warning">
+        This project has no game id, so its tables cannot load from the
+        database.
+      </Alert>
     );
+  }
+
+  if (isPending)
+    return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
+
+  if (isError || !cbm) {
+    return (
+      <Alert severity="error">
+        Couldn&apos;t load this project&apos;s rows from the server.
+      </Alert>
+    );
+  }
+
+  if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
+  if (activeTab.id === "razones") return <Ratios project={projectWithCbm} />;
+  if (activeTab.id === "flujo") return <CashFlow project={projectWithCbm} />;
+  if (activeTab.id === "egresos") return <Expenses project={projectWithCbm} />;
+  if (activeTab.id === "ingresos") return <Income project={projectWithCbm} />;
+
+  return (
+    <MockStatement
+      key={`${programId}-${projectId}-${activeTab.id}`}
+      title={activeTab.label}
+    />
+  );
 }
 
 export default ProjectDashboard;

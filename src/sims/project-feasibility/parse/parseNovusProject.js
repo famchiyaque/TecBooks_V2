@@ -8,7 +8,7 @@ import {
   readBOM,
   readCOs,
   readCapacidad,
-  readEmpleados2,
+  readEmpleados,
   readInversion,
   readPremisas,
   readServicios,
@@ -56,7 +56,7 @@ export function parseNovusProject(input, { fileName } = {}) {
   readCapacidad(toRows(workbook, 'Capacidad'), project)
   readBOM(toRows(workbook, 'BOM'), project)
   readInversion(toRows(workbook, 'Inversion'), project)
-  readEmpleados2(toRows(workbook, 'Empleados_2'), project)
+  readEmpleados(toRows(workbook, 'Empleados'), project)
   readServicios(toRows(workbook, 'Servicios'), project)
 
   project.metadata.name = project.bom.productName || ''

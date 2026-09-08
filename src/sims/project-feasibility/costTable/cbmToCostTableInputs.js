@@ -44,6 +44,9 @@ function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
  * fed from the already-parsed program data instead of a fresh Excel upload.
  */
 export function cbmToCostTableInputs(cbm) {
+  if (!cbm) {
+    return { employees: [], production: {}, premises: {} }
+  }
   const employees = (cbm.derivedBase?.employees ?? []).map((employee, index) => ({
     id: index,
     name: employee.name,
@@ -128,5 +131,9 @@ export function cbmToOperatingExpenseInputs(cbm, years) {
     // RF-57: Premisas "Tasa ISR" / "Tasa de PTU".
     isr: yearMapFromSeries(cbm.premises?.isr, years),
     ptu: yearMapFromSeries(cbm.premises?.ptu, years),
+    // RF-65 TREMA: Premisas "Inflacion nacional" - the other rate TREMA sums
+    // (market rate + inflation + risk premium, risk premium has no source
+    // field so it's a manual input, same situation as Financial Income).
+    nationalInflation: yearMapFromSeries(cbm.premises?.nationalInflation, years),
   }
 }
