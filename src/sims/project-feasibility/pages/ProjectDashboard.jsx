@@ -18,6 +18,7 @@ import Construction from "@mui/icons-material/Construction";
 import Expenses from "@/components/sims/program/Expenses";
 import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
+import Balance from "@/components/sims/program/Balance";
 import CashFlow from "@/components/sims/program/CashFlow";
 import { PageTour } from "@/tours/PageTour";
 import TourButton from "@/components/global/TourButton";
@@ -198,6 +199,7 @@ function ProjectDashboard() {
 
 function TabContent({ activeTab, programId, projectId, project }) {
   if (activeTab.id === "razones") return <Ratios project={project} />;
+  else if (activeTab.id === "balance") return <Balance project={project} />;
   else if (activeTab.id === "flujo") return <CashFlow project={project} />;
   else if (activeTab.id === "egresos") return <Expenses project={project} />;
   else if (activeTab.id === "ingresos") return <Income project={project} />;
