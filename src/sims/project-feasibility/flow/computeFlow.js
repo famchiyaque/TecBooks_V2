@@ -47,8 +47,6 @@ function computeFlow(project) {
     return acc;
   }, {});
 
-  console.log(totalIncome, totalExpenses, netFlow);
-
   return { totalIncome, totalExpenses, netFlow };
 }
 
