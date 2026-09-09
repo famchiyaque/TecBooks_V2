@@ -1,5 +1,6 @@
 import computeCirculatingActives from "./computeCirculatingActives.js";
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js";
+import computeDeferedActives from "./computeDeferedActives.js";
 
 function computeActives(project) {
   const years = project.timeline.years;

@@ -19,7 +19,7 @@ function useBalance(project) {
 
   const passives = { circularPassives, longTermPassive };
 
-  return { flow, actives, passives, utility };
+  return { actives, passives, utility };
 }
 
 function mockFills(years) {
