@@ -18,6 +18,7 @@ import Construction from "@mui/icons-material/Construction";
 import Expenses from "@/components/sims/program/Expenses";
 import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
+import Balance from "@/components/sims/program/Balance";
 import CashFlow from "@/components/sims/program/CashFlow";
 import useFeasibilityModel from "@/hooks/sims/project/useFeasibilityModel";
 import { PageTour } from "@/tours/PageTour";
@@ -201,31 +202,27 @@ function TabContent({ activeTab, programId, projectId, project }) {
   const { data: cbm, isPending, isError } = useFeasibilityModel(project.gameId);
   const projectWithCbm = { ...project, cbm };
 
-  if (activeTab.id === "balance" || activeTab.id === "resultados") {
-    return (
-      <MockStatement
-        key={`${programId}-${projectId}-${activeTab.id}`}
-        title={activeTab.label}
-      />
-    );
-  }
-
   if (!project.gameId) {
     return (
       <Alert severity="warning">
-        This project has no game id, so its tables cannot load from the database.
+        This project has no game id, so its tables cannot load from the
+        database.
       </Alert>
     );
   }
 
-  if (isPending) return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
+  if (isPending)
+    return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
 
   if (isError || !cbm) {
     return (
-      <Alert severity="error">Couldn&apos;t load this project&apos;s rows from the server.</Alert>
+      <Alert severity="error">
+        Couldn&apos;t load this project&apos;s rows from the server.
+      </Alert>
     );
   }
 
+  if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
   if (activeTab.id === "razones") return <Ratios project={projectWithCbm} />;
   if (activeTab.id === "flujo") return <CashFlow project={projectWithCbm} />;
   if (activeTab.id === "egresos") return <Expenses project={projectWithCbm} />;

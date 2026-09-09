@@ -81,7 +81,8 @@ export function computeNetSales(production) {
  * a low yield means MORE work orders are needed to net the same good units, matching Capacidad!E17: '=E16/E3')
  */
 export function computeRawMaterialCost(production) {
-  const { purchaseOrders, qualityYield, materialCostPerUnit } = production ?? {};
+  const { purchaseOrders, qualityYield, materialCostPerUnit } =
+    production ?? {};
   const rawMaterialByYear = {};
 
   for (const year of Object.keys(purchaseOrders ?? {})) {
@@ -428,6 +429,6 @@ export function computeNetIncome(incomeBeforeTaxes, taxesTotal) {
  * getInflation = (1 + NationalInflation)^(currentYear-startYear)
  * @returns float
  */
-function getInflation(premises, idx) {
+export function getInflation(premises, idx) {
   return Math.pow(1 + (premises?.nationalInflation?.[idx] ?? 0), idx);
 }
