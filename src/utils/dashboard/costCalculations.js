@@ -77,7 +77,8 @@ export function computeNetSales(production) {
 
 /**
  * MP (raw material cost) per year.
- * WO = CO * Quality yield (work orders needed to fulfill purchase orders at the given quality yield)
+ * WO = CO / Quality yield (work orders needed to fulfill purchase orders at the given quality yield -
+ * a low yield means MORE work orders are needed to net the same good units, matching Capacidad!E17: '=E16/E3')
  */
 export function computeRawMaterialCost(production) {
   const { purchaseOrders, qualityYield, materialCostPerUnit } =
@@ -85,7 +86,9 @@ export function computeRawMaterialCost(production) {
   const rawMaterialByYear = {};
 
   for (const year of Object.keys(purchaseOrders ?? {})) {
-    const workOrders = (purchaseOrders[year] || 0) * (qualityYield[year] || 0);
+    const workOrders = (qualityYield[year] || 0) === 0
+      ? 0
+      : (purchaseOrders[year] || 0) / qualityYield[year];
     rawMaterialByYear[year] = workOrders * (materialCostPerUnit || 0);
   }
 
@@ -356,19 +359,21 @@ export function computeFinancingAmount(
 
 /**
  * RF-56: straight-line loan amortization over `periods` - each period pays
- * back an equal slice of principal (creditPayment) and accrues interest on
- * the full financed amount (financialExpenses). Matches the activity
- * diagram literally: "Bank interest" is computed against "All amount", not
- * a declining balance - periods fully repay the amount financed that year.
+ * back an equal slice of principal (creditPayment), and interest accrues on
+ * the declining balance (financialExpenses), matching Financiamiento's own
+ * Interes[m] = (tasa/12) * saldo[m], saldo[m] = saldo[m-1] - Amortizacion.
  */
 export function computeAmortizationSchedule(allAmount, periods, annualRate) {
   if (!periods) return { financialExpenses: 0, creditPayment: 0 };
 
   let financialExpenses = 0;
   let creditPayment = 0;
+  let balance = allAmount;
+  const amortization = allAmount / periods;
   for (let period = 0; period < periods; period += 1) {
-    creditPayment += allAmount / periods;
-    financialExpenses += (annualRate / 12) * allAmount;
+    financialExpenses += (annualRate / 12) * balance;
+    creditPayment += amortization;
+    balance -= amortization;
   }
   return { financialExpenses, creditPayment };
 }
@@ -389,7 +394,8 @@ export function computeIncomeBeforeTaxes(
 
 /**
  * RF-57: ISR + PTU, both a flat rate (Premisas "Tasa ISR" / "Tasa de PTU")
- * applied to incomeBeforeTaxes for that year.
+ * applied to incomeBeforeTaxes for that year. A loss year owes no tax (no
+ * refund either) - matches Estado R's own guard: '=IF(B36<0, 0, B36*Premisas!B13)'.
  */
 export function computeTaxes(
   incomeBeforeTaxesByYear,
@@ -400,6 +406,10 @@ export function computeTaxes(
   const taxesByYear = {};
   for (const year of years) {
     const base = incomeBeforeTaxesByYear[year] || 0;
+    if (base < 0) {
+      taxesByYear[year] = { isr: 0, ptu: 0, total: 0 };
+      continue;
+    }
     const isr = base * (isrRateByYear[year] || 0);
     const ptu = base * (ptuRateByYear[year] || 0);
     taxesByYear[year] = { isr, ptu, total: isr + ptu };

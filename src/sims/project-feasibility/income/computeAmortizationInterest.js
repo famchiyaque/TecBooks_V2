@@ -20,9 +20,8 @@ export default function computeAmortizationInterest(totalInvestment, project) {
 
   const amortization = totalInvestment / periods;
   const interest = new Array(periods).fill(0).map((_, idx) => {
-    // const year = Math.floor(idx / years);
-    const year = 0;
-    const interest = (interestRate[year] / 12) * totalInvestment;
+    const year = Math.floor(idx / 12);
+    const interest = ((interestRate[year] ?? interestRate.at(-1)) / 12) * totalInvestment;
     totalInvestment -= amortization;
     return interest;
   });
@@ -74,7 +73,7 @@ function computeInterest(interest, periods) {
     );
 
   if (remainder > 0) {
-    yearInterest.push(amortization * remainder);
+    yearInterest.push(interest.slice(years * 12).reduce((a, c) => a + c, 0));
   }
 
   return yearInterest;
