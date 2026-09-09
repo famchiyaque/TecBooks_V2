@@ -7,7 +7,6 @@ import computeActives from "@/sims/project-feasibility/balance/computeActives.js
 
 function useBalance(project) {
   project = project.cbm;
-  console.log(project);
   const years = project.timeline.years;
 
   const actives = computeActives(project);

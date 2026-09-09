@@ -1,17 +1,18 @@
-import computeCirculatingActives from "./computeCirculatingActives.js";
+import computeCurrentActives from "./computeCurrentActives.js";
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js";
 import computeDeferedActives from "./computeDeferedActives.js";
 
 function computeActives(project) {
   const years = project.timeline.years;
-  console.log(project.preimses);
 
-  const circulatingActive = computeCirculatingActives(project);
+  const currentActives = computeCurrentActives(project);
   const { investments } = computeInvestment(project);
 
   // Fixed assets
 
   const deferedActives = computeDeferedActives(project);
+
+  return { currentActives };
 }
 
 export default computeActives;

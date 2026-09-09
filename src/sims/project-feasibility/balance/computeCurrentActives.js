@@ -1,6 +1,6 @@
 import computeFlow from "@/sims/project-feasibility/flow/computeFlow.js";
 
-function computeCirculatingActives(project) {
+function computeCurrentActives(project) {
   const years = project.timeline.years;
   const flow = computeFlow(project);
   // TODO: Inventary, pending accounts, deposits, stocks
@@ -15,11 +15,11 @@ function computeCirculatingActives(project) {
   }, {});
 
   return {
-    circulatingActives: activesTotal,
-    flow,
+    cashAndBank: flow.netFlow,
     inventary,
     deposits,
     stocks,
+    total: activesTotal,
   };
 }
 
@@ -30,4 +30,4 @@ function mockFills(years) {
   }, {});
 }
 
-export default computeCirculatingActives;
+export default computeCurrentActives;
