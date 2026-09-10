@@ -13,9 +13,7 @@ function Balance({ project }) {
   return (
     <div className="flex flex-col mt-3 p-3">
       <CollapsibleSection title="CurrentActives" defaultExpanded>
-        <CurrentActives
-          currentActives={balance.actives.currentActives}
-        />
+        <CurrentActives currentActives={balance.actives.currentActives} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Administrative Expenses">
@@ -26,9 +24,7 @@ function Balance({ project }) {
         <GeneralBalance />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Amortization & Interest">
-        <Passive />
-      </CollapsibleSection>
+      <Passive passives={balance.passives} />
 
       <CollapsibleSection title="Amortization & Interest">
         <Utility />
