@@ -1,17 +1,20 @@
 import computeCirculatingActives from "./computeCirculatingActives.js";
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js";
 import computeDeferedActives from "./computeDeferedActives.js";
+import { computeFixedAssetsByCategory, computeFixedAssetsTotal } from "./computeFixedAssets.js";
 
 function computeActives(project) {
   const years = project.timeline.years;
-  console.log(project.preimses);
 
   const circulatingActive = computeCirculatingActives(project);
-  const { investments } = computeInvestment(project);
+  const { investment } = computeInvestment(project);
 
-  // Fixed assets
+  const fixedAssetsByCategory = computeFixedAssetsByCategory(project, years);
+  const fixedAssets = computeFixedAssetsTotal(fixedAssetsByCategory, years);
 
   const deferedActives = computeDeferedActives(project);
+
+  return { circulatingActive, investment, fixedAssetsByCategory, fixedAssets, deferedActives };
 }
 
 export default computeActives;

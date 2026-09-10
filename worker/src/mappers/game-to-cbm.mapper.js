@@ -129,6 +129,19 @@ export function mapGameRowsToCbm({
     const key = asset.category === 'computer' ? 'compute' : asset.category;
     if (groupedAssets[key]) groupedAssets[key].push(item);
   }
+  // Fixed Assets (Balance Sheet) reads the dynamic assets.byCategory dict
+  // readInversion builds at upload time - the games schema only has these 3
+  // fixed categories (no generic category storage), so re-derive it from
+  // them on read instead of losing it on the DB round-trip.
+  const ASSET_CATEGORY_LABELS = {
+    transport: 'Transport Equipment',
+    buildings: 'Buildings',
+    compute: 'Computer Equipment',
+  };
+  groupedAssets.byCategory = {};
+  for (const [key, label] of Object.entries(ASSET_CATEGORY_LABELS)) {
+    if (groupedAssets[key].length) groupedAssets.byCategory[label] = groupedAssets[key];
+  }
 
   const shares = Array.from({ length: 12 }, () => 0);
   for (const row of monthShares ?? []) {

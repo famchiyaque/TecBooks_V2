@@ -66,6 +66,9 @@ export function createProjectClass({ fileName } = {}) {
       transport: [],
       buildings: [],
       compute: [],
+      // Generic capture of every category the Inversion sheet actually has -
+      // keyed by whatever label the Excel uses, not limited to the 3 above.
+      byCategory: {},
     },
     employees: [],
     services: [],

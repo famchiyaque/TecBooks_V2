@@ -147,33 +147,47 @@ export function readBOM(rows, project) {
   }
 }
 
+/**
+ * A row is a category header if ITS OWN cells are year values (2025, 2026...)
+ * rather than money amounts - InputNovus isn't limited to the 3 categories
+ * ASSET_BLOCKS knows by name (Edificios/Transporte/Computo), other projects'
+ * Inversion sheets can have entirely different category names. Detecting the
+ * header structurally (not by matching a fixed name list) means any category
+ * name works. project.assets.byCategory captures ALL of them, generically;
+ * project.assets.{transport,buildings,compute} keeps working exactly as
+ * before (aliased in alongside, for the existing Cost Table/Income Statement/
+ * Cash Flow pipeline that's hardcoded to those 3 names + machinery).
+ */
 export function readInversion(rows, project) {
   let currentKey = null
+  let currentCategory = null
   let yearMap = {}
 
   for (const row of rows) {
-    const label = normalizeLabel(row?.[0])
-    const block = ASSET_BLOCKS.find((item) => label.startsWith(item.match))
-    if (block) {
-      currentKey = block.key
-      yearMap = yearColumnMap(row)
+    const rowYearMap = yearColumnMap(row)
+    if (Object.keys(rowYearMap).length > 0) {
+      currentCategory = toStringOrUndefined(row?.[0])
+      yearMap = rowYearMap
+      if (currentCategory) project.assets.byCategory[currentCategory] ??= []
+      const label = normalizeLabel(row?.[0])
+      const block = ASSET_BLOCKS.find((item) => label.startsWith(item.match))
+      currentKey = block?.key ?? null
       continue
     }
-    if (!currentKey) continue
+
+    if (!currentCategory) continue
     const name = toStringOrUndefined(row?.[0])
     if (!name) {
       if (isBlank(row?.[1])) {
         currentKey = null
+        currentCategory = null
       }
       continue
     }
-    if (ASSET_BLOCKS.some((item) => normalizeLabel(name).startsWith(item.match))) {
-      continue
-    }
-    project.assets[currentKey].push({
-      name,
-      acquisitionByYear: seriesFromRow(row, yearMap),
-    })
+
+    const asset = { name, acquisitionByYear: seriesFromRow(row, yearMap) }
+    project.assets.byCategory[currentCategory].push(asset)
+    if (currentKey) project.assets[currentKey].push(asset)
   }
 }
 
