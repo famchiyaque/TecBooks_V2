@@ -39,7 +39,17 @@ function computePassives(project) {
     return acc;
   }, {});
 
-  return { longTermPassives, currentPassives };
+  const totalPassives = Object.entries(longTermPassives).reduce(
+    (acc, [year, object]) => {
+      acc[year] =
+        Object.values(object).reduce((a, c) => a + c, 0) +
+        Object.values(currentPassives[year]).reduce((a, c) => a + c, 0);
+      return acc;
+    },
+    {},
+  );
+
+  return { longTermPassives, currentPassives, totalPassives };
 }
 
 export default computePassives;

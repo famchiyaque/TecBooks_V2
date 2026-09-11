@@ -3,6 +3,7 @@ import CollapsibleSection from "@/components/global/CollapsibleSection";
 import { passiveSlice, createPassiveStore } from "@/store/balance.store";
 import { Provider } from "react-redux";
 import EditableTable from "@/components/global/EditableTable";
+import GrandTotalTable from "@/components/global/GrandTotalTable";
 
 export const CURRENT_PASSIVES = [
   { key: "documents", label: "Short-term notes payable" },
@@ -28,7 +29,7 @@ function Passive({ passives }) {
     passives.longTermPassives[year]?.[rowKey] ?? 0;
 
   return (
-    <CollapsibleSection title="Pasivos">
+    <CollapsibleSection title="Passives">
       <Provider store={store}>
         <EditableTable
           title="Current Passives"
@@ -44,7 +45,23 @@ function Passive({ passives }) {
           columns={columns}
           rows={LONG_TERM_PASSIVES}
           getValue={getLongTermPassivesValue}
-          totalLabel="Total Current Actives"
+          totalLabel="Total Long Term Passives"
+        />
+        <GrandTotalTable
+          title="Total Passives"
+          columns={columns}
+          sources={[
+            {
+              slice: passiveSlice,
+              rows: CURRENT_PASSIVES,
+              getValue: getCurrentPassiveValue,
+            },
+            {
+              slice: passiveSlice,
+              rows: LONG_TERM_PASSIVES,
+              getValue: getLongTermPassivesValue,
+            },
+          ]}
         />
       </Provider>
     </CollapsibleSection>
