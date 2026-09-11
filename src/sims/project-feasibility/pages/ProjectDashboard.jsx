@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import Construction from "@mui/icons-material/Construction";
-import Expenses from "@/components/sims/program/Expenses";
+import Outflows from "@/components/sims/program/Outflows";
 import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
 import CashFlow from "@/components/sims/program/CashFlow";
@@ -265,7 +265,7 @@ function TabContent({ activeTab, programId, projectId, project }) {
   }
 
   if (activeTab.id === "inflows") return <Income project={projectWithCbm} />;
-  if (activeTab.id === "outflows") return <Expenses project={projectWithCbm} />;
+  if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} />;
   if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} />;
   if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} />;
 

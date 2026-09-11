@@ -1,26 +1,47 @@
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
 import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
+import computeProductionCost from "@/sims/project-feasibility/income/computeProductionCosts";
 
-export default function useExpenses(project) {
+function emptyProductionCosts() {
+  return {
+    total: {},
+    costRawMaterials: {},
+    workForce: {},
+    adminExpenses: {},
+  };
+}
+
+export default function useOutflows(project) {
   const adminExpenses = calculateAdminExpenses(project);
   const { investment, total } = computeInvestment(project);
   const services = formatServices(project);
   const amortizationInterests = computeAmortizationInterest(total, project);
+  const productionCosts =
+    project?.timeline && project?.bom && project?.premises
+      ? computeProductionCost(project)
+      : emptyProductionCosts();
+  const { yearAmortization, yearInterest } = amortizationInterests;
+
+  const totalFinancialExpenses = Object.values(productionCosts.total).map(
+    (yearTotal, idx) => {
+      let financial = 0;
+      if (yearAmortization.length > idx) {
+        financial += yearAmortization[idx] + yearInterest[idx];
+      }
+      return yearTotal + financial;
+    },
+  );
 
   return {
     adminExpenses,
     investment: formatAssets(investment),
     services,
     amortizationInterests,
+    productionCosts,
+    totalFinancialExpenses,
   };
 }
 
-/* ---------------- Administrative Expenses ---------------- */
-
-/**
- * Sums monthly service costs as the year-0 base, then compounds it
- * forward using each year's actual national inflation rate.
- */
 function calculateAdminExpenses(project) {
   const years = project?.timeline?.years ?? [];
   const inflationRates = project?.premises?.nationalInflation ?? [];
@@ -47,8 +68,6 @@ function calculateAdminExpenses(project) {
   return adminExpensesAll;
 }
 
-/* ---------------- Services Table ---------------- */
-
 function formatServices(project) {
   const items = project?.services;
   if (!Array.isArray(items)) return [];
@@ -72,12 +91,8 @@ function formatAssets(investments) {
     civilWork: "Civil Work",
   };
 
-  console.log(investments);
-
-  investments = Object.entries(investments).map(([key, value]) => ({
+  return Object.entries(investments).map(([key, value]) => ({
     concept: pairName[key],
     amount: value,
   }));
-
-  return investments;
 }
