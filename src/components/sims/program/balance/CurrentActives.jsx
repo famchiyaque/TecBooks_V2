@@ -1,0 +1,58 @@
+import React, { useState } from "react";
+import EditableTable from "@/components/global/EditableTable";
+import {
+  currentActivesSlice,
+  createCurrentActivesTableStore,
+} from "@/store/balance.store";
+import { Provider } from "react-redux";
+
+export const COST_ROWS = [
+  { key: "cashAndBank", label: "Cash and Bank Accounts" },
+  { key: "deposits", label: "Inventory" },
+  { key: "stocks", label: "Stocks" },
+  { key: "inventary", label: "Accounts Receivable" },
+];
+
+function CurrentActives({ currentActives }) {
+  delete currentActives["total"];
+  currentActives = flipObject(currentActives);
+
+  const [store] = useState(() => createCurrentActivesTableStore());
+
+  const columns = Object.keys(currentActives).map((year) => ({
+    key: year,
+    label: year,
+  }));
+  const getValue = (rowKey, year) => currentActives[year]?.[rowKey] ?? 0;
+
+  return (
+    <Provider store={store}>
+      <EditableTable
+        title="Current Actives"
+        slice={currentActivesSlice}
+        columns={columns}
+        rows={COST_ROWS}
+        getValue={getValue}
+        totalLabel="Total Current Actives"
+      />
+    </Provider>
+  );
+}
+
+function flipObject(obj) {
+  const result = {};
+
+  Object.entries(obj).forEach(([key, values]) => {
+    Object.entries(values).forEach(([innerKey, value]) => {
+      if (!result[innerKey]) {
+        result[innerKey] = {};
+      }
+
+      result[innerKey][key] = value;
+    });
+  });
+
+  return result;
+}
+
+export default CurrentActives;

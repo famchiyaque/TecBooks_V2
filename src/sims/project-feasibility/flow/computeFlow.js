@@ -29,13 +29,13 @@ function computeFlow(project) {
 
   const totalExpenses = getAnnualCashOutflowsTotal(costOfSales, opx);
   Object.entries(totalExpenses).forEach(([year, amount]) => {
+    year = parseInt(year);
     if (year != years.at(-1)) initialBalance[year + 1] = amount;
   });
 
-  // [years[0]]: initialBalance[0] + longTermLoan[0] + sales[0],
-
   const totalIncome = Object.entries(initialBalance).reduce(
     (acc, [year, amount]) => {
+      year = parseInt(year);
       acc[year] = amount + longTermLoan[year] + sales[year];
       return acc;
     },

@@ -2,17 +2,32 @@ import React from "react";
 import useBalance from "@/hooks/sims/project/useBalance";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 import FixedAssetsTable from "@/components/dashboard/FixedAssetsTable";
+import CurrentActives from "./balance/CurrentActives.jsx";
+import Passive from "./balance/Passive.jsx";
+import Utility from "./balance/Utility.jsx";
 
 function Balance({ project }) {
   const balance = useBalance(project);
 
   return (
-    <CollapsibleSection title="Fixed Assets" defaultExpanded>
-      <FixedAssetsTable
-        byCategory={balance.actives?.fixedAssetsByCategory}
-        total={balance.actives?.fixedAssets}
-      />
-    </CollapsibleSection>
+    <div className="flex flex-col mt-3 p-3">
+      <CollapsibleSection title="CurrentActives" defaultExpanded>
+        <CurrentActives currentActives={balance.actives.currentActives} />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Fixed Assets" defaultExpanded>
+        <FixedAssetsTable
+          byCategory={balance.actives?.fixedAssetsByCategory}
+          total={balance.actives?.fixedAssets}
+        />
+      </CollapsibleSection>
+
+      <Passive passives={balance.passives} />
+
+      <CollapsibleSection title="Amortization & Interest">
+        <Utility />
+      </CollapsibleSection>
+    </div>
   );
 }
 
