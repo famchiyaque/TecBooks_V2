@@ -38,7 +38,7 @@ import {
 } from "@/store/costTable.store";
 
 const TABS = [
-  { id: "premises", label: "Premises" },
+  // { id: "premises", label: "Premises" },
   { id: "inflows", label: "Inflows" },
   { id: "outflows", label: "Outflows" },
   { id: "income-statement", label: "Income Statement" },
@@ -60,7 +60,7 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Financial statements",
       description:
-        "Switch between Premises, Inflows, Outflows, Income Statement, Cash Flows, Balance Sheet and Ratios.",
+        "Switch between Inflows, Outflows, Income Statement, Cash Flows, Balance Sheet and Ratios.",
     },
   },
   {
@@ -68,29 +68,29 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Tab contents",
       description:
-        "Inflows, Outflows, Income Statement and Cash Flows load this project's tables. Premises, Balance Sheet and Ratios are placeholders for now.",
+        "Inflows, Outflows, Income Statement and Cash Flows load this project's tables. Balance Sheet and Ratios are placeholders for now.",
     },
   },
 ]);
 
-const PREMISE_ROWS = [
-  "Exchange rate at close (USD)",
-  "National leading rate",
-  "National inflation",
-  "ISR rate",
-  "PTU rate",
-  "Direct product cost %",
-  "Indirect product cost %",
-  "Sales expense %",
-  "Administration %",
-];
+// const PREMISE_ROWS = [
+//   "Exchange rate at close (USD)",
+//   "National leading rate",
+//   "National inflation",
+//   "ISR rate",
+//   "PTU rate",
+//   "Direct product cost %",
+//   "Indirect product cost %",
+//   "Sales expense %",
+//   "Administration %",
+// ];
 
 const BALANCE_ROWS = ["Activo", "Pasivo", "Capital", "Total"];
 
 const RATIO_ROWS = ["Current ratio", "Quick ratio", "Debt to equity", "ROA"];
 
 const PLACEHOLDER_TABS = {
-  premises: { rows: PREMISE_ROWS, years: HORIZON_YEARS, blank: true },
+  // premises: { rows: PREMISE_ROWS, years: HORIZON_YEARS, blank: true },
   balance: { rows: BALANCE_ROWS, years: HORIZON_YEARS.slice(0, 4) },
   ratios: { rows: RATIO_ROWS, years: HORIZON_YEARS.slice(0, 4) },
 };
