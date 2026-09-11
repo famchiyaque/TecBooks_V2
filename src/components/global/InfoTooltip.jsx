@@ -1,6 +1,5 @@
 import React from "react";
 import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 
 function InfoTooltip({ title }) {
@@ -13,15 +12,14 @@ function InfoTooltip({ title }) {
       placement="top"
       slotProps={{ tooltip: { sx: { maxWidth: 360, fontSize: 12 } } }}
     >
-      <IconButton
-        size="small"
+      <span
         aria-label="More information"
+        className="ml-1 inline-flex cursor-help items-center text-slate-500"
         onClick={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
-        sx={{ p: 0.25, ml: 0.5, color: "text.secondary" }}
       >
         <InfoOutlined sx={{ fontSize: 16 }} />
-      </IconButton>
+      </span>
     </Tooltip>
   );
 }
