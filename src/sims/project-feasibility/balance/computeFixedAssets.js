@@ -23,10 +23,55 @@ const KNOWN_RATE_FIELD_BY_MATCH = [
   { match: 'computer equipment', field: 'depreciationCompute' },
 ]
 
+function normalize(text) {
+  return String(text ?? '').toLowerCase().replace(/[.]/g, '').trim()
+}
+
 function rateFieldForCategory(category) {
   if (category === MACHINERY_CATEGORY) return 'depreciationMachinery'
-  const normalized = String(category ?? '').toLowerCase().trim()
+  const normalized = normalize(category)
   return KNOWN_RATE_FIELD_BY_MATCH.find((item) => normalized.startsWith(item.match))?.field ?? null
+}
+
+/**
+ * Looks up a rate series in premises.depreciationByCategory by fuzzy name
+ * match - used for BOTH an unrecognized category's own rate (e.g. a
+ * "Porcentaje Depreciacion Animales" row) AND an individual item's own rate
+ * (e.g. "Porcentaje Depreciacion Vaca") - same lookup, just called with a
+ * different label each time.
+ */
+function genericRateSeries(cbm, label) {
+  const depreciationByCategory = cbm.premises?.depreciationByCategory ?? {}
+  const normalizedLabel = normalize(label)
+  const matchKey = Object.keys(depreciationByCategory).find((key) => normalize(key) === normalizedLabel)
+    ?? Object.keys(depreciationByCategory).find((key) => (
+      normalizedLabel.includes(normalize(key)) || normalize(key).includes(normalizedLabel)
+    ))
+  return matchKey ? depreciationByCategory[matchKey] : null
+}
+
+/**
+ * Rate series for one asset category, tried in order: its own fixed
+ * depreciationX field (Buildings/Transport/Compute/Machinery), else a
+ * generic Premisas row matching the category name itself (e.g. "Porcentaje
+ * Depreciacion Animales" for a category called "Animales"). This is only
+ * ever the FALLBACK for an item that has no rate of its own - see
+ * rateSeriesForItem, which tries the item's own name first.
+ */
+function rateSeriesForCategory(cbm, category) {
+  const rateField = rateFieldForCategory(category)
+  return rateField ? cbm.premises?.[rateField] : genericRateSeries(cbm, category)
+}
+
+/**
+ * Depreciation is really per-ITEM, not per-category: two items in the same
+ * category (e.g. "Vaca" and "Cerdo" under "Animales") can each have their
+ * own Premisas rate ("Porcentaje Depreciacion Vaca" / "... Cerdo"). Tries
+ * the item's own name first, falls back to the category's rate (or 0%) only
+ * if the item has none of its own.
+ */
+function rateSeriesForItem(cbm, category, itemName) {
+  return genericRateSeries(cbm, itemName) ?? rateSeriesForCategory(cbm, category)
 }
 
 function computeItemCumulativeByYear(asset, years) {
@@ -44,9 +89,10 @@ function computeItemCumulativeByYear(asset, years) {
  * net value for every asset category the Excel actually has - dynamic, not
  * limited to Buildings/Transport/Compute (see readInversion's structural
  * category detection) - plus Machinery and Equipment (Capacidad, not
- * Inversion). Each category also lists its individual assets (name +
- * cumulative value per year) - what's actually driving that category's
- * depreciation number.
+ * Inversion). Depreciation is computed per INDIVIDUAL ITEM (each with its
+ * own rate, see rateSeriesForItem) and summed up to the category total -
+ * not the category's cumulative gross value depreciated at one shared rate,
+ * since two items in the same category can depreciate differently.
  */
 export function computeFixedAssetsByCategory(cbm, years) {
   const categories = { ...(cbm.assets?.byCategory ?? {}) }
@@ -57,31 +103,41 @@ export function computeFixedAssetsByCategory(cbm, years) {
   const result = {}
   for (const [category, rawAssets] of Object.entries(categories)) {
     const assets = mapAssetsToYears(rawAssets, years)
-    const rateField = rateFieldForCategory(category)
-    const rateByYear = rateField
-      ? yearMapFromSeries(cbm.premises?.[rateField], years)
-      : Object.fromEntries(years.map((year) => [year, 0]))
+
+    const items = assets.map((asset) => {
+      const rateSeries = rateSeriesForItem(cbm, category, asset.name)
+      const rateByYear = rateSeries
+        ? yearMapFromSeries(rateSeries, years)
+        : Object.fromEntries(years.map((year) => [year, 0]))
+
+      const cumulativeByYear = computeItemCumulativeByYear(asset, years)
+      const annualDepreciationByYear = computeAssetDepreciation([asset], rateByYear, years)
+
+      let itemAccumulated = 0
+      const accumulatedDepreciationByYear = {}
+      for (const year of years) {
+        itemAccumulated += annualDepreciationByYear[year] || 0
+        accumulatedDepreciationByYear[year] = itemAccumulated
+      }
+
+      return { name: asset.name, cumulativeByYear, annualDepreciationByYear, accumulatedDepreciationByYear }
+    })
 
     const grossByYear = computeCumulativeInvestment([assets], years)
-    const annualDepreciationByYear = computeAssetDepreciation(assets, rateByYear, years)
 
     let accumulatedDepreciation = 0
     const rows = years.map((year) => {
-      accumulatedDepreciation += annualDepreciationByYear[year] || 0
+      const annualDepreciation = items.reduce((sum, item) => sum + (item.annualDepreciationByYear[year] || 0), 0)
+      accumulatedDepreciation += annualDepreciation
       const grossValue = grossByYear[year] || 0
       return {
         year,
         grossValue,
-        annualDepreciation: annualDepreciationByYear[year] || 0,
+        annualDepreciation,
         accumulatedDepreciation,
         netValue: grossValue - accumulatedDepreciation,
       }
     })
-
-    const items = assets.map((asset) => ({
-      name: asset.name,
-      cumulativeByYear: computeItemCumulativeByYear(asset, years),
-    }))
 
     result[category] = { rows, items }
   }

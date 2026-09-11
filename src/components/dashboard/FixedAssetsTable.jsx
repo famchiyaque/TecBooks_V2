@@ -21,10 +21,13 @@ function valueColorClass(value) {
  *
  * "Accumulated Depreciation" and "Total Net Fixed Assets" can be expanded
  * (same pattern as ProfitSummaryTable): the first shows the individual
- * assets driving that category's number (name + cumulative value per year)
- * plus that year's Annual Depreciation and the formula; the second shows
- * only the formula, since its operands (Gross Value / Accumulated
- * Depreciation) are already visible rows above.
+ * assets driving that category's number - each item's own Gross Value AND
+ * its own Accumulated Depreciation (items can each have their own rate, see
+ * computeFixedAssets' rateSeriesForItem - "Vaca" and "Cerdo" under an
+ * "Animales" category can depreciate differently) - plus that year's total
+ * Annual Depreciation and the formula. The second shows only the formula,
+ * since its operands (Gross Value / Accumulated Depreciation) are already
+ * visible rows above.
  */
 function FixedAssetsTable({ byCategory, total }) {
   const [expandedRows, setExpandedRows] = React.useState(() => new Set())
@@ -38,6 +41,7 @@ function FixedAssetsTable({ byCategory, total }) {
 
   const rowValue = (categoryRows, year, key) => categoryRows.find((row) => row.year === year)?.[key] ?? 0
   const itemValue = (item, year) => item.cumulativeByYear?.[year] ?? 0
+  const itemDepreciation = (item, year) => item.accumulatedDepreciationByYear?.[year] ?? 0
 
   const toggleRow = (rowId) => {
     setExpandedRows((prev) => {
@@ -110,14 +114,24 @@ function FixedAssetsTable({ byCategory, total }) {
                   {isExpanded && (
                     <>
                       {items.map((item) => (
-                        <tr key={item.name} className="bg-slate-50/50">
-                          <td className="whitespace-nowrap py-1.5 pl-11 pr-2 text-slate-500">{item.name}</td>
-                          {years.map((year) => (
-                            <td key={year} className="whitespace-nowrap py-1.5 pr-2 text-right">
-                              <span className="tabular-nums text-emerald-700">{formatCurrency(itemValue(item, year))}</span>
-                            </td>
-                          ))}
-                        </tr>
+                        <React.Fragment key={item.name}>
+                          <tr className="bg-slate-50/50">
+                            <td className="whitespace-nowrap py-1.5 pl-11 pr-2 text-slate-500">{item.name}</td>
+                            {years.map((year) => (
+                              <td key={year} className="whitespace-nowrap py-1.5 pr-2 text-right">
+                                <span className="tabular-nums text-emerald-700">{formatCurrency(itemValue(item, year))}</span>
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="bg-slate-50/50">
+                            <td className="whitespace-nowrap py-1.5 pl-16 pr-2 text-slate-400">(-) Depreciation</td>
+                            {years.map((year) => (
+                              <td key={year} className="whitespace-nowrap py-1.5 pr-2 text-right">
+                                <span className="tabular-nums text-rose-500">({formatCurrency(itemDepreciation(item, year))})</span>
+                              </td>
+                            ))}
+                          </tr>
+                        </React.Fragment>
                       ))}
                       <tr className="bg-slate-50/50">
                         <td className="whitespace-nowrap py-1.5 pl-11 pr-2 text-slate-500">Annual Depreciation (this year)</td>

@@ -18,6 +18,32 @@ function legacyAssetKey(category) {
   return LEGACY_ASSET_KEY_BY_MATCH.find((item) => normalized.startsWith(item.match))?.key ?? null;
 }
 
+// premises_deprecations is now 1-to-many (one row per game+category, see
+// migration 0011) instead of one row per game with 4 fixed columns - group
+// its yearly rows (keyed by deprecation_id) back under each category first.
+function groupDeprecationsByCategory(premisesDeprecations, premisesDeprecationsYearly) {
+  const yearlyByDeprecationId = new Map();
+  for (const row of premisesDeprecationsYearly ?? []) {
+    const list = yearlyByDeprecationId.get(row.deprecation_id) ?? [];
+    list.push(row);
+    yearlyByDeprecationId.set(row.deprecation_id, list);
+  }
+  const byCategory = new Map();
+  for (const deprecation of premisesDeprecations ?? []) {
+    byCategory.set(deprecation.category, {
+      rate: deprecation.rate,
+      yearly: yearlyByDeprecationId.get(deprecation.id) ?? [],
+    });
+  }
+  return byCategory;
+}
+
+function depreciationSeries(deprecationsByCategory, category, years) {
+  const entry = deprecationsByCategory.get(category);
+  if (!entry) return years.map(() => undefined);
+  return seriesFromYearly(years, entry.yearly, 'rate', entry.rate);
+}
+
 const COMPENSATION_FIELDS = {
   imss: 'imss',
   infonavit: 'infonavit',
@@ -131,6 +157,8 @@ export function mapGameRowsToCbm({
     costsByAsset.set(cost.asset_id, map);
   }
 
+  const deprecationsByCategory = groupDeprecationsByCategory(premisesDeprecations, premisesDeprecationsYearly);
+
   const groupedAssets = { transport: [], buildings: [], compute: [], byCategory: {} };
   const machines = [];
   for (const asset of assets ?? []) {
@@ -243,29 +271,17 @@ export function mapGameRowsToCbm({
         'administration_percentage',
         premisesPercentage?.administration_percentage
       ),
-      depreciationBuildings: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'building',
-        premisesDeprecations?.building
-      ),
-      depreciationTransport: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'transport',
-        premisesDeprecations?.transport
-      ),
-      depreciationCompute: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'compute',
-        premisesDeprecations?.compute
-      ),
-      depreciationMachinery: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'machinery',
-        premisesDeprecations?.machinery
+      depreciationBuildings: depreciationSeries(deprecationsByCategory, 'building', years),
+      depreciationTransport: depreciationSeries(deprecationsByCategory, 'transport', years),
+      depreciationCompute: depreciationSeries(deprecationsByCategory, 'compute', years),
+      depreciationMachinery: depreciationSeries(deprecationsByCategory, 'machinery', years),
+      // Fixed Assets (Balance Sheet) reads this - every category, not just
+      // the 4 legacy ones above (a project-invented Inversion category still
+      // gets its own real depreciation rate if Premisas has a matching row).
+      depreciationByCategory: Object.fromEntries(
+        Array.from(deprecationsByCategory.keys())
+          .filter((category) => !['building', 'transport', 'compute', 'machinery'].includes(category))
+          .map((category) => [category, depreciationSeries(deprecationsByCategory, category, years)])
       ),
     },
     demand: {

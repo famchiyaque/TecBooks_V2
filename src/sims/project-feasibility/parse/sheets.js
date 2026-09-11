@@ -52,6 +52,12 @@ const ASSET_BLOCKS = [
   { match: 'equipo de computo', key: 'compute' },
 ]
 
+// Any "Porcentaje depreciacion X" row becomes its own category rate - not
+// just the 4 fixed PREMISES_ROWS fields InputNovus happens to always have.
+// Mirrors readInversion's structural category detection: X can be anything,
+// including a category Inversion invents that has no fixed field for it.
+const DEPRECIATION_RATE_PATTERN = /^porcentaje depreciacion (.+)$/
+
 export function readPremisas(rows, project) {
   let lastYearMap = {}
   for (const row of rows) {
@@ -72,6 +78,11 @@ export function readPremisas(rows, project) {
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)
+      continue
+    }
+    const depreciationMatch = label.match(DEPRECIATION_RATE_PATTERN)
+    if (depreciationMatch) {
+      project.premises.depreciationByCategory[depreciationMatch[1]] = seriesFromRow(row, lastYearMap)
     }
   }
 }
