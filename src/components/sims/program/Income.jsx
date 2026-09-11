@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import useIncome from "@/hooks/sims/project/useIncome";
+import ProductionCostTable from "./income/ProductionCostTable";
 import UtilityCostTable from "./income/UtilityCostTable";
 import CompetitivePriceTable from "./income/CompetitivePriceTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
@@ -16,7 +17,16 @@ function Income({ project }) {
 
   return (
     <div className="flex flex-col mt-3 p-3">
-      <CollapsibleSection title="Utility Cost" defaultExpanded>
+      <p className="mb-3 text-sm text-slate-500">
+        This tab describes inflows by unit: the numbers break down sales
+        and how they relate to the unit price of each BOM.
+      </p>
+
+      <CollapsibleSection title="ProductionCost" defaultExpanded>
+        <ProductionCostTable productionCosts={income.productionCosts} />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Utility Cost">
         <UtilityCostTable
           utilityCost={income.utilityCost}
           baseYear={baseYear}

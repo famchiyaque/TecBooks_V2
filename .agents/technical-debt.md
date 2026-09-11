@@ -12,8 +12,8 @@
 
 | Tab | Intended query key | Intended payload |
 |---|---|---|
-| Outflows | `['expenses', gameId]` | years, admin series, investment lines, services, amortization, production costs, financials |
-| Income | `['income', gameId]` | utility, competitive price |
+| Outflows | `['expenses', gameId]` | years, admin series, investment lines, services, amortization, financials |
+| Income | `['income', gameId]` | production costs, utility, competitive price |
 | Cost / Ratios | `['cost-table', gameId]` | cost-of-sales / profit / break-even inputs |
 | Flujo | `['cash-flow', gameId]` | inflows and outflows by year |
 

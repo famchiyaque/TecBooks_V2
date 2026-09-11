@@ -1,9 +1,8 @@
-import React, { useLayoutEffect, useRef, useState, useMemo } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import AdminExpensesTable from "./expenses/AdminExpensesTable";
 import InvestmentTable from "./expenses/InvestmentTable";
 import ServicesTable from "./expenses/ServicesTable";
 import useOutflows from "@/hooks/sims/project/useOutflows";
-import ProductionCostTable from "./income/ProductionCostTable";
 import AmortizationInterestTable from "./income/AmortizationInterestTable";
 import FinancialExpensesTable from "./income/FinancialExpensesTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
@@ -32,24 +31,12 @@ function Outflows({ project }) {
     investment,
     services,
     amortizationInterests,
-    productionCosts,
     totalFinancialExpenses,
   } = useOutflows(cbm ?? {});
 
-  const baseYear = useMemo(() => {
-    const productionYears = Object.keys(productionCosts?.total ?? {})
-      .map(Number)
-      .sort((a, b) => a - b);
-    return productionYears[0] ?? years[0];
-  }, [productionCosts, years]);
-
   return (
     <div className="flex flex-col mt-3 p-3">
-      <CollapsibleSection title="ProductionCost" defaultExpanded>
-        <ProductionCostTable productionCosts={productionCosts} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Administrative Expenses">
+      <CollapsibleSection title="Administrative Expenses" defaultExpanded>
         <AdminExpensesTable years={years} expenses={adminExpenses} />
       </CollapsibleSection>
 
@@ -78,7 +65,7 @@ function Outflows({ project }) {
       <CollapsibleSection title="Financial Expenses">
         <FinancialExpensesTable
           totalFinancialExpenses={totalFinancialExpenses}
-          baseYear={baseYear}
+          baseYear={years[0]}
         />
       </CollapsibleSection>
     </div>

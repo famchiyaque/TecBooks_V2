@@ -37,7 +37,6 @@ export default function useOutflows(project) {
     investment: formatAssets(investment),
     services,
     amortizationInterests,
-    productionCosts,
     totalFinancialExpenses,
   };
 }
