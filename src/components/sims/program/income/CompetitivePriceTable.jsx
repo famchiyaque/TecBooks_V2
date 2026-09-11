@@ -40,7 +40,7 @@ function CompetitivePriceTable({ competitivaPrice, baseYear }) {
   }, [years, competitivaPrice]);
 
   return (
-    <TableContainer title="Competitive Price" columns={columns} rows={rows} />
+    <TableContainer title="Unit Price" columns={columns} rows={rows} />
   );
 }
 

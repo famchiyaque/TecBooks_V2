@@ -46,7 +46,7 @@ function UtilityCostTable({ utilityCost, baseYear }) {
     [margins, years, utilityCost],
   );
 
-  return <TableContainer title="Utility Cost" columns={columns} rows={rows} />;
+  return <TableContainer title="Utility Price" columns={columns} rows={rows} />;
 }
 
 export default UtilityCostTable;

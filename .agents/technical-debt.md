@@ -13,7 +13,7 @@
 | Tab | Intended query key | Intended payload |
 |---|---|---|
 | Outflows | `['expenses', gameId]` | years, admin series, investment lines, services, amortization, financials |
-| Income | `['income', gameId]` | production costs, utility, competitive price |
+| Income | `['income', gameId]` | costs per unit, unit price, sales, utility price |
 | Cost / Ratios | `['cost-table', gameId]` | cost-of-sales / profit / break-even inputs |
 | Flujo | `['cash-flow', gameId]` | inflows and outflows by year |
 
@@ -26,3 +26,4 @@ Math may live on the worker or in a hook that only sees that slice. Do not add n
 - `GET /api/expenses?gameId=` still exists (old seed-shaped payload). Outflows UI does **not** use it; it uses the fat CBM. Do not hardcode `gameId = 1`.
 - `Empleados` `Cantidad` is blank for **MOD Operador** and **MOD Supervisor** (filled from Capacidad: sum of machine operators, one supervisor per machine). Upload currently persists empty as `1`.
 - Redux `costTable` slices are **cell edits only**. REQ-00’s “Redux is the session CBM database” was never built. Do not revive it.
+- Inflows **Sales** = inflated unit price (BOM `Costo de venta` compounded by Premisas inflation) × projected customer orders. Cost Table / Cash Flow **Sales** (`computeNetSales`) still uses the **flat** year-0 BOM price × the same projected orders. Do not silently merge these until someone picks one formula.

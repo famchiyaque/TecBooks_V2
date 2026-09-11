@@ -66,7 +66,7 @@ function ProductionCostTable({ productionCosts }) {
   }, [years, productionCosts]);
 
   return (
-    <TableContainer title="Production Costs" columns={columns} rows={rows} />
+    <TableContainer title="Costs per Unit" columns={columns} rows={rows} />
   );
 }
 

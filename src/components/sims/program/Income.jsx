@@ -3,6 +3,7 @@ import useIncome from "@/hooks/sims/project/useIncome";
 import ProductionCostTable from "./income/ProductionCostTable";
 import UtilityCostTable from "./income/UtilityCostTable";
 import CompetitivePriceTable from "./income/CompetitivePriceTable";
+import SalesTable from "./income/SalesTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 
 function Income({ project }) {
@@ -22,20 +23,24 @@ function Income({ project }) {
         and how they relate to the unit price of each BOM.
       </p>
 
-      <CollapsibleSection title="ProductionCost" defaultExpanded>
+      <CollapsibleSection title="Costs per Unit" defaultExpanded>
         <ProductionCostTable productionCosts={income.productionCosts} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Utility Cost">
-        <UtilityCostTable
-          utilityCost={income.utilityCost}
+      <CollapsibleSection title="Unit Price">
+        <CompetitivePriceTable
+          competitivaPrice={income.competitivaPrice}
           baseYear={baseYear}
         />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Competitive Price">
-        <CompetitivePriceTable
-          competitivaPrice={income.competitivaPrice}
+      <CollapsibleSection title="Sales">
+        <SalesTable sales={income.sales} baseYear={baseYear} />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Utility Price">
+        <UtilityCostTable
+          utilityCost={income.utilityCost}
           baseYear={baseYear}
         />
       </CollapsibleSection>
