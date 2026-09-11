@@ -1,3 +1,23 @@
+// Maps a saved category (free text, whatever readInversion found at upload
+// time) back to the legacy fixed bucket the Cost Table/Operating Expenses
+// pipeline still hardcodes to - matches both the raw Spanish Excel label and
+// the English label older rows may have been saved under. A category that
+// matches none of these only ever lands in byCategory, not a legacy bucket
+// (nothing else needs it).
+const LEGACY_ASSET_KEY_BY_MATCH = [
+  { match: 'equipo de transporte', key: 'transport' },
+  { match: 'transport equipment', key: 'transport' },
+  { match: 'edificios', key: 'buildings' },
+  { match: 'buildings', key: 'buildings' },
+  { match: 'equipo de computo', key: 'compute' },
+  { match: 'computer equipment', key: 'compute' },
+];
+
+function legacyAssetKey(category) {
+  const normalized = String(category ?? '').toLowerCase().trim();
+  return LEGACY_ASSET_KEY_BY_MATCH.find((item) => normalized.startsWith(item.match))?.key ?? null;
+}
+
 const COMPENSATION_FIELDS = {
   imss: 'imss',
   infonavit: 'infonavit',
@@ -111,7 +131,7 @@ export function mapGameRowsToCbm({
     costsByAsset.set(cost.asset_id, map);
   }
 
-  const groupedAssets = { transport: [], buildings: [], compute: [] };
+  const groupedAssets = { transport: [], buildings: [], compute: [], byCategory: {} };
   const machines = [];
   for (const asset of assets ?? []) {
     const item = {
@@ -126,21 +146,14 @@ export function mapGameRowsToCbm({
       machines.push({ ...item, description: asset.name, operators: 0 });
       continue;
     }
-    const key = asset.category === 'computer' ? 'compute' : asset.category;
-    if (groupedAssets[key]) groupedAssets[key].push(item);
-  }
-  // Fixed Assets (Balance Sheet) reads the dynamic assets.byCategory dict
-  // readInversion builds at upload time - the games schema only has these 3
-  // fixed categories (no generic category storage), so re-derive it from
-  // them on read instead of losing it on the DB round-trip.
-  const ASSET_CATEGORY_LABELS = {
-    transport: 'Transport Equipment',
-    buildings: 'Buildings',
-    compute: 'Computer Equipment',
-  };
-  groupedAssets.byCategory = {};
-  for (const [key, label] of Object.entries(ASSET_CATEGORY_LABELS)) {
-    if (groupedAssets[key].length) groupedAssets.byCategory[label] = groupedAssets[key];
+    // byCategory keeps every category as-saved (whatever readInversion found,
+    // not just the 3 InputNovus happens to always have) - Fixed Assets
+    // (Balance Sheet) reads this. The legacy transport/buildings/compute
+    // buckets still get filled too, by pattern-matching back to them, for
+    // the Cost Table/Operating Expenses pipeline that's hardcoded to those 3.
+    (groupedAssets.byCategory[asset.category] ??= []).push(item);
+    const legacyKey = legacyAssetKey(asset.category);
+    if (legacyKey) groupedAssets[legacyKey].push(item);
   }
 
   const shares = Array.from({ length: 12 }, () => 0);

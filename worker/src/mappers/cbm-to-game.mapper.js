@@ -4,11 +4,6 @@ const DEFAULT_PERIODS = 60;
 
 const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES'];
 
-const ASSET_CATEGORY = {
-  transport: 'transport',
-  buildings: 'buildings',
-  compute: 'computer',
-};
 
 function asNumber(value, fallback = null) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -95,8 +90,13 @@ function mapEmployees(cbm) {
 
 function mapAssets(cbm) {
   const assets = [];
-  for (const [block, category] of Object.entries(ASSET_CATEGORY)) {
-    for (const item of cbm?.assets?.[block] ?? []) {
+  // `category` is a free-text column (VARCHAR(600), no enum/CHECK constraint)
+  // - saves whatever category label readInversion actually found (e.g. "EQUIPO
+  // DE TRANSPORTE." or a project-specific one it invented), not just the 3
+  // InputNovus happens to always have. byCategory already contains those 3
+  // too (readInversion aliases into both), so this alone is the complete set.
+  for (const [category, items] of Object.entries(cbm?.assets?.byCategory ?? {})) {
+    for (const item of items ?? []) {
       assets.push({
         name: item.name ?? category,
         category,
