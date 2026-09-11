@@ -46,14 +46,16 @@ function ProgramsSidebar() {
       sx={{
         width: 280,
         flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
         borderRight: '1px solid rgba(7, 58, 90, 0.12)',
         bgcolor: '#f4f7fa',
-        height: '94vh',
-        overflowY: 'auto',
+        height: '100%',
+        maxHeight: '100%',
         textAlign: 'left',
       }}
     >
-      <Box sx={{ px: 2, py: 2 }}>
+      <Box sx={{ px: 2, py: 2, flexShrink: 0 }}>
         <Typography
           component={NavLink}
           to="/sims/project-feasibility/programs"
@@ -64,62 +66,64 @@ function ProgramsSidebar() {
         </Typography>
       </Box>
 
-      {status === 'loading' && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-          <CircularProgress size={24} />
-        </Box>
-      )}
+      <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        {status === 'loading' && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
 
-      {status === 'error' && (
-        <Typography sx={{ px: 2, fontSize: 14, color: 'error.main' }}>
-          Couldn't load the programs.
-        </Typography>
-      )}
+        {status === 'error' && (
+          <Typography sx={{ px: 2, fontSize: 14, color: 'error.main' }}>
+            Couldn't load the programs.
+          </Typography>
+        )}
 
-      {status === 'ready' && sidebarPrograms.length === 0 && (
-        <Typography sx={{ px: 2, fontSize: 14, opacity: 0.7 }}>
-          No programs yet.
-        </Typography>
-      )}
+        {status === 'ready' && sidebarPrograms.length === 0 && (
+          <Typography sx={{ px: 2, fontSize: 14, opacity: 0.7 }}>
+            No programs yet.
+          </Typography>
+        )}
 
-      {status === 'ready' && (
-        <List disablePadding>
-          {sidebarPrograms.map((program) => {
-            const isOpen = openIds.has(String(program.id))
-            return (
-              <Box key={program.id}>
-                <ListItemButton onClick={() => toggleProgram(program.id)} sx={{ px: 2 }}>
-                  <ListItemText
-                    primary={program.name}
-                    primaryTypographyProps={{ fontWeight: 600, color: '#073a5a' }}
-                  />
-                  {isOpen ? <ExpandLess /> : <ExpandMore />}
-                </ListItemButton>
-                <Collapse in={isOpen} timeout="auto" unmountOnExit>
-                  <List disablePadding>
-                    {program.projects.map((project) => {
-                      const selected =
-                        String(program.id) === String(programId)
-                        && String(project.id) === String(projectId)
-                      return (
-                        <ListItemButton
-                          key={project.id}
-                          component={NavLink}
-                          to={PROJECT_PATH(program.id, project.id)}
-                          selected={selected}
-                          sx={{ pl: 4, '&.active, &.Mui-selected': { bgcolor: 'rgba(30, 144, 255, 0.12)' } }}
-                        >
-                          <ListItemText primary={project.name} />
-                        </ListItemButton>
-                      )
-                    })}
-                  </List>
-                </Collapse>
-              </Box>
-            )
-          })}
-        </List>
-      )}
+        {status === 'ready' && (
+          <List disablePadding>
+            {sidebarPrograms.map((program) => {
+              const isOpen = openIds.has(String(program.id))
+              return (
+                <Box key={program.id}>
+                  <ListItemButton onClick={() => toggleProgram(program.id)} sx={{ px: 2 }}>
+                    <ListItemText
+                      primary={program.name}
+                      primaryTypographyProps={{ fontWeight: 600, color: '#073a5a' }}
+                    />
+                    {isOpen ? <ExpandLess /> : <ExpandMore />}
+                  </ListItemButton>
+                  <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                    <List disablePadding>
+                      {program.projects.map((project) => {
+                        const selected =
+                          String(program.id) === String(programId)
+                          && String(project.id) === String(projectId)
+                        return (
+                          <ListItemButton
+                            key={project.id}
+                            component={NavLink}
+                            to={PROJECT_PATH(program.id, project.id)}
+                            selected={selected}
+                            sx={{ pl: 4, '&.active, &.Mui-selected': { bgcolor: 'rgba(30, 144, 255, 0.12)' } }}
+                          >
+                            <ListItemText primary={project.name} />
+                          </ListItemButton>
+                        )
+                      })}
+                    </List>
+                  </Collapse>
+                </Box>
+              )
+            })}
+          </List>
+        )}
+      </Box>
     </Box>
   )
 }
