@@ -1,9 +1,8 @@
 import React from "react";
 import useBalance from "@/hooks/sims/project/useBalance";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
+import FixedAssetsTable from "@/components/dashboard/FixedAssetsTable";
 import CurrentActives from "./balance/CurrentActives.jsx";
-import Active from "./balance/Active.jsx";
-import GeneralBalance from "./balance/GeneralBalance.jsx";
 import Passive from "./balance/Passive.jsx";
 import Utility from "./balance/Utility.jsx";
 
@@ -16,12 +15,11 @@ function Balance({ project }) {
         <CurrentActives currentActives={balance.actives.currentActives} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Administrative Expenses">
-        <Active balance={balance.actives} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Investment & Services">
-        <GeneralBalance />
+      <CollapsibleSection title="Fixed Assets" defaultExpanded>
+        <FixedAssetsTable
+          byCategory={balance.actives?.fixedAssetsByCategory}
+          total={balance.actives?.fixedAssets}
+        />
       </CollapsibleSection>
 
       <Passive passives={balance.passives} />

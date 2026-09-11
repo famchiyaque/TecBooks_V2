@@ -1,3 +1,49 @@
+// Maps a saved category (free text, whatever readInversion found at upload
+// time) back to the legacy fixed bucket the Cost Table/Operating Expenses
+// pipeline still hardcodes to - matches both the raw Spanish Excel label and
+// the English label older rows may have been saved under. A category that
+// matches none of these only ever lands in byCategory, not a legacy bucket
+// (nothing else needs it).
+const LEGACY_ASSET_KEY_BY_MATCH = [
+  { match: 'equipo de transporte', key: 'transport' },
+  { match: 'transport equipment', key: 'transport' },
+  { match: 'edificios', key: 'buildings' },
+  { match: 'buildings', key: 'buildings' },
+  { match: 'equipo de computo', key: 'compute' },
+  { match: 'computer equipment', key: 'compute' },
+];
+
+function legacyAssetKey(category) {
+  const normalized = String(category ?? '').toLowerCase().trim();
+  return LEGACY_ASSET_KEY_BY_MATCH.find((item) => normalized.startsWith(item.match))?.key ?? null;
+}
+
+// premises_deprecations is now 1-to-many (one row per game+category, see
+// migration 0011) instead of one row per game with 4 fixed columns - group
+// its yearly rows (keyed by deprecation_id) back under each category first.
+function groupDeprecationsByCategory(premisesDeprecations, premisesDeprecationsYearly) {
+  const yearlyByDeprecationId = new Map();
+  for (const row of premisesDeprecationsYearly ?? []) {
+    const list = yearlyByDeprecationId.get(row.deprecation_id) ?? [];
+    list.push(row);
+    yearlyByDeprecationId.set(row.deprecation_id, list);
+  }
+  const byCategory = new Map();
+  for (const deprecation of premisesDeprecations ?? []) {
+    byCategory.set(deprecation.category, {
+      rate: deprecation.rate,
+      yearly: yearlyByDeprecationId.get(deprecation.id) ?? [],
+    });
+  }
+  return byCategory;
+}
+
+function depreciationSeries(deprecationsByCategory, category, years) {
+  const entry = deprecationsByCategory.get(category);
+  if (!entry) return years.map(() => undefined);
+  return seriesFromYearly(years, entry.yearly, 'rate', entry.rate);
+}
+
 const COMPENSATION_FIELDS = {
   imss: 'imss',
   infonavit: 'infonavit',
@@ -111,7 +157,9 @@ export function mapGameRowsToCbm({
     costsByAsset.set(cost.asset_id, map);
   }
 
-  const groupedAssets = { transport: [], buildings: [], compute: [] };
+  const deprecationsByCategory = groupDeprecationsByCategory(premisesDeprecations, premisesDeprecationsYearly);
+
+  const groupedAssets = { transport: [], buildings: [], compute: [], byCategory: {} };
   const machines = [];
   for (const asset of assets ?? []) {
     const item = {
@@ -126,8 +174,14 @@ export function mapGameRowsToCbm({
       machines.push({ ...item, description: asset.name, operators: 0 });
       continue;
     }
-    const key = asset.category === 'computer' ? 'compute' : asset.category;
-    if (groupedAssets[key]) groupedAssets[key].push(item);
+    // byCategory keeps every category as-saved (whatever readInversion found,
+    // not just the 3 InputNovus happens to always have) - Fixed Assets
+    // (Balance Sheet) reads this. The legacy transport/buildings/compute
+    // buckets still get filled too, by pattern-matching back to them, for
+    // the Cost Table/Operating Expenses pipeline that's hardcoded to those 3.
+    (groupedAssets.byCategory[asset.category] ??= []).push(item);
+    const legacyKey = legacyAssetKey(asset.category);
+    if (legacyKey) groupedAssets[legacyKey].push(item);
   }
 
   const shares = Array.from({ length: 12 }, () => 0);
@@ -217,29 +271,17 @@ export function mapGameRowsToCbm({
         'administration_percentage',
         premisesPercentage?.administration_percentage
       ),
-      depreciationBuildings: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'building',
-        premisesDeprecations?.building
-      ),
-      depreciationTransport: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'transport',
-        premisesDeprecations?.transport
-      ),
-      depreciationCompute: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'compute',
-        premisesDeprecations?.compute
-      ),
-      depreciationMachinery: seriesFromYearly(
-        years,
-        premisesDeprecationsYearly,
-        'machinery',
-        premisesDeprecations?.machinery
+      depreciationBuildings: depreciationSeries(deprecationsByCategory, 'building', years),
+      depreciationTransport: depreciationSeries(deprecationsByCategory, 'transport', years),
+      depreciationCompute: depreciationSeries(deprecationsByCategory, 'compute', years),
+      depreciationMachinery: depreciationSeries(deprecationsByCategory, 'machinery', years),
+      // Fixed Assets (Balance Sheet) reads this - every category, not just
+      // the 4 legacy ones above (a project-invented Inversion category still
+      // gets its own real depreciation rate if Premisas has a matching row).
+      depreciationByCategory: Object.fromEntries(
+        Array.from(deprecationsByCategory.keys())
+          .filter((category) => !['building', 'transport', 'compute', 'machinery'].includes(category))
+          .map((category) => [category, depreciationSeries(deprecationsByCategory, category, years)])
       ),
     },
     demand: {
