@@ -1,8 +1,12 @@
 import computeProductionCost from "@/sims/project-feasibility/income/computeProductionCosts";
+import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
+import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
 
 function emptyIncome() {
   return {
     productionCosts: { total: {}, costRawMaterials: {}, workForce: {}, adminExpenses: {} },
+    amortizationInterests: { yearAmortization: [], yearInterest: [] },
+    totalFinancialExpenses: [],
     utilityCost: { 10: [], 20: [], 30: [] },
     competitivaPrice: [],
   }
@@ -15,6 +19,19 @@ function useIncome(project) {
   }
 
   const productionCosts = computeProductionCost(project);
+  const { total } = computeInvestment(project);
+  const amortizationInterests = computeAmortizationInterest(total, project);
+  const { yearAmortization, yearInterest } = amortizationInterests;
+
+  const totalFinancialExpenses = Object.values(productionCosts.total).map(
+    (total, idx) => {
+      let financial = 0;
+      if (yearAmortization.length > idx) {
+        financial += yearAmortization[idx] + yearInterest[idx];
+      }
+      return total + financial;
+    },
+  );
 
   const utilityCost = Object.values(productionCosts.total).reduce(
     (acc, yearTotal) => {
@@ -37,6 +54,8 @@ function useIncome(project) {
 
   return {
     productionCosts,
+    amortizationInterests,
+    totalFinancialExpenses,
     utilityCost,
     competitivaPrice,
   };

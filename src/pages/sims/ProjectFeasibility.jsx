@@ -1,6 +1,6 @@
 import React from "react";
 import GenericHeader from "@/components/global/GenericHeader";
-import Outflows from "@/components/sims/program/Outflows";
+import Expenses from "@/components/sims/program/Expenses";
 import RequireAuth from "@/sims/project-feasibility/pages/RequireAuth.jsx";
 import ProgramsPortal from "@/sims/project-feasibility/pages/ProgramsPortal.jsx";
 import ProgramsWorkspace from "@/sims/project-feasibility/pages/ProgramsWorkspace.jsx";
@@ -34,7 +34,7 @@ function ProjectFeasibility() {
             }
           />
         </Route>
-        <Route path="outflows" element={<Outflows />} />
+        <Route path="expenses" element={<Expenses />} />
       </Routes>
     </>
   );
