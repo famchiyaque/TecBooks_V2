@@ -9,6 +9,11 @@ export const CURRENT_PASSIVES = [
   { key: "provider", label: "Product suppliers" },
 ];
 
+export const LONG_TERM_PASSIVES = [
+  { key: "currentCapital", label: "Current Capital" },
+  { key: "interestsPayment", label: "Interests Payments" },
+];
+
 function Passive({ passives }) {
   const [store] = useState(() => createPassiveStore());
 
@@ -18,6 +23,9 @@ function Passive({ passives }) {
   }));
   const getCurrentPassiveValue = (rowKey, year) =>
     passives.currentPassives[year]?.[rowKey] ?? 0;
+
+  const getLongTermPassivesValue = (rowKey, year) =>
+    passives.longTermPassives[year]?.[rowKey] ?? 0;
 
   return (
     <CollapsibleSection title="Pasivos">
@@ -30,14 +38,14 @@ function Passive({ passives }) {
           getValue={getCurrentPassiveValue}
           totalLabel="Total Current Passives"
         />
-        {/* <EditableTable
-            title="Long term passives"
-            slice={passiveSlice}
-            columns={columns}
-            rows={COST_ROWS}
-            getValue={getValue}
-            totalLabel="Total Current Actives"
-          /> */}
+        <EditableTable
+          title="Long term passives"
+          slice={passiveSlice}
+          columns={columns}
+          rows={LONG_TERM_PASSIVES}
+          getValue={getLongTermPassivesValue}
+          totalLabel="Total Current Actives"
+        />
       </Provider>
     </CollapsibleSection>
   );
