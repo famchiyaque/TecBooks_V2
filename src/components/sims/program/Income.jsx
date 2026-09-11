@@ -5,6 +5,7 @@ import UtilityCostTable from "./income/UtilityCostTable";
 import CompetitivePriceTable from "./income/CompetitivePriceTable";
 import SalesTable from "./income/SalesTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
+import { INFLOWS_TOOLTIPS } from "./income/inflowsTooltips";
 
 function Income({ project }) {
   const income = useIncome(project);
@@ -23,22 +24,32 @@ function Income({ project }) {
         and how they relate to the unit price of each BOM.
       </p>
 
-      <CollapsibleSection title="Costs per Unit" defaultExpanded>
+      <CollapsibleSection
+        title="Unit Costs"
+        tooltip={INFLOWS_TOOLTIPS.unitCosts.table}
+        defaultExpanded
+      >
         <ProductionCostTable productionCosts={income.productionCosts} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Unit Price">
+      <CollapsibleSection
+        title="Unit Price"
+        tooltip={INFLOWS_TOOLTIPS.unitPrice.table}
+      >
         <CompetitivePriceTable
           competitivaPrice={income.competitivaPrice}
           baseYear={baseYear}
         />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Sales">
+      <CollapsibleSection title="Sales" tooltip={INFLOWS_TOOLTIPS.sales.table}>
         <SalesTable sales={income.sales} baseYear={baseYear} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Utility Price">
+      <CollapsibleSection
+        title="Utility Price"
+        tooltip={INFLOWS_TOOLTIPS.utilityPrice.table}
+      >
         <UtilityCostTable
           utilityCost={income.utilityCost}
           baseYear={baseYear}

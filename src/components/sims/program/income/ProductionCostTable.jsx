@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import TableContainer from "@/components/global/TableContainer";
+import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
 
 /**
  * ProductionCostTable component
@@ -33,13 +34,35 @@ function ProductionCostTable({ productionCosts }) {
   );
 
   const rows = useMemo(() => {
-    const rawMaterials = { concept: "Raw Materials" };
-    const directLabor = { concept: "Direct Labor (MOD)" };
-    const indirectLabor = { concept: "Indirect Labor (MOI)" };
-    const engineering = { concept: "Engineering" };
-    const administrative = { concept: "Administrative Labor" };
-    const adminExpenses = { concept: "Administrative Expenses" };
-    const total = { concept: "Total Production Cost", rowVariant: "total" };
+    const rawMaterials = {
+      concept: "Raw Materials",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.rawMaterials,
+    };
+    const directLabor = {
+      concept: "Direct Labor (MOD)",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.directLabor,
+    };
+    const indirectLabor = {
+      concept: "Indirect Labor (MOI)",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.indirectLabor,
+    };
+    const engineering = {
+      concept: "Engineering",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.engineering,
+    };
+    const administrative = {
+      concept: "Administrative Labor",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.administrativeLabor,
+    };
+    const adminExpenses = {
+      concept: "Administrative Expenses",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.adminExpenses,
+    };
+    const total = {
+      concept: "Total Production Cost",
+      rowVariant: "total",
+      tooltip: INFLOWS_TOOLTIPS.unitCosts.total,
+    };
 
     years.forEach((year) => {
       const key = String(year);
@@ -66,7 +89,12 @@ function ProductionCostTable({ productionCosts }) {
   }, [years, productionCosts]);
 
   return (
-    <TableContainer title="Costs per Unit" columns={columns} rows={rows} />
+    <TableContainer
+      title="Unit Costs"
+      titleTooltip={INFLOWS_TOOLTIPS.unitCosts.table}
+      columns={columns}
+      rows={rows}
+    />
   );
 }
 

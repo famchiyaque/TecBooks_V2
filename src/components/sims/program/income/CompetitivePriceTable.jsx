@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import TableContainer from "@/components/global/TableContainer";
+import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
 
 /**
  * CompetitivePriceTable component
@@ -30,7 +31,10 @@ function CompetitivePriceTable({ competitivaPrice, baseYear }) {
   );
 
   const rows = useMemo(() => {
-    const price = { concept: "Competitive Price" };
+    const price = {
+      concept: "Competitive Price",
+      tooltip: INFLOWS_TOOLTIPS.unitPrice.competitivePrice,
+    };
 
     years.forEach((year, i) => {
       price[String(year)] = competitivaPrice?.[i];
@@ -40,7 +44,12 @@ function CompetitivePriceTable({ competitivaPrice, baseYear }) {
   }, [years, competitivaPrice]);
 
   return (
-    <TableContainer title="Unit Price" columns={columns} rows={rows} />
+    <TableContainer
+      title="Unit Price"
+      titleTooltip={INFLOWS_TOOLTIPS.unitPrice.table}
+      columns={columns}
+      rows={rows}
+    />
   );
 }
 

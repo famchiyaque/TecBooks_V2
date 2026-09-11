@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import TableContainer from "@/components/global/TableContainer";
+import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
 
 /**
  * UtilityCostTable component
@@ -37,7 +38,10 @@ function UtilityCostTable({ utilityCost, baseYear }) {
   const rows = useMemo(
     () =>
       margins.map((margin) => {
-        const row = { concept: `Utility at ${margin}%` };
+        const row = {
+          concept: `Utility at ${margin}%`,
+          tooltip: INFLOWS_TOOLTIPS.utilityPrice[margin],
+        };
         years.forEach((year, i) => {
           row[String(year)] = utilityCost?.[margin]?.[i];
         });
@@ -46,7 +50,14 @@ function UtilityCostTable({ utilityCost, baseYear }) {
     [margins, years, utilityCost],
   );
 
-  return <TableContainer title="Utility Price" columns={columns} rows={rows} />;
+  return (
+    <TableContainer
+      title="Utility Price"
+      titleTooltip={INFLOWS_TOOLTIPS.utilityPrice.table}
+      columns={columns}
+      rows={rows}
+    />
+  );
 }
 
 export default UtilityCostTable;

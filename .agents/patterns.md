@@ -51,3 +51,4 @@ Upload is multipart: `name`, `projects` (JSON, CBM **without** `derivedBase`), `
 - Sim hooks: `src/hooks/sims/project/`
 - Worker feature: `worker/src/{routes,controllers,usecases,services,models,mappers}/`
 - Redux in this sim: edit slices only (`src/store/costTable.store.js`), not the project document.
+- Table/row formula help: `InfoTooltip` (`src/components/global/InfoTooltip.jsx`) next to `TableContainer` titles (`titleTooltip`) and row labels (`row.tooltip`). Same icon on `CollapsibleSection` via `tooltip`.
