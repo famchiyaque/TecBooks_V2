@@ -18,6 +18,7 @@ import Construction from "@mui/icons-material/Construction";
 import Outflows from "@/components/sims/program/Outflows";
 import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
+import Balance from "@/components/sims/program/Balance";
 import CashFlow from "@/components/sims/program/CashFlow";
 import useFeasibilityModel from "@/hooks/sims/project/useFeasibilityModel";
 import { PageTour } from "@/tours/PageTour";
@@ -52,6 +53,7 @@ const LIVE_TAB_IDS = new Set([
   "outflows",
   "income-statement",
   "cash-flows",
+  "balance",
 ]);
 
 const projectDashboardTour = new PageTour([
@@ -68,7 +70,7 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Tab contents",
       description:
-        "Inflows, Outflows, Income Statement and Cash Flows load this project's tables. Balance Sheet and Ratios are placeholders for now.",
+        "Inflows, Outflows, Income Statement, Cash Flows and Balance Sheet load this project's tables. Ratios is a placeholder for now.",
     },
   },
 ]);
@@ -91,7 +93,6 @@ const RATIO_ROWS = ["Current ratio", "Quick ratio", "Debt to equity", "ROA"];
 
 const PLACEHOLDER_TABS = {
   // premises: { rows: PREMISE_ROWS, years: HORIZON_YEARS, blank: true },
-  balance: { rows: BALANCE_ROWS, years: HORIZON_YEARS.slice(0, 4) },
   ratios: { rows: RATIO_ROWS, years: HORIZON_YEARS.slice(0, 4) },
 };
 
@@ -251,16 +252,20 @@ function TabContent({ activeTab, programId, projectId, project }) {
   if (!project.gameId) {
     return (
       <Alert severity="warning">
-        This project has no game id, so its tables cannot load from the database.
+        This project has no game id, so its tables cannot load from the
+        database.
       </Alert>
     );
   }
 
-  if (isPending) return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
+  if (isPending)
+    return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
 
   if (isError || !cbm) {
     return (
-      <Alert severity="error">Couldn&apos;t load this project&apos;s rows from the server.</Alert>
+      <Alert severity="error">
+        Couldn&apos;t load this project&apos;s rows from the server.
+      </Alert>
     );
   }
 
@@ -268,6 +273,7 @@ function TabContent({ activeTab, programId, projectId, project }) {
   if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} />;
   if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} />;
   if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} />;
+  if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
 
   return (
     <MockStatement

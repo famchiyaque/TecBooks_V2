@@ -86,7 +86,7 @@ export function cbmToCostTableInputs(cbm) {
   }
 }
 
-function yearMapFromSeries(series, years) {
+export function yearMapFromSeries(series, years) {
   const map = {}
   years.forEach((year) => {
     const index = HORIZON_YEARS.indexOf(year)
@@ -95,9 +95,10 @@ function yearMapFromSeries(series, years) {
   return map
 }
 
-function mapAssetsToYears(assetList, years) {
+export function mapAssetsToYears(assetList, years) {
   return (assetList ?? []).map((asset) => ({
-    name: asset.name,
+    // Machines (capacity.machines) have no "name", only code/description.
+    name: asset.name ?? asset.description ?? asset.code,
     acquisitionByYear: yearMapFromSeries(asset.acquisitionByYear, years),
   }))
 }
