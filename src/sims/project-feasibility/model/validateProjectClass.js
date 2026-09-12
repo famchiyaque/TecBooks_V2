@@ -114,6 +114,7 @@ export function validateProjectClass(project) {
   })
 
   for (const [group, list] of Object.entries(project.assets ?? {})) {
+    if (!Array.isArray(list)) continue // byCategory is a {category: [...]} dict, not an array
     list.forEach((asset) => {
       checkYearSeries(errors, warnings, `${group} ${asset.name}`, asset.acquisitionByYear)
     })

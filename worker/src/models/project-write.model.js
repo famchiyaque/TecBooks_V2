@@ -123,19 +123,30 @@ export async function insertPremises(database, gameId, premises, periods) {
     )
     .run();
 
-  await database
-    .prepare(
-      `INSERT INTO premises_deprecations (game_id, building, transport, compute, machinery)
-       VALUES (?, ?, ?, ?, ?)`
-    )
-    .bind(
-      gameId,
-      premises.depreciationBuildings,
-      premises.depreciationTransport,
-      premises.depreciationCompute,
-      premises.depreciationMachinery
-    )
-    .run();
+  for (const depreciation of premises.depreciationCategories ?? []) {
+    const row = await database
+      .prepare(
+        `INSERT INTO premises_deprecations (game_id, category, rate)
+         VALUES (?, ?, ?)
+         RETURNING id`
+      )
+      .bind(gameId, depreciation.category, depreciation.rate)
+      .first();
+
+    const yearly = (depreciation.yearly ?? []).filter(
+      (item) => typeof item.rate === 'number' && Number.isFinite(item.rate)
+    );
+    if (yearly.length) {
+      await runBatch(
+        database,
+        yearly.map((item) =>
+          database
+            .prepare('INSERT INTO premises_deprecations_yearly (deprecation_id, year, rate) VALUES (?, ?, ?)')
+            .bind(row.id, item.year, item.rate)
+        )
+      );
+    }
+  }
 
   const yearlyStatements = (premises.yearly ?? []).flatMap((row) => [
     database
@@ -176,19 +187,6 @@ export async function insertPremises(database, gameId, premises, periods) {
         row.indirectProductCostPct,
         row.salesExpensePct,
         row.adminPct
-      ),
-    database
-      .prepare(
-        `INSERT INTO premises_deprecations_yearly (game_id, year, building, transport, compute, machinery)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        gameId,
-        row.year,
-        row.depreciationBuildings,
-        row.depreciationTransport,
-        row.depreciationCompute,
-        row.depreciationMachinery
       ),
   ]);
 
@@ -430,7 +428,13 @@ export async function deleteGameGraph(database, gameId) {
   await database.prepare('DELETE FROM purchase_order_yearly_total WHERE game_id = ?').bind(gameId).run();
   await database.prepare('DELETE FROM premises_yearly WHERE game_id = ?').bind(gameId).run();
   await database.prepare('DELETE FROM premises_percentage_yearly WHERE game_id = ?').bind(gameId).run();
-  await database.prepare('DELETE FROM premises_deprecations_yearly WHERE game_id = ?').bind(gameId).run();
+  await database
+    .prepare(
+      `DELETE FROM premises_deprecations_yearly
+       WHERE deprecation_id IN (SELECT id FROM premises_deprecations WHERE game_id = ?)`
+    )
+    .bind(gameId)
+    .run();
   await database.prepare('DELETE FROM premises_percentage WHERE game_id = ?').bind(gameId).run();
   await database.prepare('DELETE FROM premises_deprecations WHERE game_id = ?').bind(gameId).run();
   await database.prepare('DELETE FROM premises WHERE game_id = ?').bind(gameId).run();

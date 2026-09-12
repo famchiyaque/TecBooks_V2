@@ -4,11 +4,6 @@ const DEFAULT_PERIODS = 60;
 
 const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES'];
 
-const ASSET_CATEGORY = {
-  transport: 'transport',
-  buildings: 'buildings',
-  compute: 'computer',
-};
 
 function asNumber(value, fallback = null) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -93,10 +88,52 @@ function mapEmployees(cbm) {
   });
 }
 
+// Maps a legacy fixed depreciation field to the category label the games
+// schema stores it under (premises_deprecations.category, free text) - a
+// category readInversion invents (see readPremisas' regex capture into
+// premises.depreciationByCategory) is appended alongside these, not
+// restricted to only these 4.
+const FIXED_DEPRECIATION_FIELDS = [
+  { category: 'building', field: 'depreciationBuildings' },
+  { category: 'transport', field: 'depreciationTransport' },
+  { category: 'compute', field: 'depreciationCompute' },
+  { category: 'machinery', field: 'depreciationMachinery' },
+];
+
+function mapDepreciationCategories(cbm, years) {
+  const premises = cbm?.premises ?? {};
+  const categories = [];
+
+  for (const { category, field } of FIXED_DEPRECIATION_FIELDS) {
+    const series = premises[field];
+    if (!Array.isArray(series)) continue;
+    categories.push({
+      category,
+      rate: firstFinite(series),
+      yearly: years.map((year, index) => ({ year, rate: asNumber(series[index]) })),
+    });
+  }
+
+  for (const [category, series] of Object.entries(premises.depreciationByCategory ?? {})) {
+    categories.push({
+      category,
+      rate: firstFinite(series),
+      yearly: years.map((year, index) => ({ year, rate: asNumber(series?.[index]) })),
+    });
+  }
+
+  return categories;
+}
+
 function mapAssets(cbm) {
   const assets = [];
-  for (const [block, category] of Object.entries(ASSET_CATEGORY)) {
-    for (const item of cbm?.assets?.[block] ?? []) {
+  // `category` is a free-text column (VARCHAR(600), no enum/CHECK constraint)
+  // - saves whatever category label readInversion actually found (e.g. "EQUIPO
+  // DE TRANSPORTE." or a project-specific one it invented), not just the 3
+  // InputNovus happens to always have. byCategory already contains those 3
+  // too (readInversion aliases into both), so this alone is the complete set.
+  for (const [category, items] of Object.entries(cbm?.assets?.byCategory ?? {})) {
+    for (const item of items ?? []) {
       assets.push({
         name: item.name ?? category,
         category,
@@ -147,10 +184,7 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       indirectProductCostPct: firstFinite(premises.indirectProductCostPct),
       salesExpensePct: firstFinite(premises.salesExpensePct),
       adminPct: firstFinite(premises.adminPct),
-      depreciationBuildings: firstFinite(premises.depreciationBuildings),
-      depreciationMachinery: firstFinite(premises.depreciationMachinery),
-      depreciationTransport: firstFinite(premises.depreciationTransport),
-      depreciationCompute: firstFinite(premises.depreciationCompute),
+      depreciationCategories: mapDepreciationCategories(cbm, years),
       yearly: years.map((year, index) => ({
         year,
         exchangeRate: asNumber(premises.fxClose?.[index]),
@@ -170,10 +204,6 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
         indirectProductCostPct: asNumber(premises.indirectProductCostPct?.[index]),
         salesExpensePct: asNumber(premises.salesExpensePct?.[index]),
         adminPct: asNumber(premises.adminPct?.[index]),
-        depreciationBuildings: asNumber(premises.depreciationBuildings?.[index]),
-        depreciationMachinery: asNumber(premises.depreciationMachinery?.[index]),
-        depreciationTransport: asNumber(premises.depreciationTransport?.[index]),
-        depreciationCompute: asNumber(premises.depreciationCompute?.[index]),
       })),
     },
     expenses: (cbm?.services ?? []).map((service) => ({

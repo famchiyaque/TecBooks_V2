@@ -40,16 +40,22 @@ export async function listPremisesPercentageYearly(database, gameId) {
   return results ?? [];
 }
 
-export async function getPremisesDeprecations(database, gameId) {
-  return database
+export async function listPremisesDeprecations(database, gameId) {
+  const { results } = await database
     .prepare('SELECT * FROM premises_deprecations WHERE game_id = ?')
     .bind(gameId)
-    .first();
+    .all();
+  return results ?? [];
 }
 
 export async function listPremisesDeprecationsYearly(database, gameId) {
   const { results } = await database
-    .prepare('SELECT * FROM premises_deprecations_yearly WHERE game_id = ? ORDER BY year')
+    .prepare(
+      `SELECT y.* FROM premises_deprecations_yearly y
+       JOIN premises_deprecations d ON d.id = y.deprecation_id
+       WHERE d.game_id = ?
+       ORDER BY y.year`
+    )
     .bind(gameId)
     .all();
   return results ?? [];
