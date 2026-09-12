@@ -41,7 +41,7 @@ Upload is multipart: `name`, `projects` (JSON, CBM **without** `derivedBase`), `
 | HTTP | `GET /api/feasibility/:gameId` |
 | Client | `useFeasibilityModel(project.gameId)` → `queryKey: ['feasibility-model', gameId]` |
 | Where | `src/hooks/sims/project/useFeasibilityModel.js` |
-| Wired in | `ProjectDashboard` TabContent attaches `{ ...project, cbm }` for Income / Expenses / Ratios / Flujo |
+| Wired in | `ProjectDashboard` TabContent attaches `{ ...project, cbm }` for Income / Outflows / Ratios / Flujo |
 
 **New work:** add a tab-scoped GET + TanStack key (table above in `technical-debt.md`). Query Novus tables by `gameId` (`premises`, `expenses`, `game_team_employees`, `game_team_assets`, `boms`, `capacity`, purchase orders). Never hardcode `gameId = 1`. `enabled: Number.isInteger(gameId) && gameId > 0`.
 
@@ -51,3 +51,4 @@ Upload is multipart: `name`, `projects` (JSON, CBM **without** `derivedBase`), `
 - Sim hooks: `src/hooks/sims/project/`
 - Worker feature: `worker/src/{routes,controllers,usecases,services,models,mappers}/`
 - Redux in this sim: edit slices only (`src/store/costTable.store.js`), not the project document.
+- Table/row formula help: `InfoTooltip` (`src/components/global/InfoTooltip.jsx`) next to `TableContainer` titles (`titleTooltip`) and row labels (`row.tooltip`). Same icon on `CollapsibleSection` via `tooltip`.

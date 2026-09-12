@@ -1,12 +1,13 @@
-import React, { useLayoutEffect, useRef, useState, useMemo } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import AdminExpensesTable from "./expenses/AdminExpensesTable";
 import InvestmentTable from "./expenses/InvestmentTable";
 import ServicesTable from "./expenses/ServicesTable";
-import useExpenses from "@/hooks/sims/project/useExpenses";
+import useOutflows from "@/hooks/sims/project/useOutflows";
 import AmortizationInterestTable from "./income/AmortizationInterestTable";
+import FinancialExpensesTable from "./income/FinancialExpensesTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 
-function Expenses({ project }) {
+function Outflows({ project }) {
   const investmentRef = useRef(null);
   const [investmentHeight, setInvestmentHeight] = useState(null);
 
@@ -22,20 +23,23 @@ function Expenses({ project }) {
     return () => ro.disconnect();
   }, [project]);
 
-  const cbm = project?.cbm
-  const years = cbm?.timeline?.years ?? []
+  const cbm = project?.cbm;
+  const years = cbm?.timeline?.years ?? [];
 
-  const { adminExpenses, investment, services, amortizationInterests } =
-    useExpenses(cbm ?? {})
+  const {
+    adminExpenses,
+    investment,
+    services,
+    amortizationInterests,
+    totalFinancialExpenses,
+  } = useOutflows(cbm ?? {});
 
   return (
     <div className="flex flex-col mt-3 p-3">
-      {/* Admin Table */}
       <CollapsibleSection title="Administrative Expenses" defaultExpanded>
         <AdminExpensesTable years={years} expenses={adminExpenses} />
       </CollapsibleSection>
 
-      {/* Investments and services */}
       <CollapsibleSection title="Investment & Services">
         <div className="flex items-start gap-3">
           <div ref={investmentRef}>
@@ -51,10 +55,16 @@ function Expenses({ project }) {
         </div>
       </CollapsibleSection>
 
-      {/* Financial Expenses */}
       <CollapsibleSection title="Amortization & Interest">
         <AmortizationInterestTable
           amortizationInterests={amortizationInterests}
+          baseYear={years[0]}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Financial Expenses">
+        <FinancialExpensesTable
+          totalFinancialExpenses={totalFinancialExpenses}
           baseYear={years[0]}
         />
       </CollapsibleSection>
@@ -62,4 +72,4 @@ function Expenses({ project }) {
   );
 }
 
-export default Expenses;
+export default Outflows;

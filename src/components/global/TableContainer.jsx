@@ -1,5 +1,6 @@
 import React from "react";
 import formatCurrency from "@/utils/sims/program/formatCurrency.util";
+import InfoTooltip from "@/components/global/InfoTooltip";
 
 /**
  * TableContainer
@@ -84,6 +85,7 @@ function buildGroupSpans(rows, groupKey) {
 
 export default function TableContainer({
   title,
+  titleTooltip,
   subtitle,
   columns,
   rows,
@@ -100,6 +102,7 @@ export default function TableContainer({
     : null;
   const cellPad = dense ? "px-4 py-2" : "px-5 py-3";
   const isFixed = layout === "fixed";
+  const labelKey = columns[0]?.key;
 
   return (
     <section
@@ -113,8 +116,9 @@ export default function TableContainer({
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
           <div>
             {title && (
-              <h3 className="text-[15px] font-semibold text-slate-900">
+              <h3 className="inline-flex items-center text-[15px] font-semibold text-slate-900">
                 {title}
+                <InfoTooltip title={titleTooltip} />
               </h3>
             )}
             {subtitle && (
@@ -223,7 +227,14 @@ export default function TableContainer({
                             }
                             style={col.width ? { width: col.width } : undefined}
                           >
-                            <CellValue column={col} value={row[col.key]} />
+                            {col.key === labelKey && row.tooltip ? (
+                              <span className="inline-flex items-center">
+                                <CellValue column={col} value={row[col.key]} />
+                                <InfoTooltip title={row.tooltip} />
+                              </span>
+                            ) : (
+                              <CellValue column={col} value={row[col.key]} />
+                            )}
                           </td>
                         );
                       })}

@@ -1,14 +1,15 @@
-import computeProductionCost from "@/sims/project-feasibility/income/computeProductionCosts";
-import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
-import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
+import computeProductionCost, {
+  toCostPerWorkOrder,
+} from "@/sims/project-feasibility/income/computeProductionCosts";
+import { sumAnnualSalariesByTitle } from "@/sims/project-feasibility/income/sumAnnualSalariesByTitle";
+import { cbmToCostTableInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs";
 
 function emptyIncome() {
   return {
     productionCosts: { total: {}, costRawMaterials: {}, workForce: {}, adminExpenses: {} },
-    amortizationInterests: { yearAmortization: [], yearInterest: [] },
-    totalFinancialExpenses: [],
     utilityCost: { 10: [], 20: [], 30: [] },
     competitivaPrice: [],
+    sales: [],
   }
 }
 
@@ -18,47 +19,46 @@ function useIncome(project) {
     return emptyIncome()
   }
 
-  const productionCosts = computeProductionCost(project);
-  const { total } = computeInvestment(project);
-  const amortizationInterests = computeAmortizationInterest(total, project);
-  const { yearAmortization, yearInterest } = amortizationInterests;
+  const inputs = cbmToCostTableInputs(project)
+  const production = inputs.production
+  const productionCosts = toCostPerWorkOrder(
+    computeProductionCost(project),
+    production,
+    sumAnnualSalariesByTitle(inputs.employees),
+    project.premises,
+  )
+  const years = Object.keys(productionCosts.total)
+    .map(Number)
+    .sort((a, b) => a - b)
+  const purchaseOrders = production?.purchaseOrders ?? {}
 
-  const totalFinancialExpenses = Object.values(productionCosts.total).map(
-    (total, idx) => {
-      let financial = 0;
-      if (yearAmortization.length > idx) {
-        financial += yearAmortization[idx] + yearInterest[idx];
-      }
-      return total + financial;
-    },
-  );
+  const competitivaPrice = years.map((_, idx) => {
+    return (
+      project.bom.salePrice *
+      Math.pow(1 + project.premises.nationalInflation[idx], idx)
+    )
+  })
+
+  const sales = years.map((year, idx) => {
+    return (competitivaPrice[idx] ?? 0) * (purchaseOrders[year] ?? 0)
+  })
 
   const utilityCost = Object.values(productionCosts.total).reduce(
     (acc, yearTotal) => {
-      acc[10].push(yearTotal * 0.1);
-      acc[20].push(yearTotal * 0.2);
-      acc[30].push(yearTotal * 0.3);
-      return acc;
+      acc[10].push(yearTotal * 1.1)
+      acc[20].push(yearTotal * 1.2)
+      acc[30].push(yearTotal * 1.3)
+      return acc
     },
     { 10: [], 20: [], 30: [] },
-  );
-
-  const competitivaPrice = Object.values(productionCosts.total).map(
-    (_, idx) => {
-      return (
-        project.bom.salePrice *
-        Math.pow(1 + project.premises.nationalInflation[idx], idx)
-      );
-    },
-  );
+  )
 
   return {
     productionCosts,
-    amortizationInterests,
-    totalFinancialExpenses,
     utilityCost,
     competitivaPrice,
-  };
+    sales,
+  }
 }
 
-export default useIncome;
+export default useIncome

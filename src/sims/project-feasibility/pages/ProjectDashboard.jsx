@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import Construction from "@mui/icons-material/Construction";
-import Expenses from "@/components/sims/program/Expenses";
+import Outflows from "@/components/sims/program/Outflows";
 import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
 import Balance from "@/components/sims/program/Balance";
@@ -39,13 +39,22 @@ import {
 } from "@/store/costTable.store";
 
 const TABS = [
+  // { id: "premises", label: "Premises" },
+  { id: "inflows", label: "Inflows" },
+  { id: "outflows", label: "Outflows" },
+  { id: "income-statement", label: "Income Statement" },
+  { id: "cash-flows", label: "Cash Flows" },
   { id: "balance", label: "Balance Sheet" },
-  { id: "razones", label: "Ratios" },
-  { id: "ingresos", label: "Income" },
-  { id: "egresos", label: "Expenses" },
-  { id: "flujo", label: "Cash Flow" },
-  { id: "resultados", label: "Income Statement" },
+  { id: "ratios", label: "Ratios" },
 ];
+
+const LIVE_TAB_IDS = new Set([
+  "inflows",
+  "outflows",
+  "income-statement",
+  "cash-flows",
+  "balance",
+]);
 
 const projectDashboardTour = new PageTour([
   {
@@ -53,35 +62,56 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Financial statements",
       description:
-        "Switch between Balance Sheet, Ratios, Cash Flow and Income Statement.",
+        "Switch between Inflows, Outflows, Income Statement, Cash Flows, Balance Sheet and Ratios.",
     },
   },
   {
     element: "#project-dashboard-content",
     popover: {
-      title: "Ratios tab",
+      title: "Tab contents",
       description:
-        "Expenses and your Cost Table live here, each collapsible so you can focus on one at a time.",
+        "Inflows, Outflows, Income Statement, Cash Flows and Balance Sheet load this project's tables. Ratios is a placeholder for now.",
     },
   },
 ]);
 
-const MOCK_ROWS = ["Activo", "Pasivo", "Capital", "Total"];
+// const PREMISE_ROWS = [
+//   "Exchange rate at close (USD)",
+//   "National leading rate",
+//   "National inflation",
+//   "ISR rate",
+//   "PTU rate",
+//   "Direct product cost %",
+//   "Indirect product cost %",
+//   "Sales expense %",
+//   "Administration %",
+// ];
 
-function MockStatement({ title }) {
+const BALANCE_ROWS = ["Activo", "Pasivo", "Capital", "Total"];
+
+const RATIO_ROWS = ["Current ratio", "Quick ratio", "Debt to equity", "ROA"];
+
+const PLACEHOLDER_TABS = {
+  // premises: { rows: PREMISE_ROWS, years: HORIZON_YEARS, blank: true },
+  ratios: { rows: RATIO_ROWS, years: HORIZON_YEARS.slice(0, 4) },
+};
+
+function MockStatement({ title, rows, years, blank = false }) {
   return (
     <Box sx={{ mt: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-        <Construction sx={{ color: "#c77800" }} />
-        <Typography sx={{ color: "#073a5a" }}>
-          {title} — under construction
-        </Typography>
-      </Box>
+      {!blank && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <Construction sx={{ color: "#c77800" }} />
+          <Typography sx={{ color: "#073a5a" }}>
+            {title} — under construction
+          </Typography>
+        </Box>
+      )}
       <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell sx={{ fontWeight: 700 }}>Concept</TableCell>
-            {HORIZON_YEARS.slice(0, 4).map((year) => (
+            {years.map((year) => (
               <TableCell key={year} align="right" sx={{ fontWeight: 700 }}>
                 {year}
               </TableCell>
@@ -89,10 +119,10 @@ function MockStatement({ title }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {MOCK_ROWS.map((row) => (
+          {rows.map((row) => (
             <TableRow key={row}>
               <TableCell>{row}</TableCell>
-              {HORIZON_YEARS.slice(0, 4).map((year) => (
+              {years.map((year) => (
                 <TableCell key={year} align="right">
                   —
                 </TableCell>
@@ -175,6 +205,8 @@ function ProjectDashboard() {
         id="project-dashboard-tabs"
         value={tab}
         onChange={(_, next) => setTab(next)}
+        variant="scrollable"
+        scrollButtons="auto"
         sx={{ borderBottom: 1, borderColor: "divider" }}
       >
         {TABS.map((item) => (
@@ -199,8 +231,23 @@ function ProjectDashboard() {
 }
 
 function TabContent({ activeTab, programId, projectId, project }) {
-  const { data: cbm, isPending, isError } = useFeasibilityModel(project.gameId);
+  const placeholder = PLACEHOLDER_TABS[activeTab.id];
+  const { data: cbm, isPending, isError } = useFeasibilityModel(
+    LIVE_TAB_IDS.has(activeTab.id) ? project.gameId : undefined,
+  );
   const projectWithCbm = { ...project, cbm };
+
+  if (placeholder) {
+    return (
+      <MockStatement
+        key={`${programId}-${projectId}-${activeTab.id}`}
+        title={activeTab.label}
+        rows={placeholder.rows}
+        years={placeholder.years}
+        blank={placeholder.blank}
+      />
+    );
+  }
 
   if (!project.gameId) {
     return (
@@ -222,16 +269,18 @@ function TabContent({ activeTab, programId, projectId, project }) {
     );
   }
 
+  if (activeTab.id === "inflows") return <Income project={projectWithCbm} />;
+  if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} />;
+  if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} />;
+  if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} />;
   if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
-  if (activeTab.id === "razones") return <Ratios project={projectWithCbm} />;
-  if (activeTab.id === "flujo") return <CashFlow project={projectWithCbm} />;
-  if (activeTab.id === "egresos") return <Expenses project={projectWithCbm} />;
-  if (activeTab.id === "ingresos") return <Income project={projectWithCbm} />;
 
   return (
     <MockStatement
       key={`${programId}-${projectId}-${activeTab.id}`}
       title={activeTab.label}
+      rows={BALANCE_ROWS}
+      years={HORIZON_YEARS.slice(0, 4)}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 ## Fat CBM GET for every financial tab
 
-**What shipped:** `GET /api/feasibility/:gameId` rebuilds a full Excel-shaped CBM from Novus rows (`premises*`, `expenses`, employees, assets, BOM, capacity, demand). The client caches it with TanStack (`['feasibility-model', gameId]`) and attaches it as `project.cbm`. Income, Expenses, Cost Table, Profit, Break-even, and Flujo still run the old client `compute*` / `buildCostOfSales` / `useExpenses` / `useIncome` on that blob.
+**What shipped:** `GET /api/feasibility/:gameId` rebuilds a full Excel-shaped CBM from Novus rows (`premises*`, `expenses`, employees, assets, BOM, capacity, demand). The client caches it with TanStack (`['feasibility-model', gameId]`) and attaches it as `project.cbm`. Income, Outflows, Cost Table, Profit, Break-even, and Flujo still run the old client `compute*` / `buildCostOfSales` / `useOutflows` / `useIncome` on that blob.
 
 **Why it exists:** Upload no longer returns `cbm_json` on `GET /api/programs`. Teammate tabs assumed `project.cbm` was still on the catalog payload. The fat GET was a compat layer so those tabs would stop crashing without rewriting every calculator this week.
 
@@ -12,8 +12,8 @@
 
 | Tab | Intended query key | Intended payload |
 |---|---|---|
-| Expenses | `['expenses', gameId]` | years, admin series, investment lines, services, amortization |
-| Income | `['income', gameId]` | production costs, financials, utility, competitive price |
+| Outflows | `['expenses', gameId]` | years, admin series, investment lines, services, amortization, financials |
+| Income | `['income', gameId]` | costs per unit, unit price, sales, utility price |
 | Cost / Ratios | `['cost-table', gameId]` | cost-of-sales / profit / break-even inputs |
 | Flujo | `['cash-flow', gameId]` | inflows and outflows by year |
 
@@ -23,6 +23,8 @@ Math may live on the worker or in a hook that only sees that slice. Do not add n
 
 ## Related leftovers
 
-- `GET /api/expenses?gameId=` still exists (old seed-shaped payload). Expenses UI does **not** use it; it uses the fat CBM. Do not hardcode `gameId = 1`.
+- `GET /api/expenses?gameId=` still exists (old seed-shaped payload). Outflows UI does **not** use it; it uses the fat CBM. Do not hardcode `gameId = 1`.
 - `Empleados` `Cantidad` is blank for **MOD Operador** and **MOD Supervisor** (filled from Capacidad: sum of machine operators, one supervisor per machine). Upload currently persists empty as `1`.
 - Redux `costTable` slices are **cell edits only**. REQ-00’s “Redux is the session CBM database” was never built. Do not revive it.
+- Employee labor category is inferred from the **name/title** in three places (`applyDerivedBase`, `Employee.js`, `cbm-to-game.mapper.js`). `employees` has `job_title` but no category column; upload even stores type/category into `job_title`. Inflows Costs per Unit now buckets titles itself (`sumAnnualSalariesByTitle`: MOD → direct, MOID → indirect, IM / Ingeniero / Gerente de Operaciones → engineering, everyone else → administrative) then divides annual `12 × monthly × headcount` by work orders. Cost Table still uses the older name parse (`operacion` leftovers → indirect, unknown → dropped). Add an employee category field and stop parsing titles.
+- `computeWorkforceAnualSalaries` still divides by customer orders despite the name. Outflows still uses it via `computeProductionCost`. Do not change that shared function until Outflows is reviewed.
