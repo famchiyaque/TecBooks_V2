@@ -4,7 +4,7 @@ import CollapsibleSection from "@/components/global/CollapsibleSection";
 import FixedAssetsTable from "@/components/dashboard/FixedAssetsTable";
 import CurrentActives from "./balance/CurrentActives.jsx";
 import Passive from "./balance/Passive.jsx";
-import Utility from "./balance/Utility.jsx";
+import Equity from "./balance/Equity.jsx";
 
 function Balance({ project }) {
   const balance = useBalance(project);
@@ -24,8 +24,8 @@ function Balance({ project }) {
 
       <Passive passives={balance.passives} />
 
-      <CollapsibleSection title="Amortization & Interest">
-        <Utility />
+      <CollapsibleSection title="Shareholder's equity">
+        <Equity equity={balance.equity} />
       </CollapsibleSection>
     </div>
   );

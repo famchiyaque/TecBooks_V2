@@ -5,6 +5,7 @@ import {
   createCurrentActivesTableStore,
 } from "@/store/balance.store";
 import { Provider } from "react-redux";
+import flipObject from "@/utils/flipObject.js";
 
 export const COST_ROWS = [
   { key: "cashAndBank", label: "Cash and Bank Accounts" },
@@ -37,22 +38,6 @@ function CurrentActives({ currentActives }) {
       />
     </Provider>
   );
-}
-
-function flipObject(obj) {
-  const result = {};
-
-  Object.entries(obj).forEach(([key, values]) => {
-    Object.entries(values).forEach(([innerKey, value]) => {
-      if (!result[innerKey]) {
-        result[innerKey] = {};
-      }
-
-      result[innerKey][key] = value;
-    });
-  });
-
-  return result;
 }
 
 export default CurrentActives;

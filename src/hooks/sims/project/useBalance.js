@@ -8,10 +8,9 @@ function useBalance(project) {
 
   const actives = computeActives(project);
   const passives = computePassives(project);
-  const utility = computeEquity(project);
-  // utility["heritage"] ? actives - passives - utility.acumUtility - utility.periodUtility
+  const equity = computeEquity(project);
 
-  return { actives, passives, utility };
+  return { actives, passives, equity };
 }
 
 function mockFills(years) {

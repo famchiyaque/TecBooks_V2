@@ -1,13 +1,14 @@
-import buildCostOfSales from "@/sims/project-feasibility/costTable/buildCostOfSales.js";
+import { buildCostOfSales } from "@/sims/project-feasibility/costTable/buildCostOfSales.js";
 import computePassives from "@/sims/project-feasibility/balance/computePassives.js";
+import computeTotalActives from "@/sims/project-feasibility/balance/computeTotalActives.js";
 
 function computeEquity(project) {
   const years = project.timeline.years;
-  const { incomeStatementByYear } = buildCostOfSales(project);
+  const { costOfSalesByYear } = buildCostOfSales(project);
 
   const periodUtility = years.reduce((acc, year, idx) => {
-    acc[year] = incomeStatementByYear[idx].netIncome;
-    return periodUtility;
+    acc[year] = costOfSalesByYear[idx].netIncome;
+    return acc;
   }, {});
 
   const acumUtility = years.reduce((acc, year, idx) => {
@@ -16,20 +17,22 @@ function computeEquity(project) {
     return acc;
   }, {});
 
-  const totalActives = computeTotalActives();
+  const totalActives = computeTotalActives(project);
+
   const { totalPassives } = computePassives(project);
 
-  const legacy = periodUtility.reduce((acc, [year, value]) => {
+  const legacy = Object.entries(periodUtility).reduce((acc, [year, value]) => {
     acc[year] =
       totalActives[year] - totalPassives[year] - value - acumUtility[year];
     return acc;
   }, {});
 
-  const totalEquity = legacy.reduce((acc, [year, value]) => {
-    acc[year] = value + acumUtility[year] + peroidUtility[year];
+  const totalEquity = Object.entries(legacy).reduce((acc, [year, value]) => {
+    acc[year] = value + acumUtility[year] + periodUtility[year];
+    return acc;
   }, {});
 
-  return { periodUtility, acumUtility, legacy };
+  return { periodUtility, acumUtility, legacy, totalEquity };
 }
 
 export default computeEquity;
