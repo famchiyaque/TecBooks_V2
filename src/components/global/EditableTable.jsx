@@ -248,6 +248,23 @@ function EditableTable({
               </TableRow>
             ))}
 
+            {rows.length === 0 && customRows.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} className={`${CELL_PAD} whitespace-nowrap italic text-slate-400`}>
+                  No rows yet
+                </TableCell>
+                <TableCell align="right" className={CELL_PAD}>
+                  <IconButton
+                    size="small"
+                    aria-label="add row"
+                    onClick={() => dispatch(slice.actions.addCustomRow())}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            )}
+
             <TableRow className="bg-slate-50/80">
               <TableCell className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}>
                 <span className="inline-flex items-center gap-1">

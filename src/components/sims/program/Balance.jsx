@@ -3,6 +3,7 @@ import useBalance from "@/hooks/sims/project/useBalance";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 import FixedAssetsTable from "@/components/dashboard/FixedAssetsTable";
 import CurrentActives from "./balance/CurrentActives.jsx";
+import DeferedActives from "./balance/DeferedActives.jsx";
 import Passive from "./balance/Passive.jsx";
 import Equity from "./balance/Equity.jsx";
 
@@ -20,6 +21,10 @@ function Balance({ project }) {
           byCategory={balance.actives?.fixedAssetsByCategory}
           total={balance.actives?.fixedAssets}
         />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Defered Actives">
+        <DeferedActives deferedActives={balance.actives?.deferedActives} />
       </CollapsibleSection>
 
       <Passive passives={balance.passives} />
