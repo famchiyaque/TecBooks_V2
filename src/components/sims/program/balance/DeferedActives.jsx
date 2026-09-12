@@ -6,10 +6,12 @@ import {
 } from "@/store/balance.store";
 import { Provider } from "react-redux";
 
-export const DEFERED_ACTIVES_ROWS = [
-  { key: "seguros", label: "Seguros" },
-  { key: "pagoSeguros", label: "Pago de Seguros" },
-];
+// No fixed rows - Activo Diferido (Seguros / Pago de Seguros) has no source
+// field anywhere in InputNovus (confirmed - not even the reference Template
+// Financiero has real data for it, always $0). Rather than show 2 rows that
+// are always zero, leave it empty and let the user add their own rows for
+// whatever their business actually needs to defer/amortize.
+export const DEFERED_ACTIVES_ROWS = [];
 
 function DeferedActives({ deferedActives }) {
   deferedActives = { ...deferedActives };

@@ -1,8 +1,5 @@
-import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js";
-import computeDeferedActives from "@/sims/project-feasibility/balance/computeDeferedActives";
 import computePassives from "@/sims/project-feasibility/balance/computePassives";
-import computeLongTermPassive from "@/sims/project-feasibility/balance/computeLongTermPassive";
-import computeUtility from "@/sims/project-feasibility/balance/computeUtility";
+import computeEquity from "@/sims/project-feasibility/balance/computeEquity";
 import computeActives from "@/sims/project-feasibility/balance/computeActives.js";
 
 function useBalance(project) {
@@ -11,10 +8,9 @@ function useBalance(project) {
 
   const actives = computeActives(project);
   const passives = computePassives(project);
-  const utility = computeUtility(project);
-  // utility["heritage"] ? actives - passives - utility.acumUtility - utility.periodUtility
+  const equity = computeEquity(project);
 
-  return { actives, passives, utility };
+  return { actives, passives, equity };
 }
 
 function mockFills(years) {
