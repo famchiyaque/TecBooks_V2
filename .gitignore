@@ -32,6 +32,9 @@ work/
 .env
 .env.production
 .env.develop
+env.production
+env.develop
+worker/dev.vars
 
 pnpm-lock.yaml
 pnpm-workspace.yaml

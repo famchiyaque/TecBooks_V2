@@ -14,26 +14,26 @@ Architecture notes for teammates: [`documentation/app_architecture/NEW_PROJECT_S
 
 ## Install and run
 
-Requirements: **Node.js** (current LTS recommended) and npm.
+Requirements: **Node.js** (current LTS recommended) and [pnpm](https://pnpm.io).
 
 ```bash
 cd TecBooks_V2
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Open the URL Vite prints (usually `http://localhost:5173`). The app redirects `/` → `/home`.
 
 | Script | Purpose |
 |--------|---------|
-| `npm run dev` | Local development server |
-| `npm run build` | Production build → `dist/` |
-| `npm run preview` | Serve the production build locally |
-| `npm run lint` | ESLint |
+| `pnpm run dev` | Local development server |
+| `pnpm run build` | Production build → `dist/` |
+| `pnpm run preview` | Serve the production build locally |
+| `pnpm run lint` | ESLint |
 
 > Large production builds may need more Node heap, e.g.  
-> `NODE_OPTIONS=--max-old-space-size=8192 npm run build`  
-> (on Windows PowerShell: `$env:NODE_OPTIONS="--max-old-space-size=8192"; npm run build`).
+> `NODE_OPTIONS=--max-old-space-size=8192 pnpm run build`  
+> (on Windows PowerShell: `$env:NODE_OPTIONS="--max-old-space-size=8192"; pnpm run build`).
 
 ## Technologies
 
