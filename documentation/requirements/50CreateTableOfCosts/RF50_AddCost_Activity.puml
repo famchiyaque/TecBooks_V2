@@ -1,0 +1,63 @@
+@startuml Diagrama_de_Actividades_Anadir_Costo
+
+title Activity Diagram - Add Another Cost
+
+|#LightBlue|User|
+|#LightGreen|System|
+
+|User|
+start
+:Press the button\nto add another cost;
+:Register the name;
+:Register the values\nfor the range (2025-2030);
+:Press save button;
+
+|System|
+:Receive the new concept and its values;
+
+if (Is the concept\nname empty?) then (yes)
+  :Show error\n"The concept name is required";
+  |User|
+  :Fix the concept name;
+  stop
+else (no)
+endif
+
+if (Does a concept with the\nsame name already exist\nin that category?) then (yes)
+  :Show error\n"A concept with that name already exists";
+  |User|
+  :Enter a different name;
+  stop
+else (no)
+endif
+
+if (Are all entered\nvalues numeric?) then (no)
+  :Show error\n"Values must be numeric";
+  |User|
+  :Fix the entered values;
+  stop
+else (yes)
+endif
+
+if (Is any value negative\nand the category\ndoes not allow it?) then (yes)
+  :Show error\n"The value cannot be negative";
+  |User|
+  :Fix the value;
+  stop
+else (no)
+endif
+
+if (Are values missing for\nany year in the range?) then (yes)
+  :Show warning\n"Complete the values for all years"\nand keep the row in edit mode;
+  stop
+else (no)
+endif
+
+:Insert the new row\ninto the selected category;
+:Recalculate the financial ratios;
+
+|User|
+:View the updated table with\nthe new cost and the\nrecalculated financial ratios;
+stop
+
+@enduml
