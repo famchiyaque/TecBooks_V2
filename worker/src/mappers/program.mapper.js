@@ -8,7 +8,8 @@ export function toProgramResponse(programRow, projectRows) {
       id: row.id,
       programId: row.program_id,
       name: row.name,
-      cbm: typeof row.cbm_json === 'string' ? JSON.parse(row.cbm_json) : row.cbm_json,
+      gameId: row.game_id,
+      r2Key: row.r2_key ?? null,
     })),
   };
 }

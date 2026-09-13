@@ -8,7 +8,10 @@ function sessionCookieOptions(context) {
     path: '/',
     httpOnly: true,
     secure: isHttps,
-    sameSite: 'Lax',
+    // Frontend (tecbooks.org) and worker (*.workers.dev) are different
+    // registrable domains, so the cookie must be sendable cross-site.
+    // SameSite=None requires Secure, which local http dev doesn't have.
+    sameSite: isHttps ? 'None' : 'Lax',
   };
 }
 

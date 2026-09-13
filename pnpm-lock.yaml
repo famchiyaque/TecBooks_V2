@@ -44,6 +44,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.8.2
         version: 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5)(redux@5.0.1))(react@19.2.5)
+      '@tanstack/react-query':
+        specifier: ^5.102.8
+        version: 5.102.8(react@19.2.5)
       axios:
         specifier: ^1.11.0
         version: 1.15.2
@@ -62,6 +65,9 @@ importers:
       dotenv:
         specifier: ^17.2.1
         version: 17.4.2
+      driver.js:
+        specifier: ^1.8.0
+        version: 1.8.0
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
@@ -1490,6 +1496,14 @@ packages:
   '@tanstack/query-core@5.102.4':
     resolution: {integrity: sha512-6eXkL+KFyVAZdpKoThCjPQQylZK8/ZOMYTJEVoPtHLkLs2PYks6vUiim9qzgvFXakSkRIAZwAZTeZLIJmpgRpQ==}
 
+  '@tanstack/query-core@5.102.8':
+    resolution: {integrity: sha512-ZNjkJ33CqvPNec/6lZBnHqLc3EVGPZ9ySLhYahU9TcuRFdmwXewuj0c4hwSWcGHqEUwcSrKeZ+oGcvPBqXcQcg==}
+
+  '@tanstack/react-query@5.102.8':
+    resolution: {integrity: sha512-TYBea4OuXWD7MhaSHq069TWbFe7rcwWN6kzT7JF0OKi1K6c1gTv2IzD6A6ExJsCMozdkqBWeuIUZmu4KQg0O5A==}
+    peerDependencies:
+      react: ^18 || ^19
+
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
 
@@ -2099,6 +2113,9 @@ packages:
   draht@1.0.1:
     resolution: {integrity: sha512-yNNHL864dniNmIE9ZKD++mKypiAUAvVZtyV0QrbXH/ak3ebzFqo5xsmRBRqV8pZVhImOSBiyq500Wcmrf44zAg==}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+  driver.js@1.8.0:
+    resolution: {integrity: sha512-+8/IO7h1v14IzWh2GP60N7T3PFZweXwdn5e5POuxRSBoCYUojsBxzqawPeXh3YZIibRy7EehYNEyxe7slwwtdg==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -4990,6 +5007,13 @@ snapshots:
 
   '@tanstack/query-core@5.102.4': {}
 
+  '@tanstack/query-core@5.102.8': {}
+
+  '@tanstack/react-query@5.102.8(react@19.2.5)':
+    dependencies:
+      '@tanstack/query-core': 5.102.8
+      react: 19.2.5
+
   '@types/babel__core@7.20.5':
     dependencies:
       '@babel/parser': 7.29.2
@@ -5647,6 +5671,8 @@ snapshots:
   draht@1.0.1:
     dependencies:
       eventemitter2: 5.0.1
+
+  driver.js@1.8.0: {}
 
   dunder-proto@1.0.1:
     dependencies:

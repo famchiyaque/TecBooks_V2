@@ -1,60 +1,28 @@
 import React from 'react'
-import {
-  Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
-} from '@mui/material'
+import EditableTable from '@/components/global/EditableTable'
+import { costTableEditsSlice } from '@/store/costTable.store'
 
-const CATEGORY_ROWS = [
-  { key: 'rawMaterial', label: 'Costo de Materias Primas (MP)' },
-  { key: 'directLabour', label: 'Mano de Obra Directa (MOD)' },
-  { key: 'indirectManufacturing', label: 'Mano de Obra Indirecta' },
-  { key: 'engineeringSalaries', label: 'Costos de Ingenieria' },
-  { key: 'administrativeExpenses', label: 'Costos de Administracion' },
-  { key: 'indirectMaterials', label: 'Costos Materiales Indirectos' },
+export const COST_ROWS = [
+  { key: 'rawMaterial', label: 'Raw Material Cost (MP)' },
+  { key: 'directLabour', label: 'Direct Labor (MOD)' },
+  { key: 'indirectManufacturing', label: 'Indirect Labor' },
+  { key: 'engineeringSalaries', label: 'Engineering Costs' },
+  { key: 'indirectMaterials', label: 'Indirect Material Costs' },
 ]
 
-function formatCurrency(value) {
-  return `$${Math.round(value || 0).toLocaleString('es-MX')}`
-}
-
 function CostOfSalesTable({ costOfSalesByYear }) {
+  const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
+  const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
+
   return (
-    <>
-      <Typography variant="h6" sx={{ fontWeight: 700, color: '#073a5a', mt: 3 }}>
-        Tabla de costos
-      </Typography>
-      <TableContainer component={Card} sx={{ mt: 1, borderRadius: '15px', border: 'solid #073a5a 1px' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow sx={{ backgroundColor: '#073a5a' }}>
-            <TableCell sx={{ color: '#fff', fontWeight: 600 }}>Concepto</TableCell>
-            {costOfSalesByYear.map((row) => (
-              <TableCell key={row.year} align="right" sx={{ color: '#fff', fontWeight: 600 }}>
-                {row.year}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {CATEGORY_ROWS.map(({ key, label }) => (
-            <TableRow key={key}>
-              <TableCell>{label}</TableCell>
-              {costOfSalesByYear.map((row) => (
-                <TableCell key={row.year} align="right">{formatCurrency(row[key])}</TableCell>
-              ))}
-            </TableRow>
-          ))}
-          <TableRow sx={{ backgroundColor: '#e4f1fe' }}>
-            <TableCell sx={{ fontWeight: 700, color: '#073a5a' }}>Total de Costos</TableCell>
-            {costOfSalesByYear.map((row) => (
-              <TableCell key={row.year} align="right" sx={{ fontWeight: 700, color: '#073a5a' }}>
-                {formatCurrency(row.totalCostOfSales)}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableBody>
-      </Table>
-      </TableContainer>
-    </>
+    <EditableTable
+      title="Cost Table"
+      slice={costTableEditsSlice}
+      columns={columns}
+      rows={COST_ROWS}
+      getValue={getValue}
+      totalLabel="Total Cost"
+    />
   )
 }
 
