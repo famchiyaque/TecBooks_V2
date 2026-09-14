@@ -46,28 +46,43 @@ cd ..
 
 ### 4. Set up the local database
 
-D1 runs locally as a real SQLite file managed by Wrangler — it starts empty and needs migrations applied once:
+D1 runs locally as a real SQLite file managed by Wrangler — it starts empty and needs migrations applied once. **`main` and `develop` are two entirely separate local SQLite files** (see [Cloudflare architecture](#cloudflare-architecture)) — migrating one does **not** migrate the other, and running the wrong pair (worker started with one env, migrations applied to the other) is the #1 source of confusing local errors:
+
+- `D1_ERROR: no such table: X` → you're pointed at a DB that hasn't been migrated at all yet.
+- `D1_ERROR: table X has no column named Y` → you're pointed at a DB that's behind on migrations (someone added a newer migration and you only ran the old ones, or you migrated the *other* env by mistake).
+
+Pick **one** environment and migrate **that same one**:
 
 ```bash
 cd worker
-pnpm run db:migrate:local            # main local DB
-pnpm run db:migrate:local:develop    # only if you'll also run --env develop locally
+
+# if you'll run `pnpm run dev` (plain, no --env flag → targets tecbooks-db / "main")
+pnpm run db:migrate:local
+
+# if you'll run `pnpm run dev:develop` (--env develop → targets tecbooks-db-develop)
+pnpm run db:migrate:local:develop
 ```
+
+Whenever a PR adds a new file under `worker/migrations/`, re-run the matching `db:migrate:local*` command for whichever env you actually use locally — migrations are **not** applied automatically when you pull.
 
 ### 5. Run it
 
-Two terminals:
+Two terminals. Pick the same environment you migrated in step 4 for the API terminal:
 
 ```bash
-# Terminal 1 — API
+# Terminal 1 — API (main, the default — needs step 4's plain db:migrate:local)
 cd worker
-pnpm run dev                # http://127.0.0.1:8787
+pnpm run dev                # http://127.0.0.1:8787, uses tecbooks-db
 
-# Terminal 2 — frontend
+# Terminal 1 — API, alternative (develop — needs step 4's db:migrate:local:develop instead)
+cd worker
+pnpm run dev:develop        # http://127.0.0.1:8787, uses tecbooks-db-develop
+
+# Terminal 2 — frontend (same either way)
 pnpm run dev                # http://localhost:5173
 ```
 
-Open `http://localhost:5173` (redirects to `/home`). Signing up should create a row in the local D1 `users` table through the worker + Clerk.
+Open `http://localhost:5173` (redirects to `/home`). Signing up should create a row in the local D1 `users` table through the worker + Clerk. If you see a `D1_ERROR` like the ones above, go back to step 4 and migrate the DB matching whichever `pnpm run dev*` command you're using in the API terminal.
 
 > Large production builds may need more Node heap, e.g.
 > `NODE_OPTIONS=--max-old-space-size=8192 pnpm run build`
