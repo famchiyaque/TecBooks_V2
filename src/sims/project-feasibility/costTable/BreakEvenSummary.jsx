@@ -63,7 +63,7 @@ function BreakEvenSummary({ project }) {
 
   const row = result.costOfSalesByYear[0]
   const annualCapacity = project.cbm.derivedBase?.annualCapacity || 0
-  const salePrice = production.salesPricePerUnit || 0
+  const salePrice = production.salesPricePerUnit?.[row.year] || 0
 
   const fixedCosts = row.administrativeExpenses + row.indirectManufacturing
     + row.engineeringSalaries + row.creditPayment

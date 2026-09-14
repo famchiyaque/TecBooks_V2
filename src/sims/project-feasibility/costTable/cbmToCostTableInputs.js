@@ -38,6 +38,29 @@ function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
 }
 
 /**
+ * RF-56-XX BUG FIX: the sale price is not flat across the projection - it
+ * grows by national inflation every year, same compounding shape as
+ * projectPurchaseOrders (Ingresos!C23 = B23 * (1 + Premisas!C12)).
+ */
+function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
+  const salesPricePerUnit = {}
+  let previous = yearZeroPrice
+
+  HORIZON_YEARS.forEach((year, index) => {
+    if (year < yearZeroYear) return
+    if (year === yearZeroYear) {
+      salesPricePerUnit[year] = yearZeroPrice
+      return
+    }
+    const rate = inflationByIndex[index] ?? 0
+    previous = previous * (1 + rate)
+    salesPricePerUnit[year] = previous
+  })
+
+  return salesPricePerUnit
+}
+
+/**
  * Maps a saved project's canonical business model (cbm, from parseNovusProject)
  * into the { employees, production, premises } shape costCalculations.js
  * expects - same functions the standalone Cost Table upload page uses, just
@@ -58,6 +81,7 @@ export function cbmToCostTableInputs(cbm) {
   const yearZeroYear = cbm.demand?.yearZeroYear
   let purchaseOrders = {}
   let qualityYield = {}
+  let salesPricePerUnit = {}
   if (yearZeroYear !== undefined) {
     purchaseOrders = projectPurchaseOrders(
       yearZeroYear,
@@ -65,6 +89,11 @@ export function cbmToCostTableInputs(cbm) {
       cbm.premises?.nationalInflation ?? []
     )
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
+    salesPricePerUnit = projectSalesPrice(
+      yearZeroYear,
+      cbm.bom?.salePrice,
+      cbm.premises?.nationalInflation ?? []
+    )
   }
 
   const indirectProductPercentage = {}
@@ -78,7 +107,8 @@ export function cbmToCostTableInputs(cbm) {
       purchaseOrders,
       qualityYield,
       materialCostPerUnit: cbm.derivedBase?.bomMaterialCost,
-      salesPricePerUnit: cbm.bom?.salePrice,
+      // {year: price} map, grown by national inflation - see projectSalesPrice.
+      salesPricePerUnit,
     },
     premises: {
       indirectProductPercentage,

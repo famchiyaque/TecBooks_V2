@@ -17,17 +17,26 @@ function isFiniteNumber(value) {
 
 /**
  * RF-00-01: every registered cost value must be numeric.
+ * production.salesPricePerUnit may be a flat scalar (standalone Cost Table
+ * upload page) or a {year: price} map (CBM path, price grown by inflation
+ * per year) - both shapes get flattened to their numeric values here.
  */
 export function areCostsNumeric(employees, production) {
   const employeesOk = employees.every(
     (emp) => isFiniteNumber(emp.quantity) && isFiniteNumber(emp.monthlySalary),
   );
 
+  const salesPriceValues =
+    typeof production.salesPricePerUnit === "object" &&
+    production.salesPricePerUnit !== null
+      ? Object.values(production.salesPricePerUnit)
+      : [production.salesPricePerUnit];
+
   const productionOk = [
     ...Object.values(production.purchaseOrders || {}),
     ...Object.values(production.qualityYield || {}),
     production.materialCostPerUnit,
-    production.salesPricePerUnit,
+    ...salesPriceValues,
   ].every(isFiniteNumber);
 
   return employeesOk && productionOk;
@@ -62,14 +71,23 @@ export function findUnclassifiedEmployees(employees) {
 }
 
 /**
- * netSales[year] = purchaseOrders[year] (units sold) * salesPricePerUnit (BOM "Costo de venta")
+ * netSales[year] = purchaseOrders[year] (units sold) * salesPricePerUnit[year]
+ * (BOM "Costo de venta", grown by national inflation each year - Ingresos!C23
+ * = B23 * (1 + Premisas!C12)). salesPricePerUnit may also be passed as a flat
+ * scalar (the standalone Cost Table upload page's shape, no per-year data) -
+ * that value is then reused for every year, same as before.
  */
 export function computeNetSales(production) {
   const { purchaseOrders, salesPricePerUnit } = production;
   const netSalesByYear = {};
+  const isPriceMap =
+    typeof salesPricePerUnit === "object" && salesPricePerUnit !== null;
 
   for (const [year, orders] of Object.entries(purchaseOrders)) {
-    netSalesByYear[year] = orders * salesPricePerUnit;
+    const priceForYear = isPriceMap
+      ? (salesPricePerUnit[year] ?? 0)
+      : (salesPricePerUnit ?? 0);
+    netSalesByYear[year] = orders * priceForYear;
   }
 
   return netSalesByYear;
@@ -358,24 +376,55 @@ export function computeFinancingAmount(
 }
 
 /**
- * RF-56: straight-line loan amortization over `periods` - each period pays
- * back an equal slice of principal (creditPayment), and interest accrues on
- * the declining balance (financialExpenses), matching Financiamiento's own
+ * RF-56: straight-line loan amortization over `periods` MONTHS for a single
+ * loan originated once (at project year zero) - each month pays back an
+ * equal slice of principal (amortization), and interest accrues on the
+ * declining balance, matching Financiamiento's own monthly schedule:
  * Interes[m] = (tasa/12) * saldo[m], saldo[m] = saldo[m-1] - Amortizacion.
+ *
+ * The monthly schedule is then split into consecutive 12-month blocks -
+ * months 1-12 report against `years[0]`, 13-24 against `years[1]`, etc. -
+ * so each projection year only carries its own 12 months of interest and
+ * principal instead of the loan's full-life totals. A `years` entry with no
+ * corresponding month block (loan already paid off, or the loan outlives the
+ * projection horizon) reports 0 for both.
  */
-export function computeAmortizationSchedule(allAmount, periods, annualRate) {
-  if (!periods) return { financialExpenses: 0, creditPayment: 0 };
+export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {
+  const financialExpensesByYear = {};
+  const creditPaymentByYear = {};
+  for (const year of years) {
+    financialExpensesByYear[year] = 0;
+    creditPaymentByYear[year] = 0;
+  }
+  if (!periods) return { financialExpensesByYear, creditPaymentByYear };
 
-  let financialExpenses = 0;
-  let creditPayment = 0;
-  let balance = allAmount;
   const amortization = allAmount / periods;
-  for (let period = 0; period < periods; period += 1) {
-    financialExpenses += (annualRate / 12) * balance;
-    creditPayment += amortization;
+  let balance = allAmount;
+  const monthlySchedule = [];
+  for (let month = 0; month < periods; month += 1) {
+    monthlySchedule.push({
+      interest: (annualRate / 12) * balance,
+      amortization,
+    });
     balance -= amortization;
   }
-  return { financialExpenses, creditPayment };
+
+  years.forEach((year, yearIndex) => {
+    const monthsForYear = monthlySchedule.slice(
+      yearIndex * 12,
+      yearIndex * 12 + 12,
+    );
+    financialExpensesByYear[year] = monthsForYear.reduce(
+      (sum, month) => sum + month.interest,
+      0,
+    );
+    creditPaymentByYear[year] = monthsForYear.reduce(
+      (sum, month) => sum + month.amortization,
+      0,
+    );
+  });
+
+  return { financialExpensesByYear, creditPaymentByYear };
 }
 
 /**
