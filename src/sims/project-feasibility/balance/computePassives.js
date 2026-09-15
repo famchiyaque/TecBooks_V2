@@ -1,9 +1,6 @@
 import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
 
-const DOCUMENTS = 450000;
-const PROVIDER = 0;
-
 function computePassives(project) {
   const years = project.timeline.years;
 
@@ -30,12 +27,17 @@ function computePassives(project) {
     return acc;
   }, {});
 
-  // Current Passives
-  const currentPassives = years.reduce((acc, curr) => {
-    acc[curr] = {
-      documents: DOCUMENTS,
-      provider: PROVIDER,
-    };
+  // Current Passives (Documentos por pagar / Proveedores) has no source
+  // field anywhere in InputNovus - confirmed, only two policy premises exist
+  // ("Porcentaje de proveedores" 20%, "Porcentaje de pasivo corto plazo" 3%)
+  // and neither the reference Template Financiero nor any formula in it
+  // actually uses them (searched all 12 sheets - zero references). The
+  // template itself just types in placeholder pesos (450000/0 at year zero,
+  // dropping to an unexplained 45000 from year 1 on) with no business logic
+  // behind them. Same situation as Activo Diferido (computeDeferedActives):
+  // base empty, manual/overridable via the Current Passives editable table.
+  const currentPassives = years.reduce((acc, year) => {
+    acc[year] = {};
     return acc;
   }, {});
 
