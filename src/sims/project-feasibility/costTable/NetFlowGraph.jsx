@@ -52,15 +52,15 @@ function NetFlowGraph({ project }) {
       style: { fontFamily: "inherit" },
     },
     title: {
-      text: "Flujo Neto de efectivo",
+      text: "Net Flow",
     },
     xAxis: {
       categories,
-      title: { text: "Año" },
+      title: { text: "Year" },
       crosshair: true,
     },
     yAxis: {
-      title: { text: "FNE" },
+      title: { text: "Net Flow" },
       labels: {
         formatter: function () {
           return this.value.toLocaleString("es-MX", {
@@ -88,7 +88,7 @@ function NetFlowGraph({ project }) {
     },
     series: [
       {
-        name: "FNE",
+        name: "Net Flow",
         type: "column",
         data: values,
         color: "#1f6f8b",
@@ -96,7 +96,7 @@ function NetFlowGraph({ project }) {
         borderRadius: 2,
       },
       {
-        name: "Tendencia",
+        name: "Tendency",
         type: "line",
         data: trend,
         color: "#1f6f8b",
