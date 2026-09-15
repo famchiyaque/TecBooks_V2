@@ -1,10 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import EditableTable from "@/components/global/EditableTable";
-import {
-  deferedActivesSlice,
-  createDeferedActivesTableStore,
-} from "@/store/balance.store";
-import { Provider } from "react-redux";
+import { deferedActivesSlice } from "@/store/balance.store";
 
 // No fixed rows - Activo Diferido (Seguros / Pago de Seguros) has no source
 // field anywhere in InputNovus (confirmed - not even the reference Template
@@ -13,12 +9,13 @@ import { Provider } from "react-redux";
 // whatever their business actually needs to defer/amortize.
 export const DEFERED_ACTIVES_ROWS = [];
 
+// No own store/Provider - relies on the shared editsStore ProjectDashboard
+// mounts, so this table's overrides/custom rows are readable from anywhere
+// else in the tab, e.g. Shareholder's Equity recomputing Total Assets live.
 function DeferedActives({ deferedActives }) {
   deferedActives = { ...deferedActives };
   delete deferedActives["total"];
   deferedActives = flipObject(deferedActives);
-
-  const [store] = useState(() => createDeferedActivesTableStore());
 
   const columns = Object.keys(deferedActives).map((year) => ({
     key: year,
@@ -27,16 +24,14 @@ function DeferedActives({ deferedActives }) {
   const getValue = (rowKey, year) => deferedActives[year]?.[rowKey] ?? 0;
 
   return (
-    <Provider store={store}>
-      <EditableTable
-        title="Defered Actives"
-        slice={deferedActivesSlice}
-        columns={columns}
-        rows={DEFERED_ACTIVES_ROWS}
-        getValue={getValue}
-        totalLabel="Total Defered Actives"
-      />
-    </Provider>
+    <EditableTable
+      title="Defered Actives"
+      slice={deferedActivesSlice}
+      columns={columns}
+      rows={DEFERED_ACTIVES_ROWS}
+      getValue={getValue}
+      totalLabel="Total Defered Actives"
+    />
   );
 }
 

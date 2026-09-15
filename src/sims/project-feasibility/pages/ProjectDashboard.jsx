@@ -20,6 +20,7 @@ import Income from "@/components/sims/program/Income";
 import Ratios from "@/components/sims/program/Ratios";
 import Balance from "@/components/sims/program/Balance";
 import CashFlow from "@/components/sims/program/CashFlow";
+import FinancialRatios from "@/components/sims/program/FinancialRatios";
 import useFeasibilityModel from "@/hooks/sims/project/useFeasibilityModel";
 import { PageTour } from "@/tours/PageTour";
 import TourButton from "@/components/global/TourButton";
@@ -37,6 +38,13 @@ import {
   cashFlowEditsSlice,
   outflowEditsSlice,
 } from "@/store/costTable.store";
+import {
+  currentActivesSlice,
+  deferedActivesSlice,
+  currentPassiveSlice,
+  longTermPassiveSlice,
+  equitySlice,
+} from "@/store/balance.store";
 
 const TABS = [
   // { id: "premises", label: "Premises" },
@@ -54,6 +62,7 @@ const LIVE_TAB_IDS = new Set([
   "income-statement",
   "cash-flows",
   "balance",
+  "ratios",
 ]);
 
 const projectDashboardTour = new PageTour([
@@ -70,7 +79,7 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Tab contents",
       description:
-        "Inflows, Outflows, Income Statement, Cash Flows and Balance Sheet load this project's tables. Ratios is a placeholder for now.",
+        "Inflows, Outflows, Income Statement, Cash Flows, Balance Sheet and Ratios all load this project's live tables.",
     },
   },
 ]);
@@ -89,11 +98,8 @@ const projectDashboardTour = new PageTour([
 
 const BALANCE_ROWS = ["Activo", "Pasivo", "Capital", "Total"];
 
-const RATIO_ROWS = ["Current ratio", "Quick ratio", "Debt to equity", "ROA"];
-
 const PLACEHOLDER_TABS = {
   // premises: { rows: PREMISE_ROWS, years: HORIZON_YEARS, blank: true },
-  ratios: { rows: RATIO_ROWS, years: HORIZON_YEARS.slice(0, 4) },
 };
 
 function MockStatement({ title, rows, years, blank = false }) {
@@ -146,11 +152,12 @@ function ProjectDashboard() {
   );
 
   // Shared by Cost Table + Operating Expenses + Financial Result + Taxes +
-  // Profit Summary so an edit in one is instantly visible in the others
-  // (RF-54-07/RF-55/RF-56/RF-57) - fresh store per project so nothing leaks
-  // when navigating the sidebar. Separate slices (not one) so a custom row
-  // added to one table isn't also summed into another's total. Hook must
-  // run before the early returns below.
+  // Profit Summary + Balance Sheet (Current/Defered Actives, Passives,
+  // Equity) so an edit in one is instantly visible in every other table/
+  // statement that reads it (RF-54-07/RF-55/RF-56/RF-57/RF-Balance) - fresh
+  // store per project so nothing leaks when navigating the sidebar.
+  // Separate slices (not one) so a custom row added to one table isn't also
+  // summed into another's total. Hook must run before the early returns below.
   const editsStore = React.useMemo(
     () =>
       configureStore({
@@ -161,6 +168,11 @@ function ProjectDashboard() {
           [taxesEditsSlice.name]: taxesEditsSlice.reducer,
           [cashFlowEditsSlice.name]: cashFlowEditsSlice.reducer,
           [outflowEditsSlice.name]: outflowEditsSlice.reducer,
+          [currentActivesSlice.name]: currentActivesSlice.reducer,
+          [deferedActivesSlice.name]: deferedActivesSlice.reducer,
+          [currentPassiveSlice.name]: currentPassiveSlice.reducer,
+          [longTermPassiveSlice.name]: longTermPassiveSlice.reducer,
+          [equitySlice.name]: equitySlice.reducer,
         },
       }),
     [project?.id],
@@ -274,6 +286,7 @@ function TabContent({ activeTab, programId, projectId, project }) {
   if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} />;
   if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} />;
   if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
+  if (activeTab.id === "ratios") return <FinancialRatios project={projectWithCbm} />;
 
   return (
     <MockStatement
