@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useContext, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { listProgramsRequest } from '../api/programs.api'
 import { toSidebarPrograms } from '../model/programExtractors'
 
@@ -13,23 +14,13 @@ export function usePrograms() {
 }
 
 export function ProgramsProvider({ children }) {
-  const [programs, setPrograms] = useState([])
-  const [status, setStatus] = useState('loading')
+  const { data, isPending, isError } = useQuery({
+    queryKey: ['programs'],
+    queryFn: listProgramsRequest,
+  })
 
-  useEffect(() => {
-    let cancelled = false
-    listProgramsRequest()
-      .then((data) => {
-        if (cancelled) return
-        setPrograms(Array.isArray(data) ? data : [])
-        setStatus('ready')
-      })
-      .catch(() => {
-        if (cancelled) return
-        setStatus('error')
-      })
-    return () => { cancelled = true }
-  }, [])
+  const programs = Array.isArray(data) ? data : []
+  const status = isPending ? 'loading' : isError ? 'error' : 'ready'
 
   const value = useMemo(
     () => ({

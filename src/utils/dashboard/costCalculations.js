@@ -5,29 +5,38 @@
  */
 
 const CATEGORY_TO_KEY = {
-  direct: 'MOD',
-  indirect: 'MOIndirecta',
-  engineering: 'Ingenieria',
-  administrative: 'Administrative',
+  direct: "MOD",
+  indirect: "MOIndirecta",
+  engineering: "Ingenieria",
+  administrative: "Administrative",
 };
 
 function isFiniteNumber(value) {
-  return typeof value === 'number' && Number.isFinite(value);
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 /**
  * RF-00-01: every registered cost value must be numeric.
+ * production.salesPricePerUnit may be a flat scalar (standalone Cost Table
+ * upload page) or a {year: price} map (CBM path, price grown by inflation
+ * per year) - both shapes get flattened to their numeric values here.
  */
 export function areCostsNumeric(employees, production) {
-  const employeesOk = employees.every((emp) => (
-    isFiniteNumber(emp.quantity) && isFiniteNumber(emp.monthlySalary)
-  ));
+  const employeesOk = employees.every(
+    (emp) => isFiniteNumber(emp.quantity) && isFiniteNumber(emp.monthlySalary),
+  );
+
+  const salesPriceValues =
+    typeof production.salesPricePerUnit === "object" &&
+    production.salesPricePerUnit !== null
+      ? Object.values(production.salesPricePerUnit)
+      : [production.salesPricePerUnit];
 
   const productionOk = [
     ...Object.values(production.purchaseOrders || {}),
     ...Object.values(production.qualityYield || {}),
     production.materialCostPerUnit,
-    production.salesPricePerUnit,
+    ...salesPriceValues,
   ].every(isFiniteNumber);
 
   return employeesOk && productionOk;
@@ -56,18 +65,29 @@ export function sumSalariesByCategory(employees) {
  * of trusting the totals blindly.
  */
 export function findUnclassifiedEmployees(employees) {
-  return employees.filter((emp) => !CATEGORY_TO_KEY[emp.category]).map((emp) => emp.name);
+  return employees
+    .filter((emp) => !CATEGORY_TO_KEY[emp.category])
+    .map((emp) => emp.name);
 }
 
 /**
- * netSales[year] = purchaseOrders[year] (units sold) * salesPricePerUnit (BOM "Costo de venta")
+ * netSales[year] = purchaseOrders[year] (units sold) * salesPricePerUnit[year]
+ * (BOM "Costo de venta", grown by national inflation each year - Ingresos!C23
+ * = B23 * (1 + Premisas!C12)). salesPricePerUnit may also be passed as a flat
+ * scalar (the standalone Cost Table upload page's shape, no per-year data) -
+ * that value is then reused for every year, same as before.
  */
 export function computeNetSales(production) {
   const { purchaseOrders, salesPricePerUnit } = production;
   const netSalesByYear = {};
+  const isPriceMap =
+    typeof salesPricePerUnit === "object" && salesPricePerUnit !== null;
 
   for (const [year, orders] of Object.entries(purchaseOrders)) {
-    netSalesByYear[year] = orders * salesPricePerUnit;
+    const priceForYear = isPriceMap
+      ? (salesPricePerUnit[year] ?? 0)
+      : (salesPricePerUnit ?? 0);
+    netSalesByYear[year] = orders * priceForYear;
   }
 
   return netSalesByYear;
@@ -75,18 +95,88 @@ export function computeNetSales(production) {
 
 /**
  * MP (raw material cost) per year.
- * WO = CO * Quality yield (work orders needed to fulfill purchase orders at the given quality yield)
+ * WO = CO / Quality yield (work orders needed to fulfill purchase orders at the given quality yield -
+ * a low yield means MORE work orders are needed to net the same good units, matching Capacidad!E17: '=E16/E3')
  */
 export function computeRawMaterialCost(production) {
-  const { purchaseOrders, qualityYield, materialCostPerUnit } = production;
+  const { purchaseOrders, qualityYield, materialCostPerUnit } =
+    production ?? {};
   const rawMaterialByYear = {};
 
-  for (const year of Object.keys(purchaseOrders)) {
-    const workOrders = (purchaseOrders[year] || 0) * (qualityYield[year] || 0);
+  for (const year of Object.keys(purchaseOrders ?? {})) {
+    const workOrders = (qualityYield[year] || 0) === 0
+      ? 0
+      : (purchaseOrders[year] || 0) / qualityYield[year];
     rawMaterialByYear[year] = workOrders * (materialCostPerUnit || 0);
   }
 
   return rawMaterialByYear;
+}
+
+/**
+ * RF-43: Computes the total administrative expenses for a production project.
+ * @param {Object} project - The production object containing project information.
+ * @returns {Object} An object where keys are years and values are the corresponding administrative expenses.
+ */
+export function computeAdminExpenses(project) {
+  const { services, premises } = project;
+  const timeline = createTimelineArr(project);
+
+  const adminExpensesFirst = services.reduce((acc, curr) => {
+    return (acc += curr.monthlyAmount);
+  }, 0);
+
+  const adminExpensesAll = timeline.reduce((acc, curr, idx) => {
+    acc[curr] = adminExpensesFirst * getInflation(premises, idx);
+    return acc;
+  }, {});
+
+  return adminExpensesAll;
+}
+
+/**
+ * Computes the annual salaries for a given project.
+ *
+ * @param {Object} project - project information - extract premises - national inflation
+ * @param {Object} cbmCostTable - employees, production and premises - cbmToCostTableInputs()
+ * @returns {Object} An object mapping years to arrays of employee types and their corresponding annual salaries.
+ */
+export function computeWorkforceAnualSalaries(project, cbmCostTable) {
+  const { employees, production } = cbmCostTable;
+  const { premises } = project;
+  const initialSalary = sumSalariesByCategory(employees);
+
+  const anualSalaries = Object.fromEntries(
+    Object.entries(production.purchaseOrders).map(([year, co], idx) => {
+      const salaries = Object.fromEntries(
+        Object.entries(initialSalary).map(([type, amount]) => [
+          type,
+          (amount * getInflation(premises, idx)) / co,
+        ]),
+      );
+
+      return [year, salaries];
+    }),
+  );
+
+  return anualSalaries;
+}
+
+/**
+ * RF-43: Creates an array of years for a given timeline object.
+ * @param {Object} project - The project object containing timeline information.
+ * @returns {Array} An array of years.
+ */
+export function createTimelineArr(project) {
+  const { timeline } = project;
+  const { startYear, endYear } = timeline;
+
+  const timelineArr = Array.from(
+    { length: endYear - startYear + 1 },
+    (_, i) => startYear + i,
+  );
+
+  return timelineArr;
 }
 
 /**
@@ -97,7 +187,8 @@ export function computeIndirectMaterialCosts(premises, netSalesByYear) {
   const indirectMaterialsByYear = {};
 
   for (const [year, netSales] of Object.entries(netSalesByYear)) {
-    indirectMaterialsByYear[year] = netSales * (indirectProductPercentage[year] || 0);
+    indirectMaterialsByYear[year] =
+      netSales * (indirectProductPercentage[year] || 0);
   }
 
   return indirectMaterialsByYear;
@@ -120,13 +211,15 @@ export function computeGrossProfit(netSales, totalCostOfSales) {
  * the reference Estado R template only ever subtracts it later, in Operating Expenses.
  * See computeAdministrativeExpenses / computeOperatingExpenses for where it's used.
  */
-export function buildCostOfSalesTable(years, {
-  MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
-}) {
+export function buildCostOfSalesTable(
+  years,
+  { MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales },
+) {
   return years.map((year) => {
     const rawMaterial = MP[year] || 0;
     const indirectMaterialsForYear = indirectMaterials[year] || 0;
-    const totalCostOfSales = rawMaterial + MOD + MOIndirecta + Ingenieria + indirectMaterialsForYear;
+    const totalCostOfSales =
+      rawMaterial + MOD + MOIndirecta + Ingenieria + indirectMaterialsForYear;
     const netSalesForYear = netSales?.[year] || 0;
 
     return {
@@ -150,13 +243,21 @@ export function buildCostOfSalesTable(years, {
  * Reused for buildings/transport/compute (assets.*) and machinery
  * (capacity.machines - same {acquisitionByYear} shape, just no "name").
  */
-export function computeAssetDepreciation(assets, depreciationRateByYear, years) {
+export function computeAssetDepreciation(
+  assets,
+  depreciationRateByYear,
+  years,
+) {
   const depreciationByYear = {};
   let cumulativeAcquisition = 0;
 
   for (const year of years) {
-    cumulativeAcquisition += assets.reduce((sum, asset) => sum + (asset.acquisitionByYear[year] || 0), 0);
-    depreciationByYear[year] = cumulativeAcquisition * (depreciationRateByYear[year] || 0);
+    cumulativeAcquisition += assets.reduce(
+      (sum, asset) => sum + (asset.acquisitionByYear[year] || 0),
+      0,
+    );
+    depreciationByYear[year] =
+      cumulativeAcquisition * (depreciationRateByYear[year] || 0);
   }
 
   return depreciationByYear;
@@ -165,10 +266,15 @@ export function computeAssetDepreciation(assets, depreciationRateByYear, years) 
 /**
  * salesExpenses[year] = netSales[year] * salesExpensePct[year] (Premisas "Porcentaje de gasto de venta")
  */
-export function computeSalesExpenses(netSalesByYear, salesExpensePctByYear, years) {
+export function computeSalesExpenses(
+  netSalesByYear,
+  salesExpensePctByYear,
+  years,
+) {
   const salesExpensesByYear = {};
   for (const year of years) {
-    salesExpensesByYear[year] = (netSalesByYear[year] || 0) * (salesExpensePctByYear[year] || 0);
+    salesExpensesByYear[year] =
+      (netSalesByYear[year] || 0) * (salesExpensePctByYear[year] || 0);
   }
   return salesExpensesByYear;
 }
@@ -177,10 +283,17 @@ export function computeSalesExpenses(netSalesByYear, salesExpensePctByYear, year
  * Administrative Expenses = admin salaries (flat, from Empleados_2) + admin
  * general expenses (Premisas "Porcentaje de administracion" * net sales).
  */
-export function computeAdministrativeExpenses(administrativeSalary, adminPctByYear, netSalesByYear, years) {
+export function computeAdministrativeExpenses(
+  administrativeSalary,
+  adminPctByYear,
+  netSalesByYear,
+  years,
+) {
   const administrativeByYear = {};
   for (const year of years) {
-    administrativeByYear[year] = administrativeSalary + (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
+    administrativeByYear[year] =
+      administrativeSalary +
+      (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
   }
   return administrativeByYear;
 }
@@ -188,12 +301,18 @@ export function computeAdministrativeExpenses(administrativeSalary, adminPctByYe
 /**
  * Operating Expenses = Administrative Expenses + total depreciation + Sales Expenses
  */
-export function computeOperatingExpenses(administrativeByYear, depreciationTotalByYear, salesExpensesByYear, years) {
+export function computeOperatingExpenses(
+  administrativeByYear,
+  depreciationTotalByYear,
+  salesExpensesByYear,
+  years,
+) {
   const operatingExpensesByYear = {};
   for (const year of years) {
-    operatingExpensesByYear[year] = (administrativeByYear[year] || 0)
-      + (depreciationTotalByYear[year] || 0)
-      + (salesExpensesByYear[year] || 0);
+    operatingExpensesByYear[year] =
+      (administrativeByYear[year] || 0) +
+      (depreciationTotalByYear[year] || 0) +
+      (salesExpensesByYear[year] || 0);
   }
   return operatingExpensesByYear;
 }
@@ -219,8 +338,13 @@ export function computeCumulativeInvestment(assetGroups, years) {
 
   for (const year of years) {
     cumulative += assetGroups.reduce(
-      (groupSum, assets) => groupSum + assets.reduce((sum, asset) => sum + (asset.acquisitionByYear[year] || 0), 0),
-      0
+      (groupSum, assets) =>
+        groupSum +
+        assets.reduce(
+          (sum, asset) => sum + (asset.acquisitionByYear[year] || 0),
+          0,
+        ),
+      0,
     );
     cumulativeByYear[year] = cumulative;
   }
@@ -234,35 +358,73 @@ export function computeCumulativeInvestment(assetGroups, years) {
  * Bills (admin general expense) + Machinery and Equipment * 0.35.
  */
 export function computeFinancingAmount(
-  investmentByYear, salariesTotal, managementBillsByYear, machineryInvestmentByYear, years
+  investmentByYear,
+  salariesTotal,
+  managementBillsByYear,
+  machineryInvestmentByYear,
+  years,
 ) {
   const amountByYear = {};
   for (const year of years) {
-    amountByYear[year] = (investmentByYear[year] || 0)
-      + salariesTotal
-      + (managementBillsByYear[year] || 0)
-      + (machineryInvestmentByYear[year] || 0) * 0.35;
+    amountByYear[year] =
+      (investmentByYear[year] || 0) +
+      salariesTotal +
+      (managementBillsByYear[year] || 0) +
+      (machineryInvestmentByYear[year] || 0) * 0.35;
   }
   return amountByYear;
 }
 
 /**
- * RF-56: straight-line loan amortization over `periods` - each period pays
- * back an equal slice of principal (creditPayment) and accrues interest on
- * the full financed amount (financialExpenses). Matches the activity
- * diagram literally: "Bank interest" is computed against "All amount", not
- * a declining balance - periods fully repay the amount financed that year.
+ * RF-56: straight-line loan amortization over `periods` MONTHS for a single
+ * loan originated once (at project year zero) - each month pays back an
+ * equal slice of principal (amortization), and interest accrues on the
+ * declining balance, matching Financiamiento's own monthly schedule:
+ * Interes[m] = (tasa/12) * saldo[m], saldo[m] = saldo[m-1] - Amortizacion.
+ *
+ * The monthly schedule is then split into consecutive 12-month blocks -
+ * months 1-12 report against `years[0]`, 13-24 against `years[1]`, etc. -
+ * so each projection year only carries its own 12 months of interest and
+ * principal instead of the loan's full-life totals. A `years` entry with no
+ * corresponding month block (loan already paid off, or the loan outlives the
+ * projection horizon) reports 0 for both.
  */
-export function computeAmortizationSchedule(allAmount, periods, annualRate) {
-  if (!periods) return { financialExpenses: 0, creditPayment: 0 };
-
-  let financialExpenses = 0;
-  let creditPayment = 0;
-  for (let period = 0; period < periods; period += 1) {
-    creditPayment += allAmount / periods;
-    financialExpenses += (annualRate / 12) * allAmount;
+export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {
+  const financialExpensesByYear = {};
+  const creditPaymentByYear = {};
+  for (const year of years) {
+    financialExpensesByYear[year] = 0;
+    creditPaymentByYear[year] = 0;
   }
-  return { financialExpenses, creditPayment };
+  if (!periods) return { financialExpensesByYear, creditPaymentByYear };
+
+  const amortization = allAmount / periods;
+  let balance = allAmount;
+  const monthlySchedule = [];
+  for (let month = 0; month < periods; month += 1) {
+    monthlySchedule.push({
+      interest: (annualRate / 12) * balance,
+      amortization,
+    });
+    balance -= amortization;
+  }
+
+  years.forEach((year, yearIndex) => {
+    const monthsForYear = monthlySchedule.slice(
+      yearIndex * 12,
+      yearIndex * 12 + 12,
+    );
+    financialExpensesByYear[year] = monthsForYear.reduce(
+      (sum, month) => sum + month.interest,
+      0,
+    );
+    creditPaymentByYear[year] = monthsForYear.reduce(
+      (sum, month) => sum + month.amortization,
+      0,
+    );
+  });
+
+  return { financialExpensesByYear, creditPaymentByYear };
 }
 
 /**
@@ -270,18 +432,33 @@ export function computeAmortizationSchedule(allAmount, periods, annualRate) {
  * interest) - Credit Payment (principal) + Financial Income ("Productos
  * Financieros" - no source field in InputNovus, manual/overridable only).
  */
-export function computeIncomeBeforeTaxes(operatingProfit, financialExpenses, creditPayment, financialIncome) {
+export function computeIncomeBeforeTaxes(
+  operatingProfit,
+  financialExpenses,
+  creditPayment,
+  financialIncome,
+) {
   return operatingProfit - financialExpenses - creditPayment + financialIncome;
 }
 
 /**
  * RF-57: ISR + PTU, both a flat rate (Premisas "Tasa ISR" / "Tasa de PTU")
- * applied to incomeBeforeTaxes for that year.
+ * applied to incomeBeforeTaxes for that year. A loss year owes no tax (no
+ * refund either) - matches Estado R's own guard: '=IF(B36<0, 0, B36*Premisas!B13)'.
  */
-export function computeTaxes(incomeBeforeTaxesByYear, isrRateByYear, ptuRateByYear, years) {
+export function computeTaxes(
+  incomeBeforeTaxesByYear,
+  isrRateByYear,
+  ptuRateByYear,
+  years,
+) {
   const taxesByYear = {};
   for (const year of years) {
     const base = incomeBeforeTaxesByYear[year] || 0;
+    if (base < 0) {
+      taxesByYear[year] = { isr: 0, ptu: 0, total: 0 };
+      continue;
+    }
     const isr = base * (isrRateByYear[year] || 0);
     const ptu = base * (ptuRateByYear[year] || 0);
     taxesByYear[year] = { isr, ptu, total: isr + ptu };
@@ -295,4 +472,12 @@ export function computeTaxes(incomeBeforeTaxesByYear, isrRateByYear, ptuRateByYe
  */
 export function computeNetIncome(incomeBeforeTaxes, taxesTotal) {
   return incomeBeforeTaxes - taxesTotal;
+}
+
+/**
+ * getInflation = (1 + NationalInflation)^(currentYear-startYear)
+ * @returns float
+ */
+export function getInflation(premises, idx) {
+  return Math.pow(1 + (premises?.nationalInflation?.[idx] ?? 0), idx);
 }

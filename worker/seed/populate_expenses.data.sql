@@ -1,7 +1,7 @@
--- Crear usuario
-
 INSERT OR IGNORE INTO "roles" ("role")
 VALUES ('teacher');
+
+SELECT * FROM roles;
 
 INSERT OR IGNORE INTO "schools" (
 	"name",
@@ -22,6 +22,8 @@ VALUES (
 	datetime('now')
 );
 
+SELECT * FROM schools;
+
 INSERT OR IGNORE INTO "users" (
 	"school_id",
 	"email",
@@ -41,6 +43,11 @@ VALUES (
 	datetime('now')
 );
 
+UPDATE users
+SET role_id = 2
+WHERE id = 1;
+SELECT * FROM "users";
+
 INSERT OR IGNORE INTO "classes" (
 	"school_id",
 	"teacher_id",
@@ -49,10 +56,12 @@ INSERT OR IGNORE INTO "classes" (
 )
 VALUES (
 	(SELECT "id" FROM "schools" WHERE "slug" = 'tecbooks-demo-school'),
-	(SELECT "id" FROM "users" WHERE "email" = 'teacher@tecbooks.local'),
+	(SELECT "id" FROM "users" WHERE "id" = 1),
 	'Business Finance Simulation',
 	datetime('now')
 );
+
+SELECT * FROM 'classes';
 
 INSERT OR IGNORE INTO "games" (
 	"class_id",
@@ -65,14 +74,8 @@ INSERT OR IGNORE INTO "games" (
 	"updated_at"
 )
 VALUES (
-	(
-		SELECT "id"
-		FROM "classes"
-		WHERE "school_id" = (SELECT "id" FROM "schools" WHERE "slug" = 'tecbooks-demo-school')
-			AND "teacher_id" = (SELECT "id" FROM "users" WHERE "email" = 'teacher@tecbooks.local')
-			AND "name" = 'Business Finance Simulation'
-	),
-	(SELECT "id" FROM "users" WHERE "email" = 'teacher@tecbooks.local'),
+	1,
+	1,
 	'Business Finance Simulation',
 	'draft',
     '2025',
@@ -80,6 +83,8 @@ VALUES (
 	datetime('now'),
 	datetime('now')
 );
+
+SELECT * FROM games;
 
 alter table 'premises' add column 'periods' integer not null default 60;
 
@@ -126,6 +131,8 @@ VALUES (
 	60
 );
 
+SELECT * FROM 'premises';
+
 -- Insertar máquinas y asignarlas al equipo
 
 SELECT * FROM "assets";
@@ -168,20 +175,15 @@ INSERT INTO "game_teams" (
 	"status",
 	"created_at"
 )
-SELECT
-	"id",
-	'Equipo Demo',
-	0,
-	'ready',
-	datetime('now')
-FROM "games"
-WHERE "name" = 'Business Finance Simulation'
-	AND NOT EXISTS (
-		SELECT 1
-		FROM "game_teams"
-		WHERE "game_id" = "games"."id"
-			AND "name" = 'Equipo Demo'
-	);
+VALUES(
+    1,
+    'Equipo 1',
+    'cap',
+    'active',
+    datetime('now')
+);
+
+SELECT * FROM 'game_teams';
 
 INSERT INTO 'game_team_assets' (
     'game_team_id',
@@ -201,8 +203,11 @@ SELECT
 FROM assets
 WHERE category IN ('machine', 'computer', 'buildings', 'transport');
 
+SELECT * FROM 'game_team_assets';
 
 -- Insert expenses
+
+SELECT * FROM 'expenses';
 
 INSERT INTO "expenses" (
     "game_id",
@@ -405,6 +410,9 @@ VALUES
 INSERT OR IGNORE INTO "schedules" ("name", "description", "hours_per_week", "days_per_week", "hours_per_day", "start_time", "end_time")
 VALUES ('full-time', 'Full-time schedule', 40, 5, 8, '09:00', '18:00');
 
+SELECT * FROM 'schedules';
+SELECT * FROM 'employees';
+
 INSERT INTO employees (
     name,
     job_title,
@@ -579,6 +587,8 @@ VALUES
 -- ASIGNAR EMPLEADOS AL EQUIPO
 -- game_team_id = 1
 -- ============================================================
+
+SELECT * FROM 'game_team_employees';
 
 INSERT INTO game_team_employees (
     game_team_id,

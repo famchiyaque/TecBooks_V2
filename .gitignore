@@ -32,7 +32,12 @@ work/
 .env
 .env.production
 .env.develop
+env.production
+env.develop
+worker/dev.vars
 
 pnpm-lock.yaml
 pnpm-workspace.yaml
 .\worker\.wrangler\state\v3\d1\miniflare-D1DatabaseObject\*
+
+*.xlsx

@@ -1,0 +1,63 @@
+@startuml Diagrama_de_Actividades_Modificar_Costo
+
+title Activity Diagram - Modify a Cost
+
+|#LightBlue|User|
+|#LightGreen|System|
+
+|User|
+start
+:Hover the mouse\nover a cost cell;
+
+|System|
+:Highlight the cell\n(hover effect showing\nit is editable);
+
+|User|
+:Double-click the cell;
+
+|System|
+:Switch the cell to edit mode\n(show input field\nwith the current value);
+
+|User|
+:Edit the value;
+:Confirm the change\n(press Enter or click outside the cell);
+
+|System|
+:Receive the new value;
+
+if (Is the new value empty?) then (yes)
+  :Show error\n"The value cannot be empty";
+  |User|
+  :Fix the value;
+  stop
+else (no)
+endif
+
+if (Is the new value numeric?) then (no)
+  :Show error\n"The value must be numeric";
+  |User|
+  :Fix the value;
+  stop
+else (yes)
+endif
+
+if (Is the new value negative\nand the category\ndoes not allow it?) then (yes)
+  :Show error\n"The value cannot be negative";
+  |User|
+  :Fix the value;
+  stop
+else (no)
+endif
+
+|System|
+:Update the cell value\nin the cost table;
+:Recalculate the category subtotal;
+:Recalculate the general totals;
+:Recalculate the financial ratios;
+:Exit edit mode\n(cell returns to display mode);
+
+|User|
+:View the updated table\nwith the modified cost\nand recalculated ratios;
+stop
+
+@enduml

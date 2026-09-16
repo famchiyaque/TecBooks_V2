@@ -52,7 +52,10 @@ function BreakEvenSummary({ project }) {
   const [desiredProfit, setDesiredProfit] = React.useState(0)
 
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
-  const { production } = React.useMemo(() => cbmToCostTableInputs(project.cbm), [project])
+  const { production } = React.useMemo(
+    () => (project.cbm ? cbmToCostTableInputs(project.cbm) : { production: {} }),
+    [project]
+  )
 
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>
@@ -60,7 +63,7 @@ function BreakEvenSummary({ project }) {
 
   const row = result.costOfSalesByYear[0]
   const annualCapacity = project.cbm.derivedBase?.annualCapacity || 0
-  const salePrice = production.salesPricePerUnit || 0
+  const salePrice = production.salesPricePerUnit?.[row.year] || 0
 
   const fixedCosts = row.administrativeExpenses + row.indirectManufacturing
     + row.engineeringSalaries + row.creditPayment

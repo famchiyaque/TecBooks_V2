@@ -38,12 +38,38 @@ function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
 }
 
 /**
+ * RF-56-XX BUG FIX: the sale price is not flat across the projection - it
+ * grows by national inflation every year, same compounding shape as
+ * projectPurchaseOrders (Ingresos!C23 = B23 * (1 + Premisas!C12)).
+ */
+function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
+  const salesPricePerUnit = {}
+  let previous = yearZeroPrice
+
+  HORIZON_YEARS.forEach((year, index) => {
+    if (year < yearZeroYear) return
+    if (year === yearZeroYear) {
+      salesPricePerUnit[year] = yearZeroPrice
+      return
+    }
+    const rate = inflationByIndex[index] ?? 0
+    previous = previous * (1 + rate)
+    salesPricePerUnit[year] = previous
+  })
+
+  return salesPricePerUnit
+}
+
+/**
  * Maps a saved project's canonical business model (cbm, from parseNovusProject)
  * into the { employees, production, premises } shape costCalculations.js
  * expects - same functions the standalone Cost Table upload page uses, just
  * fed from the already-parsed program data instead of a fresh Excel upload.
  */
 export function cbmToCostTableInputs(cbm) {
+  if (!cbm) {
+    return { employees: [], production: {}, premises: {} }
+  }
   const employees = (cbm.derivedBase?.employees ?? []).map((employee, index) => ({
     id: index,
     name: employee.name,
@@ -55,6 +81,7 @@ export function cbmToCostTableInputs(cbm) {
   const yearZeroYear = cbm.demand?.yearZeroYear
   let purchaseOrders = {}
   let qualityYield = {}
+  let salesPricePerUnit = {}
   if (yearZeroYear !== undefined) {
     purchaseOrders = projectPurchaseOrders(
       yearZeroYear,
@@ -62,6 +89,11 @@ export function cbmToCostTableInputs(cbm) {
       cbm.premises?.nationalInflation ?? []
     )
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
+    salesPricePerUnit = projectSalesPrice(
+      yearZeroYear,
+      cbm.bom?.salePrice,
+      cbm.premises?.nationalInflation ?? []
+    )
   }
 
   const indirectProductPercentage = {}
@@ -75,7 +107,8 @@ export function cbmToCostTableInputs(cbm) {
       purchaseOrders,
       qualityYield,
       materialCostPerUnit: cbm.derivedBase?.bomMaterialCost,
-      salesPricePerUnit: cbm.bom?.salePrice,
+      // {year: price} map, grown by national inflation - see projectSalesPrice.
+      salesPricePerUnit,
     },
     premises: {
       indirectProductPercentage,
@@ -83,7 +116,7 @@ export function cbmToCostTableInputs(cbm) {
   }
 }
 
-function yearMapFromSeries(series, years) {
+export function yearMapFromSeries(series, years) {
   const map = {}
   years.forEach((year) => {
     const index = HORIZON_YEARS.indexOf(year)
@@ -92,9 +125,10 @@ function yearMapFromSeries(series, years) {
   return map
 }
 
-function mapAssetsToYears(assetList, years) {
+export function mapAssetsToYears(assetList, years) {
   return (assetList ?? []).map((asset) => ({
-    name: asset.name,
+    // Machines (capacity.machines) have no "name", only code/description.
+    name: asset.name ?? asset.description ?? asset.code,
     acquisitionByYear: yearMapFromSeries(asset.acquisitionByYear, years),
   }))
 }
@@ -128,5 +162,9 @@ export function cbmToOperatingExpenseInputs(cbm, years) {
     // RF-57: Premisas "Tasa ISR" / "Tasa de PTU".
     isr: yearMapFromSeries(cbm.premises?.isr, years),
     ptu: yearMapFromSeries(cbm.premises?.ptu, years),
+    // RF-65 TREMA: Premisas "Inflacion nacional" - the other rate TREMA sums
+    // (market rate + inflation + risk premium, risk premium has no source
+    // field so it's a manual input, same situation as Financial Income).
+    nationalInflation: yearMapFromSeries(cbm.premises?.nationalInflation, years),
   }
 }

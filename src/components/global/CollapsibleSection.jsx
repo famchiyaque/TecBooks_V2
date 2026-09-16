@@ -1,14 +1,9 @@
 import React from 'react'
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import InfoTooltip from '@/components/global/InfoTooltip'
 
-/**
- * Reusable dropdown/accordion pattern for organizing a page with several
- * tables/sections. Drop any content in as children - used to group the
- * Expenses tables and the Cost Table under the Ratios tab, but works for
- * any other page that wants the same "click to expand" organization.
- */
-function CollapsibleSection({ title, defaultExpanded = false, children }) {
+function CollapsibleSection({ title, tooltip, defaultExpanded = false, children }) {
   return (
     <Accordion
       defaultExpanded={defaultExpanded}
@@ -23,7 +18,10 @@ function CollapsibleSection({ title, defaultExpanded = false, children }) {
       }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(7, 58, 90, 0.03)' }}>
-        <Typography sx={{ fontWeight: 700, color: '#073a5a' }}>{title}</Typography>
+        <Typography sx={{ fontWeight: 700, color: '#073a5a', display: 'inline-flex', alignItems: 'center' }}>
+          {title}
+          <InfoTooltip title={tooltip} />
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>{children}</AccordionDetails>
     </Accordion>

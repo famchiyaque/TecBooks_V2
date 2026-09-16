@@ -15,6 +15,9 @@ import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTa
  * validation + calculation pipeline so they can't drift apart.
  */
 export function buildCostOfSales(cbm) {
+  if (!cbm) {
+    return { error: 'This project is stored as rows. Cost tables will load from the server in a follow-up.' }
+  }
   const { employees, production, premises } = cbmToCostTableInputs(cbm)
 
   if (employees.length === 0) {
@@ -57,17 +60,22 @@ export function buildCostOfSales(cbm) {
   const machineryInvestment = computeCumulativeInvestment([opex.machines], years)
   const managementBills = {}
   years.forEach((year) => { managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0) })
-  const financingAmount = computeFinancingAmount(investment, salariesTotal, managementBills, machineryInvestment, years)
+  // RF-56 BUG FIX: the loan is originated once, at project year zero - it is
+  // a single fixed amount, not resized off a growing cumulative investment
+  // every year. investment/machineryInvestment/managementBills are read at
+  // years[0] on purpose (Egresos!B215 is itself a year-zero figure).
+  const financingAmount = computeFinancingAmount(
+    investment, salariesTotal, managementBills, machineryInvestment, [years[0]]
+  )[years[0]]
 
-  const financialExpenses = {}
-  const creditPayment = {}
-  years.forEach((year) => {
-    const schedule = computeAmortizationSchedule(
-      financingAmount[year], opex.financingPeriods, opex.nationalLeadingRate[year]
+  // RF-56 BUG FIX: one loan, amortized once over its own life in monthly
+  // 12-month blocks - not a fresh full-life schedule re-loaded onto every
+  // projection year. Rate is the leading rate at origination (year zero),
+  // fixed for the life of the loan.
+  const { financialExpensesByYear: financialExpenses, creditPaymentByYear: creditPayment } =
+    computeAmortizationSchedule(
+      financingAmount, opex.financingPeriods, opex.nationalLeadingRate[years[0]], years
     )
-    financialExpenses[year] = schedule.financialExpenses
-    creditPayment[year] = schedule.creditPayment
-  })
 
   const incomeBeforeTaxes = {}
   costOfSalesByYear.forEach((row) => {
@@ -88,7 +96,8 @@ export function buildCostOfSales(cbm) {
     // Salaries" and "General Administrative Expenses" as separate lines,
     // same as Flujo sheet rows 18-19 (Egresos!B154 / Egresos!B206).
     administrativeSalary: Administrative,
-    financingAmount: financingAmount[row.year],
+    // Single fixed loan (see BUG FIX above) - same amount reported on every row.
+    financingAmount,
     depreciationBuildings: depreciationBuildings[row.year],
     depreciationTransport: depreciationTransport[row.year],
     depreciationMachinery: depreciationMachinery[row.year],

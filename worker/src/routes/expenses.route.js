@@ -4,5 +4,5 @@ import {getExpensesController} from "../controllers/expenses.controller.js";
 
 export const expensesRoute = new Hono();
 
-expensesRoute.use("#", loggerMiddleware);
-expensesRoute.get("/", getExpensesController)
+expensesRoute.use("*", loggerMiddleware);
+expensesRoute.get("/", getExpensesController);

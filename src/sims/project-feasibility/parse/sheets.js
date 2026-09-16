@@ -52,6 +52,12 @@ const ASSET_BLOCKS = [
   { match: 'equipo de computo', key: 'compute' },
 ]
 
+// Any "Porcentaje depreciacion X" row becomes its own category rate - not
+// just the 4 fixed PREMISES_ROWS fields InputNovus happens to always have.
+// Mirrors readInversion's structural category detection: X can be anything,
+// including a category Inversion invents that has no fixed field for it.
+const DEPRECIATION_RATE_PATTERN = /^porcentaje depreciacion (.+)$/
+
 export function readPremisas(rows, project) {
   let lastYearMap = {}
   for (const row of rows) {
@@ -72,6 +78,11 @@ export function readPremisas(rows, project) {
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)
+      continue
+    }
+    const depreciationMatch = label.match(DEPRECIATION_RATE_PATTERN)
+    if (depreciationMatch) {
+      project.premises.depreciationByCategory[depreciationMatch[1]] = seriesFromRow(row, lastYearMap)
     }
   }
 }
@@ -147,53 +158,101 @@ export function readBOM(rows, project) {
   }
 }
 
+/**
+ * A row is a category header if ITS OWN cells are year values (2025, 2026...)
+ * rather than money amounts - InputNovus isn't limited to the 3 categories
+ * ASSET_BLOCKS knows by name (Edificios/Transporte/Computo), other projects'
+ * Inversion sheets can have entirely different category names. Detecting the
+ * header structurally (not by matching a fixed name list) means any category
+ * name works. project.assets.byCategory captures ALL of them, generically;
+ * project.assets.{transport,buildings,compute} keeps working exactly as
+ * before (aliased in alongside, for the existing Cost Table/Income Statement/
+ * Cash Flow pipeline that's hardcoded to those 3 names + machinery).
+ */
 export function readInversion(rows, project) {
   let currentKey = null
+  let currentCategory = null
   let yearMap = {}
 
   for (const row of rows) {
-    const label = normalizeLabel(row?.[0])
-    const block = ASSET_BLOCKS.find((item) => label.startsWith(item.match))
-    if (block) {
-      currentKey = block.key
-      yearMap = yearColumnMap(row)
+    const rowYearMap = yearColumnMap(row)
+    if (Object.keys(rowYearMap).length > 0) {
+      currentCategory = toStringOrUndefined(row?.[0])
+      yearMap = rowYearMap
+      if (currentCategory) project.assets.byCategory[currentCategory] ??= []
+      const label = normalizeLabel(row?.[0])
+      const block = ASSET_BLOCKS.find((item) => label.startsWith(item.match))
+      currentKey = block?.key ?? null
       continue
     }
-    if (!currentKey) continue
+
+    if (!currentCategory) continue
     const name = toStringOrUndefined(row?.[0])
     if (!name) {
       if (isBlank(row?.[1])) {
         currentKey = null
+        currentCategory = null
       }
       continue
     }
-    if (ASSET_BLOCKS.some((item) => normalizeLabel(name).startsWith(item.match))) {
-      continue
-    }
-    project.assets[currentKey].push({
-      name,
-      acquisitionByYear: seriesFromRow(row, yearMap),
-    })
+
+    const asset = { name, acquisitionByYear: seriesFromRow(row, yearMap) }
+    project.assets.byCategory[currentCategory].push(asset)
+    if (currentKey) project.assets[currentKey].push(asset)
   }
 }
 
-export function readEmpleados2(rows, project) {
+const EMPLOYEE_HEADER = {
+  nombre: 'name',
+  tipo: 'type',
+  percepcion: 'percepcion',
+  imss: 'imss',
+  infonavit: 'infonavit',
+  'vales de despensa': 'valesDespensa',
+  'prima vacacional': 'primaVacacional',
+  aguinaldo: 'aguinaldo',
+  'fondo de ahorro': 'fondoAhorro',
+  comedor: 'comedor',
+  isr: 'isr',
+  cantidad: 'cantidad',
+}
+
+function employeeColumnIndex(headerRow, label) {
+  return (headerRow ?? []).findIndex((cell) => normalizeLabel(cell) === label)
+}
+
+/**
+ * Tabular Empleados sheet (same columns as the old Empleados_2, including Cantidad).
+ */
+export function readEmpleados(rows, project) {
+  const header = rows[0] ?? []
+  const columns = {}
+  for (const [label, field] of Object.entries(EMPLOYEE_HEADER)) {
+    const index = employeeColumnIndex(header, label)
+    if (index >= 0) columns[field] = index
+  }
+
+  const nameCol = columns.name ?? 0
+  const typeCol = columns.type ?? 1
+  const percepcionCol = columns.percepcion ?? 2
+  const cantidadCol = columns.cantidad
+
   for (const row of rows.slice(1)) {
-    const name = toStringOrUndefined(row?.[0])
+    const name = toStringOrUndefined(row?.[nameCol])
     if (!name) break
     project.employees.push({
       name,
-      type: toStringOrUndefined(row[1]),
-      percepcion: toNumberOrUndefined(row[2]),
-      imss: toNumberOrUndefined(row[3]),
-      infonavit: toNumberOrUndefined(row[4]),
-      valesDespensa: toNumberOrUndefined(row[5]),
-      primaVacacional: toNumberOrUndefined(row[6]),
-      aguinaldo: toNumberOrUndefined(row[7]),
-      fondoAhorro: toNumberOrUndefined(row[8]),
-      comedor: toNumberOrUndefined(row[9]),
-      isr: toNumberOrUndefined(row[10]),
-      cantidad: toNumberOrUndefined(row[13]),
+      type: toStringOrUndefined(row[typeCol]),
+      percepcion: toNumberOrUndefined(row[percepcionCol]),
+      imss: toNumberOrUndefined(row[columns.imss ?? 3]),
+      infonavit: toNumberOrUndefined(row[columns.infonavit ?? 4]),
+      valesDespensa: toNumberOrUndefined(row[columns.valesDespensa ?? 5]),
+      primaVacacional: toNumberOrUndefined(row[columns.primaVacacional ?? 6]),
+      aguinaldo: toNumberOrUndefined(row[columns.aguinaldo ?? 7]),
+      fondoAhorro: toNumberOrUndefined(row[columns.fondoAhorro ?? 8]),
+      comedor: toNumberOrUndefined(row[columns.comedor ?? 9]),
+      isr: toNumberOrUndefined(row[columns.isr ?? 10]),
+      cantidad: toNumberOrUndefined(row[cantidadCol]) ?? 1,
     })
   }
 }

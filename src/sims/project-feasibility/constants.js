@@ -27,11 +27,11 @@ export const REQUIRED_SHEETS = [
   'Capacidad',
   'BOM',
   'Inversion',
-  'Empleados_2',
+  'Empleados',
   'Servicios',
 ]
 
-export const IGNORED_SHEETS = ['Empleados']
+export const IGNORED_SHEETS = ['Empleados_2']
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024
 export const MAX_PROJECTS_PER_PROGRAM = 10

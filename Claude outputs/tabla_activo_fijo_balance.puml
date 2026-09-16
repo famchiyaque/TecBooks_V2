@@ -1,0 +1,206 @@
+@startuml Diagrama_Tabla_Activo_Fijo_Balance
+
+title Diagrama de Actividades: Construir Tabla de Activo Fijo\n(sección del Balance General)
+
+|Usuario|
+start
+:Carga archivo Excel (.xlsx / .xls)
+del proyecto;
+
+|Sistema|
+:**Validación de archivo**
+(parseNovusProjectFile);
+
+note right
+  fileGates valida:
+  • Extensión: solo .xlsx / .xls
+  • Tamaño: <= 5 MB (MAX_FILE_BYTES)
+  Si falla → retorna error de gate
+end note
+
+:**Validación de hojas requeridas**
+(parseNovusProject);
+
+note right
+  REQUIRED_SHEETS:
+  Premisas, COs, Capacidad,
+  BOM, **Inversion**, Empleados,
+  Servicios
+
+  Si falta alguna → error:
+  'Missing sheet "X"'
+end note
+
+if (¿Archivo y hojas válidos?) then (sí)
+else (no)
+  |Usuario|
+  :Corrige archivo
+  (extensión, tamaño u
+  hojas faltantes) y recarga;
+  end
+endif
+
+|Sistema|
+:**1. Parseo hoja Inversion**
+(readInversion);
+
+note right
+  Recorre filas buscando encabezados
+  de bloque por normalizeLabel():
+  • "equipo de transporte" → transport
+  • "edificios" → buildings
+  • "equipo de computo" → compute
+
+  Por cada bloque detectado:
+  1. Lee yearMap de esa fila (años)
+  2. Lee activos individuales →
+     { name, acquisitionByYear[] }
+  3. Cierra bloque si fila vacía
+     (nombre y col B ambos blank)
+
+  **Validación implícita:**
+  • Ignora filas sin nombre
+  • Ignora si nombre coincide con
+    otro encabezado de bloque
+  • acquisitionByYear usa || 0 para
+    celdas vacías o no numéricas
+end note
+
+:**2. Parseo hoja Capacidad**
+(readCapacidad);
+
+note right
+  Máquinas desde columna D:
+  code, description, processSeconds,
+  operators, cycleTime,
+  acquisitionByYear[]
+
+  → project.capacity.machines[]
+
+  **Validación:** Ignora filas donde
+  code empieza con "Agregar"
+  (placeholder del template)
+end note
+
+:**3. Parseo hoja Premisas**
+(readPremisas);
+
+note right
+  Extrae 4 tasas de depreciación
+  como series anuales (por horizonte):
+  • depreciationBuildings (B27: 5%)
+  • depreciationMachinery (B28: 10%)
+  • depreciationTransport (B29: 20%)
+  • depreciationCompute (B30: 8.5%)
+end note
+
+:**4. Validación del modelo**
+(validateProjectClass);
+
+if (¿Modelo válido?) then (sí)
+else (no)
+  |Usuario|
+  :Corrige datos según
+  errores/warnings reportados;
+  end
+endif
+
+|Sistema|
+:**5. Transformar a mapas por año**
+(cbmToOperatingExpenseInputs);
+
+note right
+  **mapAssetsToYears():**
+  Cada asset.acquisitionByYear[index]
+  → asset.acquisitionByYear[year]
+
+  **yearMapFromSeries():**
+  premises.depreciationX[index]
+  → depreciationX[year]
+
+  Si el índice no existe → 0
+end note
+
+:**6. Calcular depreciación anual**
+(computeAssetDepreciation x4);
+
+fork
+  :**Edificios**
+  assets.buildings × depreciationBuildings;
+fork again
+  :**Transporte**
+  assets.transport × depreciationTransport;
+fork again
+  :**Cómputo**
+  assets.compute × depreciationCompute;
+fork again
+  :**Maquinaria**
+  machines × depreciationMachinery;
+end fork
+
+note right
+  **computeAssetDepreciation(assets, rate, years):**
+
+  let cumulativeAcquisition = 0
+  for (year of years):
+    cumulativeAcquisition += Sum(asset.acquisitionByYear[year] || 0)
+    depreciation[year] = cumulativeAcquisition * (rate[year] || 0)
+
+  Resultado: { year: depreciación_anual }
+end note
+
+:**7. Sumar depreciación total**
+depreciationTotal[year] =
+  edificios + transporte +
+  cómputo + maquinaria;
+
+:**8. Construir filas de Activo Fijo
+en tabla de Balance General**;
+
+fork
+  :**Edificios**
+  Fila 14: valor bruto = cumAcq
+  Fila 15: depr. acum.
+  Año1 = -depr(1)
+  AñoN = -depr(N) + acum(N-1);
+fork again
+  :**Transporte**
+  Fila 16: valor bruto = cumAcq
+  Fila 17: depr. acum.;
+fork again
+  :**Maquinaria**
+  Fila 18: valor bruto = cumAcq
+  Fila 19: depr. acum.;
+fork again
+  :**Cómputo**
+  Fila 20: valor bruto = cumAcq
+  Fila 21: depr. acum.;
+end fork
+
+:**9. Total Activo Fijo (Balance fila 23)**
+= SUM(filas 14:21)
+Neto = valor bruto - depr. acumulada
+sumado para las 4 clases;
+
+:**10. Alimentar otros estados**;
+
+fork
+  :**Estado de Resultados**
+  Filas 22-25: depreciación anual
+  por clase como Gasto de Operación;
+fork again
+  :**Flujo de Efectivo**
+  computeCapexByYear():
+  Compras anuales NO acumuladas
+  por clase como salidas de capital;
+end fork
+
+|Usuario|
+:Visualiza tabla Activo Fijo
+en Balance General:
+valor bruto, depr. acumulada
+y neto por clase de activo;
+
+stop
+
+@enduml
