@@ -8,6 +8,9 @@ import {
   toStringOrUndefined,
   yearColumnMap,
 } from './cells.js'
+import { Logger } from '../utils/logger.js'
+
+const logger = new Logger('Sheets')
 
 const PREMISES_ROWS = {
   'tipo de cambio al cierre (dolares)': 'fxClose',
@@ -222,7 +225,7 @@ function employeeColumnIndex(headerRow, label) {
 }
 
 /**
- * Tabular Empleados sheet (same columns as the old Empleados_2, including Cantidad).
+ * Tabular Empleados_2 sheet (Nombre, Tipo, Percepcion, ..., Cantidad).
  */
 export function readEmpleados(rows, project) {
   const header = rows[0] ?? []
@@ -255,6 +258,11 @@ export function readEmpleados(rows, project) {
       cantidad: toNumberOrUndefined(row[cantidadCol]) ?? 1,
     })
   }
+
+  logger.debug('readEmpleados: raw rows parsed from the "Empleados_2" sheet', {
+    rowsInSheet: rows.length,
+    parsedEmployees: project.employees.map((e) => ({ name: e.name, type: e.type, cantidad: e.cantidad })),
+  })
 }
 
 export function readServicios(rows, project) {

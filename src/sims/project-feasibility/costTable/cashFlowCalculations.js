@@ -1,5 +1,8 @@
 import { buildCostOfSales } from './buildCostOfSales'
 import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import { Logger } from '../utils/logger.js'
+
+const logger = new Logger('CashFlowCalculations')
 
 const INITIAL_BALANCE = 1_000_000
 
@@ -36,7 +39,10 @@ export function baseEntradaValue(rowKey, year, rowByYear) {
  */
 export function computeCashBalanceByYear(cbm) {
   const result = buildCostOfSales(cbm)
-  if (result.error) return { saldoInicialByYear: {}, endingBalanceByYear: {}, years: [] }
+  if (result.error) {
+    logger.warn('computeCashBalanceByYear: buildCostOfSales errored', { error: result.error })
+    return { saldoInicialByYear: {}, endingBalanceByYear: {}, years: [] }
+  }
 
   const rowByYear = Object.fromEntries(result.costOfSalesByYear.map((row) => [row.year, row]))
   const years = result.costOfSalesByYear.map((row) => row.year)
@@ -64,5 +70,6 @@ export function computeCashBalanceByYear(cbm) {
     endingBalanceByYear[year] = totalEntradasSalidas(year, saldoInicialByYear[year])
   })
 
+  logger.debug('computeCashBalanceByYear', { years, saldoInicialByYear, endingBalanceByYear })
   return { saldoInicialByYear, endingBalanceByYear, years }
 }

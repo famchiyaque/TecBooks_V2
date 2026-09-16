@@ -1,3 +1,7 @@
+import { Logger } from '../utils/logger.js'
+
+const logger = new Logger('ApplyDerivedBase')
+
 function asNumber(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }
@@ -10,7 +14,7 @@ const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES']
 
 /**
  * Mirrors src/adapters/excel/employee-table/Employee.js's category getter -
- * same Empleados template, same classification rules. Keep both in sync.
+ * same Empleados_2 template, same classification rules. Keep both in sync.
  */
 function classifyEmployeeCategory(name, type) {
   const upperName = String(name ?? '').toUpperCase()
@@ -71,13 +75,25 @@ export function applyDerivedBase(project) {
         pct(employee.aguinaldo) +
         pct(employee.fondoAhorro) +
         pct(employee.comedor))
+    const category = classifyEmployeeCategory(employee.name, employee.type)
+    if (!category) {
+      logger.warn('employee did not match any category - excluded from workforce totals', {
+        name: employee.name,
+        type: employee.type,
+      })
+    }
     return {
       name: employee.name,
-      category: classifyEmployeeCategory(employee.name, employee.type),
+      category,
       quantity: employee.cantidad,
       benefitsTotal,
       salarioIntegrado: asNumber(employee.percepcion) + benefitsTotal,
     }
+  })
+
+  logger.debug('employees classified from raw Empleados_2 sheet', {
+    rawEmployeeCount: project.employees.length,
+    employees: employees.map((e) => ({ name: e.name, category: e.category, quantity: e.quantity, salarioIntegrado: e.salarioIntegrado })),
   })
 
   project.derivedBase = {

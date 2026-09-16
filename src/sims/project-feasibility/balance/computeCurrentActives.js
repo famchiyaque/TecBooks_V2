@@ -1,4 +1,7 @@
 import { computeCashBalanceByYear } from "@/sims/project-feasibility/costTable/cashFlowCalculations.js";
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputeCurrentActives");
 
 function computeCurrentActives(project) {
   const years = project.timeline.years;
@@ -23,13 +26,9 @@ function computeCurrentActives(project) {
     return acc;
   }, {});
 
-  return {
-    cashAndBank,
-    inventary,
-    deposits,
-    stocks,
-    total,
-  };
+  const result = { cashAndBank, inventary, deposits, stocks, total };
+  logger.debug("computeCurrentActives", result);
+  return result;
 }
 
 function mockFills(years) {

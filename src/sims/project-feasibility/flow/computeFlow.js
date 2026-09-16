@@ -3,6 +3,9 @@ import computeInvestment from "@/sims/project-feasibility/income/computeInvestme
 import { buildCostOfSales } from "@/sims/project-feasibility/costTable/buildCostOfSales.js";
 import { cbmToOperatingExpenseInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs.js";
 import { getAnnualCashOutflowsTotal } from "./yearOutflows.js";
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputeFlow");
 
 function computeFlow(project) {
   // TODO: initial balance should be extracted from the creation data / project
@@ -47,7 +50,9 @@ function computeFlow(project) {
     return acc;
   }, {});
 
-  return { totalIncome, totalExpenses, netFlow };
+  const result = { totalIncome, totalExpenses, netFlow };
+  logger.warn("computeFlow (legacy/unused - superseded by cashFlowCalculations.js, kept for reference)", result);
+  return result;
 }
 
 function mockFills(years) {

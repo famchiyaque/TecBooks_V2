@@ -1,5 +1,8 @@
 import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
 import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputePassives");
 
 function computePassives(project) {
   const years = project.timeline.years;
@@ -51,7 +54,9 @@ function computePassives(project) {
     {},
   );
 
-  return { longTermPassives, currentPassives, totalPassives };
+  const result = { longTermPassives, currentPassives, totalPassives };
+  logger.debug("computePassives", { total, yearAmortization, yearInterest, ...result });
+  return result;
 }
 
 export default computePassives;

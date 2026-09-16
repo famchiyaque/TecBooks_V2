@@ -1,5 +1,9 @@
 import { computeAssetDepreciation, computeCumulativeInvestment } from '@/utils/dashboard/costCalculations'
+import { assetValueInYear } from '@/utils/dashboard/assetSchedule.js'
 import { mapAssetsToYears, yearMapFromSeries } from '@/sims/project-feasibility/costTable/cbmToCostTableInputs'
+import { Logger } from '../utils/logger.js'
+
+const logger = new Logger('ComputeFixedAssets')
 
 // This exact label is our own (English UI, see FixedAssetsTable) - matched by
 // identity, not pattern, so translating it never breaks its rate lookup.
@@ -76,10 +80,8 @@ function rateSeriesForItem(cbm, category, itemName) {
 
 function computeItemCumulativeByYear(asset, years) {
   const cumulativeByYear = {}
-  let cumulative = 0
   for (const year of years) {
-    cumulative += asset.acquisitionByYear[year] || 0
-    cumulativeByYear[year] = cumulative
+    cumulativeByYear[year] = assetValueInYear(asset, year)
   }
   return cumulativeByYear
 }
@@ -141,6 +143,7 @@ export function computeFixedAssetsByCategory(cbm, years) {
 
     result[category] = { rows, items }
   }
+  logger.debug('computeFixedAssetsByCategory', { categories: Object.keys(result), result })
   return result
 }
 
@@ -149,7 +152,7 @@ export function computeFixedAssetsByCategory(cbm, years) {
  * across ALL categories found, however many there are.
  */
 export function computeFixedAssetsTotal(byCategory, years) {
-  return years.map((year) => {
+  const result = years.map((year) => {
     let grossValue = 0
     let accumulatedDepreciation = 0
     for (const { rows } of Object.values(byCategory)) {
@@ -159,4 +162,6 @@ export function computeFixedAssetsTotal(byCategory, years) {
     }
     return { year, grossValue, accumulatedDepreciation, netValue: grossValue - accumulatedDepreciation }
   })
+  logger.debug('computeFixedAssetsTotal', { years, result })
+  return result
 }

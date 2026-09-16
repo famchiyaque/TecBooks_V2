@@ -4,6 +4,7 @@ import { createProjectClass } from '../model/createProjectClass.js'
 import { applyDerivedBase } from '../model/applyDerivedBase.js'
 import { validateProjectClass } from '../model/validateProjectClass.js'
 import { getFileGateError } from './fileGates.js'
+import { Logger } from '../utils/logger.js'
 import {
   readBOM,
   readCOs,
@@ -13,6 +14,8 @@ import {
   readPremisas,
   readServicios,
 } from './sheets.js'
+
+const logger = new Logger('ParseNovusProject')
 
 function toRows(workbook, sheetName) {
   const sheet = workbook.Sheets[sheetName]
@@ -37,9 +40,11 @@ function readWorkbook(input) {
  * @param {{ fileName?: string }} [options]
  */
 export function parseNovusProject(input, { fileName } = {}) {
+  logger.info('parsing workbook', { fileName })
   const workbook = readWorkbook(input)
   const missing = REQUIRED_SHEETS.filter((name) => !workbook.Sheets[name])
   if (missing.length) {
+    logger.warn('workbook missing required sheets', { fileName, missing })
     return {
       project: null,
       validation: {
@@ -56,21 +61,26 @@ export function parseNovusProject(input, { fileName } = {}) {
   readCapacidad(toRows(workbook, 'Capacidad'), project)
   readBOM(toRows(workbook, 'BOM'), project)
   readInversion(toRows(workbook, 'Inversion'), project)
-  readEmpleados(toRows(workbook, 'Empleados'), project)
+  readEmpleados(toRows(workbook, 'Empleados_2'), project)
   readServicios(toRows(workbook, 'Servicios'), project)
 
   project.metadata.name = project.bom.productName || ''
   applyDerivedBase(project)
 
-  return {
-    project,
-    validation: validateProjectClass(project),
+  const validation = validateProjectClass(project)
+  if (!validation.valid) {
+    logger.warn('workbook parsed with validation errors', { fileName, errors: validation.errors })
+  } else {
+    logger.debug('workbook parsed OK', { fileName })
   }
+
+  return { project, validation }
 }
 
 export async function parseNovusProjectFile(file) {
   const gate = getFileGateError(file)
   if (gate) {
+    logger.warn('rejected file before parsing', { fileName: file?.name, reason: gate })
     return {
       project: null,
       validation: { valid: false, errors: [gate], warnings: [] },

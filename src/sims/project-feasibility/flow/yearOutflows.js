@@ -1,3 +1,7 @@
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("YearOutflows");
+
 /**
  * Suma la adquisición de activos para un año específico
  */
@@ -60,5 +64,6 @@ export function getAnnualCashOutflowsTotal(costOfSales, opx) {
       operatingCashOutflow + capexOutflow + financialOutflow;
   });
 
+  logger.debug("getAnnualCashOutflowsTotal", { outflowsByYear });
   return outflowsByYear;
 }

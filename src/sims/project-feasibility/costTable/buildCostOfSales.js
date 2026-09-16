@@ -7,6 +7,9 @@ import {
   computeTaxes, computeNetIncome,
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
+import { Logger } from '../utils/logger.js'
+
+const logger = new Logger('BuildCostOfSales')
 
 /**
  * Shared by ProjectCostSummary (Cost Table section) and ProfitSummary
@@ -16,19 +19,23 @@ import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTa
  */
 export function buildCostOfSales(cbm) {
   if (!cbm) {
+    logger.warn('buildCostOfSales: no cbm - project is stored as rows')
     return { error: 'This project is stored as rows. Cost tables will load from the server in a follow-up.' }
   }
   const { employees, production, premises } = cbmToCostTableInputs(cbm)
 
   if (employees.length === 0) {
+    logger.warn('buildCostOfSales: no registered employees')
     return { error: 'This project has no registered employees.' }
   }
   if (!areCostsNumeric(employees, production)) {
+    logger.warn('buildCostOfSales: non-numeric data in employees or production', { employees, production })
     return { error: 'This project has non-numeric data in employees or production.' }
   }
 
   const years = Object.keys(production.purchaseOrders).map(Number)
   if (years.length === 0) {
+    logger.warn('buildCostOfSales: no year-zero record')
     return { error: 'This project has no year-zero record.' }
   }
 
@@ -40,6 +47,7 @@ export function buildCostOfSales(cbm) {
     MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
   })
   const unclassifiedEmployees = findUnclassifiedEmployees(employees)
+  logger.debug('buildCostOfSales: cost of sales', { MOD, MOIndirecta, Ingenieria, Administrative, MP, netSales, indirectMaterials, costOfSalesByYear, unclassifiedEmployees })
 
   const opex = cbmToOperatingExpenseInputs(cbm, years)
   const depreciationBuildings = computeAssetDepreciation(opex.assets.buildings, opex.depreciationBuildings, years)
@@ -54,6 +62,10 @@ export function buildCostOfSales(cbm) {
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
   const administrativeExpenses = computeAdministrativeExpenses(Administrative, opex.adminPct, netSales, years)
   const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
+  logger.debug('buildCostOfSales: operating expenses', {
+    depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,
+    salesExpenses, administrativeExpenses, operatingExpenses,
+  })
 
   const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
   const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
@@ -76,6 +88,9 @@ export function buildCostOfSales(cbm) {
     computeAmortizationSchedule(
       financingAmount, opex.financingPeriods, opex.nationalLeadingRate[years[0]], years
     )
+  logger.debug('buildCostOfSales: financing', {
+    investment, machineryInvestment, managementBills, salariesTotal, financingAmount, financialExpenses, creditPayment,
+  })
 
   const incomeBeforeTaxes = {}
   costOfSalesByYear.forEach((row) => {
@@ -116,5 +131,7 @@ export function buildCostOfSales(cbm) {
     netIncome: computeNetIncome(incomeBeforeTaxes[row.year], taxes[row.year].total),
   }))
 
-  return { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }
+  const result = { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }
+  logger.debug('buildCostOfSales: final income statement', result)
+  return result
 }

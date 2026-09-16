@@ -1,5 +1,8 @@
 import { cbmToCostTableInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs.js";
 import computeProductionCosts from "@/sims/project-feasibility/income/computeProductionCosts.js";
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputeSales");
 
 function computeSales(project) {
   const { production } = cbmToCostTableInputs(project);
@@ -13,6 +16,7 @@ function computeSales(project) {
     {},
   );
 
+  logger.debug("computeSales", { saleIncome });
   return saleIncome;
 }
 

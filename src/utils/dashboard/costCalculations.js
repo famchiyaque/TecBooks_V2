@@ -4,6 +4,8 @@
  * the per-year cost-of-sales table shown in the "Estado" statement.
  */
 
+import { sumAssetsValueInYear } from "./assetSchedule.js";
+
 const CATEGORY_TO_KEY = {
   direct: "MOD",
   indirect: "MOIndirecta",
@@ -237,11 +239,19 @@ export function buildCostOfSalesTable(
 }
 
 /**
- * RF-55: depreciationByYear = rate[year] * cumulative acquisition cost of the
- * asset class through that year (assets already owned keep depreciating in
- * later years, new acquisitions join the base from their acquisition year on).
- * Reused for buildings/transport/compute (assets.*) and machinery
- * (capacity.machines - same {acquisitionByYear} shape, just no "name").
+ * RF-55 BUG FIX: depreciationByYear = rate[year] * total asset value for
+ * that year. InputNovus/Template Financiero repeat an asset's value flat
+ * across every year column (Inversion!D2 = "=C2", same book value shown
+ * again, not a new purchase) - the reference Depreciacion sheet's own
+ * "Total" row confirms this stays flat year over year, it does NOT grow
+ * (e.g. 8,060,000 in every one of 2025-2029), so acquisitionByYear[year]
+ * must be read as-is per year, never accumulated across years. Doing that
+ * used to multiply an asset's value by how many years had passed (an asset
+ * bought once looked like it was re-bought every year). If a future data
+ * source ever lists a genuinely new acquisition mid-project (zeros before
+ * its purchase year, a value from then on), this still works correctly
+ * without any further change - each year just sums whatever that year's
+ * column holds.
  */
 export function computeAssetDepreciation(
   assets,
@@ -249,15 +259,10 @@ export function computeAssetDepreciation(
   years,
 ) {
   const depreciationByYear = {};
-  let cumulativeAcquisition = 0;
 
   for (const year of years) {
-    cumulativeAcquisition += assets.reduce(
-      (sum, asset) => sum + (asset.acquisitionByYear[year] || 0),
-      0,
-    );
     depreciationByYear[year] =
-      cumulativeAcquisition * (depreciationRateByYear[year] || 0);
+      sumAssetsValueInYear(assets, year) * (depreciationRateByYear[year] || 0);
   }
 
   return depreciationByYear;
@@ -327,29 +332,25 @@ export function computeOperatingProfit(grossProfit, operatingExpenses) {
 }
 
 /**
- * RF-56: cumulative acquisition cost (not depreciated) of one or more asset
- * groups through each year - the "Investment"/"Machinery" inputs the
- * financing amount is built from. Same cumulative-sum shape as
- * computeAssetDepreciation, just without the rate multiplication.
+ * RF-56 BUG FIX: total (not depreciated) asset value of one or more asset
+ * groups for each year - the "Investment"/"Machinery" inputs the financing
+ * amount is built from. "Cumulative" here means summed ACROSS the given
+ * asset groups within one year, not accumulated across years - same fix and
+ * same reasoning as computeAssetDepreciation just without the rate
+ * multiplication: acquisitionByYear[year] is that year's value as-is, not a
+ * yearly delta to keep adding on top of previous years.
  */
 export function computeCumulativeInvestment(assetGroups, years) {
-  const cumulativeByYear = {};
-  let cumulative = 0;
+  const totalByYear = {};
 
   for (const year of years) {
-    cumulative += assetGroups.reduce(
-      (groupSum, assets) =>
-        groupSum +
-        assets.reduce(
-          (sum, asset) => sum + (asset.acquisitionByYear[year] || 0),
-          0,
-        ),
+    totalByYear[year] = assetGroups.reduce(
+      (groupSum, assets) => groupSum + sumAssetsValueInYear(assets, year),
       0,
     );
-    cumulativeByYear[year] = cumulative;
   }
 
-  return cumulativeByYear;
+  return totalByYear;
 }
 
 /**

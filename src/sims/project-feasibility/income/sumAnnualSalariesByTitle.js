@@ -1,3 +1,7 @@
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("SumAnnualSalariesByTitle");
+
 const TITLE_TO_KEY = {
   direct: "MOD",
   indirect: "MOIndirecta",
@@ -42,5 +46,6 @@ export function sumAnnualSalariesByTitle(employees) {
     totals[key] += quantity * monthlySalary * 12;
   }
 
+  logger.debug("sumAnnualSalariesByTitle", { employeeCount: (employees ?? []).length, totals });
   return totals;
 }

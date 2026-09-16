@@ -1,29 +1,30 @@
 import { cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
+import { assetsCapexInYear } from '@/utils/dashboard/assetSchedule.js'
+import { Logger } from '../utils/logger.js'
+
+const logger = new Logger('OutflowCalculations')
 
 /**
- * RF-63: Cash Outflows ("Salidas", Flujo sheet rows 13-30). Reuses the same
- * fields the Income Statement rows (buildCostOfSales) already computed for
- * everything except asset purchases - those are only tracked *cumulatively*
- * internally (for depreciation/financing), so this recomputes the raw,
- * per-year (non-cumulative) acquisition spend per asset class directly from
- * the project's opex inputs.
+ * RF-63 BUG FIX: Cash Outflows ("Salidas", Flujo sheet rows 13-30). Reuses
+ * the same fields the Income Statement rows (buildCostOfSales) already
+ * computed for everything except asset purchases - those are a one-time
+ * cash event at each asset's own acquisition year (assetsCapexInYear), not
+ * InputNovus' repeated flat book value counted as a fresh purchase every
+ * single year the asset is still listed.
  */
 export function computeCapexByYear(cbm, years) {
   const opex = cbmToOperatingExpenseInputs(cbm, years)
 
-  const sumAcquisitions = (assets, year) => (
-    assets.reduce((sum, asset) => sum + (asset.acquisitionByYear[year] || 0), 0)
-  )
-
   const capexByYear = {}
   years.forEach((year) => {
     capexByYear[year] = {
-      machinery: sumAcquisitions(opex.machines, year),
-      buildings: sumAcquisitions(opex.assets.buildings, year),
-      compute: sumAcquisitions(opex.assets.compute, year),
-      transport: sumAcquisitions(opex.assets.transport, year),
+      machinery: assetsCapexInYear(opex.machines, year, years),
+      buildings: assetsCapexInYear(opex.assets.buildings, year, years),
+      compute: assetsCapexInYear(opex.assets.compute, year, years),
+      transport: assetsCapexInYear(opex.assets.transport, year, years),
     }
   })
+  logger.debug('computeCapexByYear', { years, capexByYear })
   return capexByYear
 }
 

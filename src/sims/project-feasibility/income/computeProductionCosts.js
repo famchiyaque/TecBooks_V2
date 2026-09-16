@@ -4,6 +4,9 @@ import {
   computeWorkforceAnualSalaries,
 } from "@/utils/dashboard/costCalculations";
 import { cbmToCostTableInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs";
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputeProductionCosts");
 
 export default function computeProductionCost(project) {
   const cbm = cbmToCostTableInputs(project);
@@ -20,7 +23,9 @@ export default function computeProductionCost(project) {
     return acc;
   }, {});
 
-  return { costRawMaterials, workForce, adminExpenses, total };
+  const result = { costRawMaterials, workForce, adminExpenses, total };
+  logger.debug("computeProductionCost", result);
+  return result;
 }
 
 function workOrdersForYear(production, year) {
@@ -80,5 +85,7 @@ export function toCostPerWorkOrder(
       Object.values(workForce[year]).reduce((sum, val) => sum + val, 0);
   });
 
-  return { costRawMaterials, workForce, adminExpenses, total };
+  const result = { costRawMaterials, workForce, adminExpenses, total };
+  logger.debug("toCostPerWorkOrder", result);
+  return result;
 }

@@ -1,3 +1,7 @@
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputeAmortizationInterest");
+
 /**
  * Calcula el esquema mensual y anual de amortizaciones e intereses para una inversión.
  *
@@ -13,6 +17,7 @@
  * }} Objeto con la cuota de amortización fija, el desglose mensual de intereses y sus agregados anuales.
  */
 export default function computeAmortizationInterest(totalInvestment, project) {
+  const totalInvestmentInput = totalInvestment;
   const periods = project.timeline.financingPeriods;
   const interestRate = project.premises.nationalLeadingRate;
 
@@ -29,7 +34,9 @@ export default function computeAmortizationInterest(totalInvestment, project) {
   const yearAmortization = computeAmortization(amortization, periods);
   const yearInterest = computeInterest(interest, periods);
 
-  return { amortization, interest, yearAmortization, yearInterest };
+  const result = { amortization, interest, yearAmortization, yearInterest };
+  logger.debug("computeAmortizationInterest", { totalInvestment: totalInvestmentInput, periods, interestRate, ...result });
+  return result;
 }
 
 /**

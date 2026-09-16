@@ -1,3 +1,7 @@
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("ComputeDeferedActives");
+
 // Balance > Activo Diferido = Seguros + Pago de Seguros (Template Financiero
 // rows 24-25). Neither has a source field anywhere in InputNovus (confirmed -
 // no "seguro" row in any sheet) - same situation as RF-56's Financial Income:
@@ -14,6 +18,7 @@ function computeDeferedActives(project) {
     return acc;
   }, {});
 
+  logger.debug("computeDeferedActives (always 0 - no source field, manual/overridable only)", { seguros, pagoSeguros, total });
   return { seguros, pagoSeguros, total };
 }
 
