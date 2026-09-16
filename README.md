@@ -93,6 +93,7 @@ These sims do **not** require a full CBM upload; they are teaching/exploration t
 | `/dashboard/*` | Unified financial dashboard |
 | `/sims/project-evaluation` | Investment simulator |
 | `/sims/forecasting` | Forecasting simulator |
+| `/sims/project-feasibility/programs` | Project feasibility programs (upload InputNovus workbooks → per-project financial dashboard; requires login) |
 | `/faq` | FAQ |
 | `/mxrep/*` | MxRep educational module (isolated; separate from the CBM dashboard spine) |
 
@@ -100,4 +101,5 @@ These sims do **not** require a full CBM upload; they are teaching/exploration t
 
 - Structure & conventions — [`documentation/app_architecture/NEW_PROJECT_STRUCTURE.md`](documentation/app_architecture/NEW_PROJECT_STRUCTURE.md)
 - CBM data flow — [`documentation/diagrams/CBM_WORKFLOW.md`](documentation/diagrams/CBM_WORKFLOW.md)
+- Project Feasibility Simulation (architecture, financial model, how to extend it) — [`documentation/business_logic/PROJECT_FEASIBILITY.md`](documentation/business_logic/PROJECT_FEASIBILITY.md)
 - Broader docs tree — [`documentation/`](documentation/)
