@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
-import { passiveSlice, createPassiveStore } from "@/store/balance.store";
-import { Provider } from "react-redux";
+import { currentPassiveSlice, longTermPassiveSlice } from "@/store/balance.store";
 import EditableTable from "@/components/global/EditableTable";
 import GrandTotalTable from "@/components/global/GrandTotalTable";
 
@@ -18,9 +17,14 @@ export const LONG_TERM_PASSIVES = [
   { key: "interestsPayment", label: "Interests Payments" },
 ];
 
+// No own store/Provider - relies on the shared editsStore ProjectDashboard
+// mounts, so both tables' overrides/custom rows are readable from anywhere
+// else in the tab, e.g. Shareholder's Equity recomputing Total Liabilities
+// live. Current Passives and Long term passives each get their OWN slice
+// (currentPassiveSlice / longTermPassiveSlice) - they used to share one
+// "passives" slice, which meant a custom row added to either table leaked
+// into both totals (they read the same underlying customRows array).
 function Passive({ passives }) {
-  const [store] = useState(() => createPassiveStore());
-
   const columns = Object.keys(passives.currentPassives).map((year) => ({
     key: year,
     label: year,
@@ -33,40 +37,38 @@ function Passive({ passives }) {
 
   return (
     <CollapsibleSection title="Passives">
-      <Provider store={store}>
-        <EditableTable
-          title="Current Passives"
-          slice={passiveSlice}
-          columns={columns}
-          rows={CURRENT_PASSIVES}
-          getValue={getCurrentPassiveValue}
-          totalLabel="Total Current Passives"
-        />
-        <EditableTable
-          title="Long term passives"
-          slice={passiveSlice}
-          columns={columns}
-          rows={LONG_TERM_PASSIVES}
-          getValue={getLongTermPassivesValue}
-          totalLabel="Total Long Term Passives"
-        />
-        <GrandTotalTable
-          title="Total Passives"
-          columns={columns}
-          sources={[
-            {
-              slice: passiveSlice,
-              rows: CURRENT_PASSIVES,
-              getValue: getCurrentPassiveValue,
-            },
-            {
-              slice: passiveSlice,
-              rows: LONG_TERM_PASSIVES,
-              getValue: getLongTermPassivesValue,
-            },
-          ]}
-        />
-      </Provider>
+      <EditableTable
+        title="Current Passives"
+        slice={currentPassiveSlice}
+        columns={columns}
+        rows={CURRENT_PASSIVES}
+        getValue={getCurrentPassiveValue}
+        totalLabel="Total Current Passives"
+      />
+      <EditableTable
+        title="Long term passives"
+        slice={longTermPassiveSlice}
+        columns={columns}
+        rows={LONG_TERM_PASSIVES}
+        getValue={getLongTermPassivesValue}
+        totalLabel="Total Long Term Passives"
+      />
+      <GrandTotalTable
+        title="Total Passives"
+        columns={columns}
+        sources={[
+          {
+            slice: currentPassiveSlice,
+            rows: CURRENT_PASSIVES,
+            getValue: getCurrentPassiveValue,
+          },
+          {
+            slice: longTermPassiveSlice,
+            rows: LONG_TERM_PASSIVES,
+            getValue: getLongTermPassivesValue,
+          },
+        ]}
+      />
     </CollapsibleSection>
   );
 }

@@ -1,10 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import EditableTable from "@/components/global/EditableTable";
-import {
-  currentActivesSlice,
-  createCurrentActivesTableStore,
-} from "@/store/balance.store";
-import { Provider } from "react-redux";
+import { currentActivesSlice } from "@/store/balance.store";
 import flipObject from "@/utils/flipObject.js";
 
 export const COST_ROWS = [
@@ -14,11 +10,13 @@ export const COST_ROWS = [
   { key: "inventary", label: "Accounts Receivable" },
 ];
 
+// No own store/Provider - relies on the shared editsStore ProjectDashboard
+// mounts (same store as Cost Table/Opex/Taxes/etc.), so its overrides/custom
+// rows are readable from anywhere else in the tab, e.g. Shareholder's Equity
+// recomputing Total Assets live off this table's effective total.
 function CurrentActives({ currentActives }) {
   delete currentActives["total"];
   currentActives = flipObject(currentActives);
-
-  const [store] = useState(() => createCurrentActivesTableStore());
 
   const columns = Object.keys(currentActives).map((year) => ({
     key: year,
@@ -27,16 +25,14 @@ function CurrentActives({ currentActives }) {
   const getValue = (rowKey, year) => currentActives[year]?.[rowKey] ?? 0;
 
   return (
-    <Provider store={store}>
-      <EditableTable
-        title="Current Actives"
-        slice={currentActivesSlice}
-        columns={columns}
-        rows={COST_ROWS}
-        getValue={getValue}
-        totalLabel="Total Current Actives"
-      />
-    </Provider>
+    <EditableTable
+      title="Current Actives"
+      slice={currentActivesSlice}
+      columns={columns}
+      rows={COST_ROWS}
+      getValue={getValue}
+      totalLabel="Total Current Actives"
+    />
   );
 }
 

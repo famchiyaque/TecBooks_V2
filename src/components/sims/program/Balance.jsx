@@ -30,7 +30,7 @@ function Balance({ project }) {
       <Passive passives={balance.passives} />
 
       <CollapsibleSection title="Shareholder's equity">
-        <Equity equity={balance.equity} />
+        <Equity project={project} />
       </CollapsibleSection>
     </div>
   );
