@@ -22,9 +22,9 @@ export const INFLOWS_TOOLTIPS = {
   },
   utilityPrice: {
     table:
-      "Suggested selling prices at a 10%, 20%, and 30% markup over total unit cost.",
-    10: "Total Unit Cost × 1.1",
-    20: "Total Unit Cost × 1.2",
-    30: "Total Unit Cost × 1.3",
+      "Suggested selling prices at a 10%, 20%, and 30% profit margin on price: unit cost / (1 − margin).",
+    10: "Total Unit Cost / (1 − 0.10)",
+    20: "Total Unit Cost / (1 − 0.20)",
+    30: "Total Unit Cost / (1 − 0.30)",
   },
 };

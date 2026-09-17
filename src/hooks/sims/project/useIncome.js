@@ -43,11 +43,12 @@ function useIncome(project) {
     return (competitivaPrice[idx] ?? 0) * (purchaseOrders[year] ?? 0)
   })
 
-  const utilityCost = Object.values(productionCosts.total).reduce(
-    (acc, yearTotal) => {
-      acc[10].push(yearTotal * 1.1)
-      acc[20].push(yearTotal * 1.2)
-      acc[30].push(yearTotal * 1.3)
+  const utilityCost = years.reduce(
+    (acc, year) => {
+      const unitCost = productionCosts.total[year] ?? 0
+      acc[10].push(unitCost / (1 - 0.1))
+      acc[20].push(unitCost / (1 - 0.2))
+      acc[30].push(unitCost / (1 - 0.3))
       return acc
     },
     { 10: [], 20: [], 30: [] },
