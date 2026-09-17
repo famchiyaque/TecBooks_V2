@@ -42,9 +42,10 @@ function inflationFactor(premises, yearIndex) {
 }
 
 /**
- * Costs per Unit: yearly MP and admin ÷ work orders (purchase orders /
- * quality yield). Labor uses annual category totals (12 × monthly ×
- * headcount), inflated by year, then ÷ work orders — not the shared
+ * Costs per Unit: raw materials = BOM price / quality yield (scrap-adjusted
+ * cost per good unit). Admin ÷ work orders (purchase orders / quality
+ * yield). Labor uses annual category totals (12 × monthly × headcount),
+ * inflated by year, then ÷ work orders — not the shared
  * computeWorkforceAnualSalaries path, which divides by customer orders.
  */
 export function toCostPerWorkOrder(
@@ -60,14 +61,16 @@ export function toCostPerWorkOrder(
   const total = {};
 
   years.forEach((year, yearIndex) => {
+    const yieldRate = production?.qualityYield?.[year] || 0;
     const workOrders = workOrdersForYear(production, year);
     const perWorkOrder = (annual) =>
       workOrders === 0 ? 0 : annual / workOrders;
     const inflation = inflationFactor(premises, yearIndex);
 
-    costRawMaterials[year] = perWorkOrder(
-      productionCosts.costRawMaterials?.[year] ?? 0,
-    );
+    costRawMaterials[year] =
+      yieldRate === 0
+        ? 0
+        : (production?.materialCostPerUnit || 0) / yieldRate;
     adminExpenses[year] = perWorkOrder(
       productionCosts.adminExpenses?.[year] ?? 0,
     );
