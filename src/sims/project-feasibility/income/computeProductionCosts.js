@@ -46,7 +46,9 @@ function inflationFactor(premises, yearIndex) {
  * yearly total is work orders × BOM, so this equals BOM / quality yield.
  * Labor uses annual category totals (12 × monthly × headcount), inflated
  * by year, then ÷ purchase orders — not the shared
- * computeWorkforceAnualSalaries path (Outflows).
+ * computeWorkforceAnualSalaries path (Outflows). Admin from
+ * computeAdminExpenses is monthly; ×12 here only so Inflows Unit Costs
+ * stay annual without changing the shared helper (see technical-debt.md).
  */
 export function toCostPerWorkOrder(
   productionCosts,
@@ -73,9 +75,8 @@ export function toCostPerWorkOrder(
     costRawMaterials[year] = perPurchaseOrder(
       productionCosts.costRawMaterials?.[year] ?? 0,
     );
-    adminExpenses[year] = perPurchaseOrder(
-      productionCosts.adminExpenses?.[year] ?? 0,
-    );
+    const annualAdmin = (productionCosts.adminExpenses?.[year] ?? 0) * 12;
+    adminExpenses[year] = perPurchaseOrder(annualAdmin);
 
     workForce[year] = Object.fromEntries(
       Object.entries(annualSalaries ?? {}).map(([type, amount]) => [
@@ -91,6 +92,15 @@ export function toCostPerWorkOrder(
   });
 
   console.log("[Unit Costs] work orders vs customer orders", denominators);
+  console.log(
+    "[Unit Costs] yearly admin expenses (before ÷ purchase orders)",
+    Object.fromEntries(
+      Object.entries(productionCosts.adminExpenses ?? {}).map(([year, monthly]) => [
+        year,
+        { monthly, annual: monthly * 12 },
+      ]),
+    ),
+  );
 
   const result = { costRawMaterials, workForce, adminExpenses, total };
   logger.debug("toCostPerWorkOrder", result);
