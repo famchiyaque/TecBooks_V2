@@ -7,6 +7,7 @@ import {
   parseNovusProjectFile,
   validateProgram,
 } from '@/sims/project-feasibility'
+import { isSessionInvalidError } from '@/utils/worker.util'
 
 const StagingContext = createContext(null)
 
@@ -110,7 +111,7 @@ export function StagingProvider({ children }) {
       return createdProgram
     } catch (error) {
       const message =
-        error.response?.data?.error === 'unauthorized'
+        isSessionInvalidError(error)
           ? 'Sign in to upload the program'
           : error.response?.data?.error || error.message || 'Could not save the program'
       setConfirmError(message)

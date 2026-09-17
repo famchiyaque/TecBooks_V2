@@ -26,9 +26,19 @@ import GlobalSidebar from "./components/global/GlobalSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { isSessionInvalidError } from "@/utils/worker.util";
 
-// Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (isSessionInvalidError(error)) return false;
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: (query) => !isSessionInvalidError(query.state.error),
+    },
+  },
+});
 
 function App() {
   console.log("app loaded");

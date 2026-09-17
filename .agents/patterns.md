@@ -8,9 +8,13 @@ Project Feasibility V1: one user uploads year-0 InputNovus workbooks, grouped as
 routes → logger + session → controllers → usecases → services → models → env.DB / env.R2
 ```
 
-Copy `worker/src/routes/programs.route.js` and `auth`. Pages and React components do **not** import axios. HTTP lives in `src/api/**`. Hooks call those functions.
+Copy `worker/src/routes/programs.route.js` and `auth`. Pages and React components do **not** import axios. Feasibility HTTP lives in `src/sims/project-feasibility/api/`. Hooks call those functions.
 
 ## Identity and storage
+
+- Session cookie is the auth source of truth: httpOnly JWT `session`, 7 days. `localStorage.tecbooks_user` is display-only and must not keep the UI “logged in” after the cookie dies.
+- Worker session failures: `401 { "error": "session_invalid" }` from `session.middleware` only. Login 401s use other codes (`form_identifier_not_found`, `form_password_incorrect`).
+- Client: shared axios lives in `src/utils/worker.util.js`. Its interceptor calls `logout` on `session_invalid` only — never on status 401 alone. TanStack skips retry/refetch for that code.
 
 - Program: `feasibility_programs` (`name`, `created_by`).
 - Child: `feasibility_projects` (`program_id`, `name`, `game_id`, `r2_key`). Not VAN `projects`.
@@ -47,7 +51,7 @@ Upload is multipart: `name`, `projects` (JSON, CBM **without** `derivedBase`), `
 
 ## Client folders
 
-- Sim HTTP: `src/api/sims/<feature>/`
+- Sim HTTP: `src/sims/project-feasibility/api/` (auth, programs). Other leftover sim HTTP still in `src/api/sims/<feature>/`.
 - Sim hooks: `src/hooks/sims/project/`
 - Worker feature: `worker/src/{routes,controllers,usecases,services,models,mappers}/`
 - Redux in this sim: edit slices only (`src/store/costTable.store.js`), not the project document.

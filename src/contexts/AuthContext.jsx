@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useClerk } from '@clerk/react'
-import { logoutRequest } from '@/api/auth.api'
+import { logoutRequest } from '@/sims/project-feasibility/api/auth.api'
+import { resetSessionInvalidGuard, setSessionInvalidHandler } from '@/utils/worker.util'
 
 const AuthContext = createContext()
 
@@ -16,17 +19,20 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const { signOut } = useClerk()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved ? JSON.parse(saved) : null
   })
 
-  const login = (safeUser) => {
+  const login = useCallback((safeUser) => {
+    resetSessionInvalidGuard()
     localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser))
     setUser(safeUser)
-  }
+  }, [])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await logoutRequest()
     } catch (err) {
@@ -34,8 +40,17 @@ export const AuthProvider = ({ children }) => {
     }
     localStorage.removeItem(STORAGE_KEY)
     setUser(null)
+    queryClient.clear()
     await signOut()
-  }
+  }, [queryClient, signOut])
+
+  useEffect(() => {
+    setSessionInvalidHandler(async () => {
+      await logout()
+      navigate('/login', { replace: true })
+    })
+    return () => setSessionInvalidHandler(null)
+  }, [logout, navigate])
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>

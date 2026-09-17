@@ -7,7 +7,7 @@ import { Box, Button, TextField, Typography, Alert, Link as MuiLink } from '@mui
 import { useSignIn } from '@clerk/react'
 import GenericHeader from '@/components/global/GenericHeader'
 import { useAuth } from '@/contexts/AuthContext'
-import { loginRequest, registerRequest } from '@/api/auth.api'
+import { loginRequest, registerRequest } from '@/sims/project-feasibility/api/auth.api'
 import './Login.css'
 
 const signInSchema = z.object({
