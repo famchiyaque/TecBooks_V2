@@ -3,9 +3,10 @@ import TableContainer from "@/components/global/TableContainer";
 import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
 
 /**
- * UtilityCostTable component
+ * Unit Profit Margen table.
  *
- * Renders utility cost projections at different profit margin scenarios (10%, 20%, 30%).
+ * Suggested selling prices at 10%, 20%, and 30% profit margin on price
+ * (unit cost / (1 − margin)).
  *
  * @param {Object} utilityCost - Object keyed by margin percentage ("10", "20", "30"), each an array by year.
  * @param {number} baseYear - The first year represented in the arrays.
@@ -39,7 +40,7 @@ function UtilityCostTable({ utilityCost, baseYear }) {
     () =>
       margins.map((margin) => {
         const row = {
-          concept: `Utility at ${margin}%`,
+          concept: `${margin}% margen`,
           tooltip: INFLOWS_TOOLTIPS.utilityPrice[margin],
         };
         years.forEach((year, i) => {
@@ -52,7 +53,7 @@ function UtilityCostTable({ utilityCost, baseYear }) {
 
   return (
     <TableContainer
-      title="Utility Price"
+      title="Unit Profit Margen"
       titleTooltip={INFLOWS_TOOLTIPS.utilityPrice.table}
       columns={columns}
       rows={rows}

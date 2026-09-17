@@ -1,28 +1,7 @@
-import axios from 'axios'
+import workerApi from '@/utils/worker.util'
 import { Logger } from '../utils/logger.js'
 
 const logger = new Logger('ProgramsApi')
-
-const workerApi = axios.create({
-  baseURL: import.meta.env.DEV ? '' : import.meta.env.VITE_WORKER_API_URL,
-  withCredentials: true,
-})
-
-workerApi.interceptors.request.use((config) => {
-  logger.debug(`-> ${config.method?.toUpperCase()} ${config.url}`)
-  return config
-})
-
-workerApi.interceptors.response.use(
-  (response) => {
-    logger.debug(`<- ${response.status} ${response.config.url}`)
-    return response
-  },
-  (error) => {
-    logger.error(`<- ${error.response?.status ?? 'network error'} ${error.config?.url}`, error.response?.data ?? error.message)
-    return Promise.reject(error)
-  },
-)
 
 export async function createProgramRequest({ name, projects, files }) {
   return logger.time(`createProgramRequest(${name})`, async () => {

@@ -1,8 +1,10 @@
 import { verify } from 'hono/jwt';
 import { getCookie } from 'hono/cookie';
 
-function unauthorized() {
-  const error = new Error('unauthorized');
+export const SESSION_INVALID = 'session_invalid';
+
+function sessionInvalid() {
+  const error = new Error(SESSION_INVALID);
   error.status = 401;
   return error;
 }
@@ -10,19 +12,19 @@ function unauthorized() {
 export async function sessionMiddleware(context, next) {
   const token = getCookie(context, 'session');
   if (!token) {
-    throw unauthorized();
+    throw sessionInvalid();
   }
 
   try {
     const payload = await verify(token, context.env.JWT_SECRET, 'HS256');
     const userId = Number(payload.sub);
     if (!Number.isInteger(userId) || userId < 1) {
-      throw unauthorized();
+      throw sessionInvalid();
     }
     context.set('userId', userId);
   } catch (error) {
     if (error.status === 401) throw error;
-    throw unauthorized();
+    throw sessionInvalid();
   }
 
   await next();

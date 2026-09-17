@@ -47,7 +47,7 @@ function Income({ project }) {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Utility Price"
+        title="Unit Profit Margen"
         tooltip={INFLOWS_TOOLTIPS.utilityPrice.table}
       >
         <UtilityCostTable
