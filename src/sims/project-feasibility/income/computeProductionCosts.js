@@ -42,11 +42,11 @@ function inflationFactor(premises, yearIndex) {
 }
 
 /**
- * Costs per Unit: raw materials = BOM price / quality yield (scrap-adjusted
- * cost per good unit). Admin ÷ work orders (purchase orders / quality
- * yield). Labor uses annual category totals (12 × monthly × headcount),
- * inflated by year, then ÷ work orders — not the shared
- * computeWorkforceAnualSalaries path, which divides by customer orders.
+ * Costs per Unit: yearly totals ÷ purchase orders (COs). Raw materials
+ * yearly total is work orders × BOM, so this equals BOM / quality yield.
+ * Labor uses annual category totals (12 × monthly × headcount), inflated
+ * by year, then ÷ purchase orders — not the shared
+ * computeWorkforceAnualSalaries path (Outflows).
  */
 export function toCostPerWorkOrder(
   productionCosts,
@@ -59,26 +59,28 @@ export function toCostPerWorkOrder(
   const adminExpenses = {};
   const workForce = {};
   const total = {};
+  const denominators = {};
 
   years.forEach((year, yearIndex) => {
-    const yieldRate = production?.qualityYield?.[year] || 0;
+    const purchaseOrders = production?.purchaseOrders?.[year] || 0;
     const workOrders = workOrdersForYear(production, year);
-    const perWorkOrder = (annual) =>
-      workOrders === 0 ? 0 : annual / workOrders;
+    const perPurchaseOrder = (annual) =>
+      purchaseOrders === 0 ? 0 : annual / purchaseOrders;
     const inflation = inflationFactor(premises, yearIndex);
 
-    costRawMaterials[year] =
-      yieldRate === 0
-        ? 0
-        : (production?.materialCostPerUnit || 0) / yieldRate;
-    adminExpenses[year] = perWorkOrder(
+    denominators[year] = { customerOrders: purchaseOrders, workOrders };
+
+    costRawMaterials[year] = perPurchaseOrder(
+      productionCosts.costRawMaterials?.[year] ?? 0,
+    );
+    adminExpenses[year] = perPurchaseOrder(
       productionCosts.adminExpenses?.[year] ?? 0,
     );
 
     workForce[year] = Object.fromEntries(
       Object.entries(annualSalaries ?? {}).map(([type, amount]) => [
         type,
-        perWorkOrder((amount ?? 0) * inflation),
+        perPurchaseOrder((amount ?? 0) * inflation),
       ]),
     );
 
@@ -87,6 +89,8 @@ export function toCostPerWorkOrder(
       adminExpenses[year] +
       Object.values(workForce[year]).reduce((sum, val) => sum + val, 0);
   });
+
+  console.log("[Unit Costs] work orders vs customer orders", denominators);
 
   const result = { costRawMaterials, workForce, adminExpenses, total };
   logger.debug("toCostPerWorkOrder", result);

@@ -3,11 +3,11 @@ export const INFLOWS_TOOLTIPS = {
     table:
       "This table breaks down the cost to produce each unit by calculating each aspect of production per the amount of units needed to satisfy purchase orders. Work orders = purchase orders ÷ quality yield.",
     rawMaterials: "BOM price / quality yield",
-    directLabor: "Total Annual Direct Labor Salaries / work orders",
-    indirectLabor: "Total Annual Indirect Labor Salaries / work orders",
-    engineering: "Total Annual Engineering Salaries / work orders",
-    administrativeLabor: "Total Annual Administrative Salaries / work orders",
-    adminExpenses: "Total Annual Administrative Expenses / work orders",
+    directLabor: "Total Annual Direct Labor Salaries / purchase orders",
+    indirectLabor: "Total Annual Indirect Labor Salaries / purchase orders",
+    engineering: "Total Annual Engineering Salaries / purchase orders",
+    administrativeLabor: "Total Annual Administrative Salaries / purchase orders",
+    adminExpenses: "Total Annual Administrative Expenses / purchase orders",
     total: "Sum of the unit-cost rows above",
   },
   unitPrice: {
