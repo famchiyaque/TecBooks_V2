@@ -72,9 +72,10 @@ export function applyDerivedBase(project) {
         pct(employee.infonavit) +
         pct(employee.valesDespensa) +
         pct(employee.primaVacacional) +
-        pct(employee.aguinaldo) +
         pct(employee.fondoAhorro) +
         pct(employee.comedor))
+        + asNumber(employee.percepcion) / 30 * pct(employee.aguinaldo)
+        
     const category = classifyEmployeeCategory(employee.name, employee.type)
     if (!category) {
       logger.warn('employee did not match any category - excluded from workforce totals', {

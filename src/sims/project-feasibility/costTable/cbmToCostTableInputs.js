@@ -70,6 +70,7 @@ export function cbmToCostTableInputs(cbm) {
   if (!cbm) {
     return { employees: [], production: {}, premises: {} }
   }
+
   const employees = (cbm.derivedBase?.employees ?? []).map((employee, index) => ({
     id: index,
     name: employee.name,
