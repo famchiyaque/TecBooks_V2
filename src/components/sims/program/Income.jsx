@@ -43,7 +43,12 @@ function Income({ project }) {
       </CollapsibleSection>
 
       <CollapsibleSection title="Sales" tooltip={INFLOWS_TOOLTIPS.sales.table}>
-        <SalesTable sales={income.sales} baseYear={baseYear} />
+        <SalesTable
+          customerOrders={income.customerOrders}
+          unitPrice={income.competitivaPrice}
+          sales={income.sales}
+          baseYear={baseYear}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection

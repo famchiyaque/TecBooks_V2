@@ -39,11 +39,30 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  * />
  *
  * Total row: pass `rowVariant: "total"` on any row object.
+ * Mixed units: pass `valueType: "units" | "currency"` on a row to override the
+ * column's `type` for that row only (the label column is never affected).
  * ------------------------------------------------------------------------
  */
 
-function CellValue({ column, value }) {
-  if (column.type === "currency") {
+function formatUnits(value) {
+  if (value === undefined || value === null || value === "") return "—";
+  const num = Number(value);
+  if (Number.isNaN(num)) return "—";
+
+  return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
+}
+
+function CellValue({ column, value, valueType }) {
+  // Row-level `valueType` wins over the column's `type` so one table can mix
+  // units and money across the same year columns (Sales: Customer Orders is a
+  // unit count, Unit Price and Total Income are currency).
+  const type = valueType ?? column.type;
+
+  if (type === "units") {
+    return <span className="tabular-nums text-slate-700">{formatUnits(value)}</span>;
+  }
+
+  if (type === "currency") {
     const num = Number(value);
     const isEmpty = value === undefined || value === null || value === "";
     const isNegative = !Number.isNaN(num) && num < 0;
@@ -233,7 +252,17 @@ export default function TableContainer({
                                 <InfoTooltip title={row.tooltip} />
                               </span>
                             ) : (
-                              <CellValue column={col} value={row[col.key]} />
+                              <CellValue
+                                column={col}
+                                value={row[col.key]}
+                                // never on the label column - that cell holds
+                                // the concept text, not a number to format
+                                valueType={
+                                  col.key === labelKey
+                                    ? undefined
+                                    : row.valueType
+                                }
+                              />
                             )}
                           </td>
                         );
