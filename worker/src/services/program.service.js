@@ -54,7 +54,7 @@ function logCbmToGamePlan(plan, { projectName, fileName }) {
         impac: plan.premises.impac,
         ptu: plan.premises.ptu,
         periods: plan.game.periods,
-        starting_money: 0,
+        starting_money: plan.premises.startingMoney,
       },
     },
     premises_percentage: {
