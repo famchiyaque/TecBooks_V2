@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.wrangler
+.dev.vars
 
 # Editor directories and files
 .vscode/*
@@ -23,6 +25,19 @@ dist-ssr
 *.sln
 *.sw?
 
+# Personal work directories for markdown files
+work/
+
 # Make config file now private
 .env
 .env.production
+.env.develop
+env.production
+env.develop
+worker/dev.vars
+
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.\worker\.wrangler\state\v3\d1\miniflare-D1DatabaseObject\*
+
+*.xlsx

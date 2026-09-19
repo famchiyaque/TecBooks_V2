@@ -20,7 +20,7 @@ The template should have these sheets:
 
 1. **Start the development server**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 2. **Navigate to the homepage**

@@ -7,17 +7,20 @@ WORKDIR /app
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Enable pnpm via corepack
+RUN corepack enable
+
 # Copy package files
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install ALL dependencies (including devDependencies needed for build)
-RUN npm ci --include=dev
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Build the React app
-RUN npm run build
+RUN pnpm run build
 
 # Production stage - serve with nginx
 FROM nginx:alpine

@@ -1,0 +1,36 @@
+@startuml Diagrama_de_Actividades_Eliminar_Costo
+
+title Activity Diagram - Delete a Cost
+
+|#LightBlue|User|
+|#LightGreen|System|
+
+|User|
+start
+:Click the delete (trash)\nicon on the cost row;
+
+|System|
+:Show confirmation modal\n"Are you sure you want to delete this cost?";
+
+|User|
+if (Does the user\nconfirm the deletion?) then (no)
+  :Click "Cancel";
+  |System|
+  :Close the modal\nwithout changes;
+  stop
+else (yes)
+  :Click "Delete" / "Confirm";
+endif
+
+|System|
+:Remove the row\nfrom the category;
+:Recalculate the category subtotal\n(e.g. Total Current Assets);
+:Recalculate the general totals\n(Total Assets, Total Liabilities + Equity);
+:Recalculate the financial ratios\n(Liquidity Ratio, Acid Test,\nDebt Ratio, Projected ROI);
+:Close the modal;
+
+|User|
+:View the updated table\nwithout the deleted cost;
+stop
+
+@enduml
