@@ -32,7 +32,7 @@ export function annualizeYearZero(yearZeroOrders, monthShares, yearZeroTotal) {
   let shareSum = 0
   for (let index = 0; index <= lastObserved; index += 1) {
     orderSum += asFiniteNumber(yearZeroOrders?.[index])
-    shareSum += asFiniteNumber(monthShares?.[index])
+    if (asFiniteNumber(yearZeroOrders?.[index]) > 0) shareSum += asFiniteNumber(monthShares?.[index])
   }
   if (shareSum <= 0) return fallback || orderSum
   return orderSum / shareSum
