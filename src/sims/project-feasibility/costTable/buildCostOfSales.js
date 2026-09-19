@@ -8,6 +8,7 @@ import {
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 import { Logger } from '../utils/logger.js'
+import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
 
 const logger = new Logger('BuildCostOfSales')
 
@@ -77,7 +78,7 @@ export function buildCostOfSales(cbm) {
       + depreciationCompute[year] + depreciationMachinery[year]
   })
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
-  const administrativeExpenses = computeAdministrativeExpenses(AdministrativeByYear, opex.adminPct, netSales, years)
+  const administrativeExpenses = computeAdminExpenses(cbm)
   const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
   logger.debug('buildCostOfSales: operating expenses', {
     depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,

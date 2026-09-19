@@ -114,6 +114,7 @@ export function computeNetSales(production) {
     const priceForYear = isPriceMap
       ? (salesPricePerUnit[year] ?? 0)
       : (salesPricePerUnit ?? 0);
+
     netSalesByYear[year] = orders * priceForYear;
   }
 
