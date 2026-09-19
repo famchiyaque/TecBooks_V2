@@ -3,13 +3,13 @@ import computeInvestment from "@/sims/project-feasibility/income/computeInvestme
 import { buildCostOfSales } from "@/sims/project-feasibility/costTable/buildCostOfSales.js";
 import { cbmToOperatingExpenseInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs.js";
 import { getAnnualCashOutflowsTotal } from "./yearOutflows.js";
+import { startingMoneyFromCbm } from "@/sims/project-feasibility/costTable/cashFlowCalculations.js";
 import { Logger } from "../utils/logger.js";
 
 const logger = new Logger("ComputeFlow");
 
 function computeFlow(project) {
-  // TODO: initial balance should be extracted from the creation data / project
-  const INITIAL_BALANCE = 1000000;
+  const openingCash = startingMoneyFromCbm(project);
 
   const sales = computeSales(project);
   const { total } = computeInvestment(project);
@@ -24,7 +24,7 @@ function computeFlow(project) {
   const _shortTermIncome = mockFills(years);
   const _otherIncome = mockFills(years);
 
-  initialBalance[years[0]] = INITIAL_BALANCE;
+  initialBalance[years[0]] = openingCash;
   longTermLoan[years[0]] = total;
 
   const costOfSales = buildCostOfSales(project);

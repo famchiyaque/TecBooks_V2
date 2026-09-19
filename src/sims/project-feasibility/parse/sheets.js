@@ -61,6 +61,17 @@ const ASSET_BLOCKS = [
 // including a category Inversion invents that has no fixed field for it.
 const DEPRECIATION_RATE_PATTERN = /^porcentaje depreciacion (.+)$/
 
+// Excel row 33 / column B on Premisas: opening cash (scalar, not a year series).
+const STARTING_MONEY_ROW_INDEX = 32
+const STARTING_MONEY_LABELS = new Set([
+  'saldo inicial',
+  'capital inicial',
+  'caja inicial',
+  'efectivo inicial',
+  'dinero inicial',
+  'starting money',
+])
+
 export function readPremisas(rows, project) {
   let lastYearMap = {}
   for (const row of rows) {
@@ -78,10 +89,6 @@ export function readPremisas(rows, project) {
       project.timeline.financingPeriods = toNumberOrUndefined(row[1])
       continue
     }
-    if (label === 'demanda anual') {
-      project.premises.demandGrowth = toNumberOrUndefined(row[1])
-      continue
-    }
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)
@@ -91,6 +98,10 @@ export function readPremisas(rows, project) {
     if (depreciationMatch) {
       project.premises.depreciationByCategory[depreciationMatch[1]] = seriesFromRow(row, lastYearMap)
     }
+  }
+
+  if (project.premises.startingMoney === undefined) {
+    project.premises.startingMoney = toNumberOrUndefined(rows[STARTING_MONEY_ROW_INDEX]?.[1])
   }
 }
 

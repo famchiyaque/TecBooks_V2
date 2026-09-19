@@ -223,6 +223,7 @@ export function mapGameRowsToCbm({
       financingPeriods: asNumber(premises?.periods, 60),
     },
     premises: {
+      startingMoney: asNumber(premises?.starting_money, 0),
       fxClose: seriesFromYearly(years, premisesYearly, 'exchange_rate', premises?.exchange_rate),
       nationalLeadingRate: seriesFromYearly(
         years,

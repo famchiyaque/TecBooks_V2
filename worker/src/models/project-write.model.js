@@ -86,10 +86,11 @@ export async function insertPremises(database, gameId, premises, periods) {
       `INSERT INTO premises (
         game_id, starting_money, exchange_rate, national_leading_rate, cpp, cetes, libor,
         national_inflation, foreign_inflation, isr, impac, ptu, periods, demand_growth
-      ) VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       gameId,
+      premises.startingMoney ?? 0,
       premises.exchangeRate,
       premises.nationalLeadingRate,
       premises.cpp,

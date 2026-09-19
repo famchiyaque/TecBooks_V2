@@ -85,6 +85,7 @@ export function validateProjectClass(project) {
   rateKeys.forEach((key) => {
     checkYearSeries(errors, warnings, key, premises[key], { rates: true })
   })
+  pushIfNegative(errors, 'Starting money', premises.startingMoney)
 
   project.demand?.monthShares?.forEach((value, i) => {
     if (value === undefined) return

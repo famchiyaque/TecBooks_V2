@@ -167,6 +167,7 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
     },
     years,
     premises: {
+      startingMoney: asNumber(premises.startingMoney, 0),
       exchangeRate: firstFinite(premises.fxClose),
       nationalLeadingRate: firstFinite(premises.nationalLeadingRate),
       cpp: firstFinite(premises.cpp),

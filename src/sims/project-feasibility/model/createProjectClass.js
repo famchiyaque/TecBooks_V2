@@ -15,6 +15,7 @@ export function createProjectClass({ fileName } = {}) {
       financingPeriods: undefined,
     },
     premises: {
+      startingMoney: undefined,
       fxClose: emptyYearSeries(),
       nationalLeadingRate: emptyYearSeries(),
       cpp: emptyYearSeries(),

@@ -88,6 +88,7 @@ export function cbmToCostTableInputs(cbm) {
       salesPricePerUnit,
     },
     premises: {
+      startingMoney: typeof cbm.premises?.startingMoney === 'number' ? cbm.premises.startingMoney : 0,
       indirectProductPercentage,
     },
   }
