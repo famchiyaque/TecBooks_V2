@@ -62,6 +62,31 @@ export function sumSalariesByCategory(employees) {
 }
 
 /**
+ * Same 4 category totals as sumSalariesByCategory, but grown year over year
+ * by national inflation (getInflation) - MOD/MOIndirecta/Ingenieria/
+ * Administrative were previously a single flat total reused for every year
+ * of the projection (no raise, ever), unlike raw material/net sales which
+ * already grow with inflation. Year zero (idx 0) always equals the flat
+ * total, since getInflation(premises, 0) = (1 + rate[0])^0 = 1.
+ */
+export function sumSalariesByCategoryPerYear(employees, years, premises) {
+  const base = sumSalariesByCategory(employees);
+  const salariesByYear = {};
+
+  years.forEach((year, idx) => {
+    const inflation = getInflation(premises, idx);
+    salariesByYear[year] = {
+      MOD: base.MOD * inflation,
+      MOIndirecta: base.MOIndirecta * inflation,
+      Ingenieria: base.Ingenieria * inflation,
+      Administrative: base.Administrative * inflation,
+    };
+  });
+
+  return salariesByYear;
+}
+
+/**
  * Employees whose category is missing/unrecognized - these get silently excluded
  * from sumSalariesByCategory's totals, so callers should warn about them instead
  * of trusting the totals blindly.
@@ -208,7 +233,10 @@ export function computeGrossProfit(netSales, totalCostOfSales) {
 
 /**
  * Builds the per-year cost-of-sales table consumed by the "Estado" cost table.
- * Salary categories are treated as flat annual totals applied to every year of the projection.
+ * MOD/MOIndirecta/Ingenieria are per-year maps (BUG FIX: used to be a single
+ * flat total reused for every year - salaries never got a raise across the
+ * whole projection, unlike raw material/net sales which already grow with
+ * inflation - see sumSalariesByCategoryPerYear).
  * RF-55: Administrative (admin salaries) is NOT part of cost of sales / gross profit -
  * the reference Estado R template only ever subtracts it later, in Operating Expenses.
  * See computeAdministrativeExpenses / computeOperatingExpenses for where it's used.
@@ -219,17 +247,20 @@ export function buildCostOfSalesTable(
 ) {
   return years.map((year) => {
     const rawMaterial = MP[year] || 0;
+    const directLabour = MOD[year] || 0;
+    const indirectManufacturing = MOIndirecta[year] || 0;
+    const engineeringSalaries = Ingenieria[year] || 0;
     const indirectMaterialsForYear = indirectMaterials[year] || 0;
     const totalCostOfSales =
-      rawMaterial + MOD + MOIndirecta + Ingenieria + indirectMaterialsForYear;
+      rawMaterial + directLabour + indirectManufacturing + engineeringSalaries + indirectMaterialsForYear;
     const netSalesForYear = netSales?.[year] || 0;
 
     return {
       year,
       rawMaterial,
-      directLabour: MOD,
-      indirectManufacturing: MOIndirecta,
-      engineeringSalaries: Ingenieria,
+      directLabour,
+      indirectManufacturing,
+      engineeringSalaries,
       indirectMaterials: indirectMaterialsForYear,
       totalCostOfSales,
       netSales: netSalesForYear,
@@ -285,11 +316,13 @@ export function computeSalesExpenses(
 }
 
 /**
- * Administrative Expenses = admin salaries (flat, from Empleados_2) + admin
- * general expenses (Premisas "Porcentaje de administracion" * net sales).
+ * Administrative Expenses = admin salaries (per-year, from Empleados_2 -
+ * BUG FIX: used to be a single flat total with no raise across the whole
+ * projection) + admin general expenses (Premisas "Porcentaje de
+ * administracion" * net sales).
  */
 export function computeAdministrativeExpenses(
-  administrativeSalary,
+  administrativeSalaryByYear,
   adminPctByYear,
   netSalesByYear,
   years,
@@ -297,7 +330,7 @@ export function computeAdministrativeExpenses(
   const administrativeByYear = {};
   for (const year of years) {
     administrativeByYear[year] =
-      administrativeSalary +
+      (administrativeSalaryByYear[year] || 0) +
       (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
   }
   return administrativeByYear;

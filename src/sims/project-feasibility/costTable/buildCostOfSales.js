@@ -1,6 +1,6 @@
 import {
-  areCostsNumeric, sumSalariesByCategory, computeNetSales, computeRawMaterialCost,
-  computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
+  areCostsNumeric, sumSalariesByCategory, sumSalariesByCategoryPerYear, computeNetSales,
+  computeRawMaterialCost, computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
   computeAssetDepreciation, computeSalesExpenses, computeAdministrativeExpenses,
   computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
   computeFinancingAmount, computeAmortizationSchedule, computeIncomeBeforeTaxes,
@@ -39,15 +39,32 @@ export function buildCostOfSales(cbm) {
     return { error: 'This project has no year-zero record.' }
   }
 
+  // Flat, year-zero totals - only for financingAmount below (the loan is
+  // sized once, at origination, off year-zero costs - see RF-56 BUG FIX
+  // further down). Everything the Cost Table/Operating Expenses actually
+  // display uses the per-year, inflation-grown version instead.
   const { MOD, MOIndirecta, Ingenieria, Administrative } = sumSalariesByCategory(employees)
+  // BUG FIX: cbmToCostTableInputs()'s `premises` only carries
+  // indirectProductPercentage - nationalInflation lives on cbm.premises
+  // directly (the raw, index-based array getInflation expects), not on that
+  // destructured object.
+  const salariesByYear = sumSalariesByCategoryPerYear(employees, years, cbm.premises)
+  const MODByYear = {}, MOIndirectaByYear = {}, IngenieriaByYear = {}, AdministrativeByYear = {}
+  years.forEach((year) => {
+    MODByYear[year] = salariesByYear[year].MOD
+    MOIndirectaByYear[year] = salariesByYear[year].MOIndirecta
+    IngenieriaByYear[year] = salariesByYear[year].Ingenieria
+    AdministrativeByYear[year] = salariesByYear[year].Administrative
+  })
+
   const MP = computeRawMaterialCost(production)
   const netSales = computeNetSales(production)
   const indirectMaterials = computeIndirectMaterialCosts(premises, netSales)
   const costOfSalesByYear = buildCostOfSalesTable(years, {
-    MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
+    MP, MOD: MODByYear, MOIndirecta: MOIndirectaByYear, Ingenieria: IngenieriaByYear, indirectMaterials, netSales,
   })
   const unclassifiedEmployees = findUnclassifiedEmployees(employees)
-  logger.debug('buildCostOfSales: cost of sales', { MOD, MOIndirecta, Ingenieria, Administrative, MP, netSales, indirectMaterials, costOfSalesByYear, unclassifiedEmployees })
+  logger.debug('buildCostOfSales: cost of sales', { salariesByYear, MP, netSales, indirectMaterials, costOfSalesByYear, unclassifiedEmployees })
 
   const opex = cbmToOperatingExpenseInputs(cbm, years)
   const depreciationBuildings = computeAssetDepreciation(opex.assets.buildings, opex.depreciationBuildings, years)
@@ -60,7 +77,7 @@ export function buildCostOfSales(cbm) {
       + depreciationCompute[year] + depreciationMachinery[year]
   })
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
-  const administrativeExpenses = computeAdministrativeExpenses(Administrative, opex.adminPct, netSales, years)
+  const administrativeExpenses = computeAdministrativeExpenses(AdministrativeByYear, opex.adminPct, netSales, years)
   const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
   logger.debug('buildCostOfSales: operating expenses', {
     depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,
@@ -110,7 +127,7 @@ export function buildCostOfSales(cbm) {
     // * adminPct) so the Cash Outflows table can show "Administrative
     // Salaries" and "General Administrative Expenses" as separate lines,
     // same as Flujo sheet rows 18-19 (Egresos!B154 / Egresos!B206).
-    administrativeSalary: Administrative,
+    administrativeSalary: AdministrativeByYear[row.year],
     // Single fixed loan (see BUG FIX above) - same amount reported on every row.
     financingAmount,
     depreciationBuildings: depreciationBuildings[row.year],
