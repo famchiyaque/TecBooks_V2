@@ -394,20 +394,17 @@ export function computeCumulativeInvestment(assetGroups, years) {
 export function computeFinancingAmount(
   investmentByYear,
   salariesTotal,
-  managementBillsByYear,
+  administrativeExpenses,
   machineryInvestmentByYear,
-  years,
+  civilWorks,
+  year,
 ) {
-  const amountByYear = {};
+  const assets = machineryInvestmentByYear[year] + investmentByYear[year]
+  const workForce = administrativeExpenses[year] + salariesTotal
 
-  for (const year of years) {
-    amountByYear[year] =
-      (investmentByYear[year] || 0) +
-      salariesTotal +
-      (managementBillsByYear[year] || 0) +
-      (machineryInvestmentByYear[year] || 0) * 0.35;
-  }
-  return amountByYear;
+  const totalAmount = assets + workForce + civilWorks[year]
+  
+  return totalAmount;
 }
 
 /**
@@ -425,6 +422,7 @@ export function computeFinancingAmount(
  * projection horizon) reports 0 for both.
  */
 export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {
+  
   const financialExpensesByYear = {};
   const creditPaymentByYear = {};
   for (const year of years) {

@@ -87,18 +87,26 @@ export function buildCostOfSales(cbm) {
     depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,
     salesExpenses, administrativeExpenses, operatingExpenses,
   })
-
   const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
   const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
   const machineryInvestment = computeCumulativeInvestment([opex.machines], years)
   const managementBills = {}
   years.forEach((year) => { managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0) })
+
+  let prev = 0
+  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
+    if (idx == 0) acc[year] = value * 0.35
+    else acc[year] = (value - prev) * 0.35
+    prev = Math.max(value, prev)
+    return acc
+  }, {}) 
+  
   // RF-56 BUG FIX: the loan is originated once, at project year zero - it is
   // a single fixed amount, not resized off a growing cumulative investment
-  // every year. investment/machineryInvestment/managementBills are read at
+  // every year. investment/machineryInvestment/administrativeExpenses are read at
   // years[0] on purpose (Egresos!B215 is itself a year-zero figure).
   const financingAmount = computeFinancingAmount(
-    investment, salariesTotal, managementBills, machineryInvestment, [years[0]]
+    investment, salariesTotal, administrativeExpenses, machineryInvestment, civilWorks, years[0]
   )[years[0]]
 
   // RF-56 BUG FIX: one loan, amortized once over its own life in monthly
@@ -124,14 +132,6 @@ export function buildCostOfSales(cbm) {
     )
   })
   const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
-
-  let prev = 0
-  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
-    if (idx == 0) acc[year] = value * 0.35
-    else acc[year] = (value - prev) * 0.35
-    prev = Math.max(value, prev)
-    return acc
-  }, {}) 
 
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
