@@ -125,9 +125,18 @@ export function buildCostOfSales(cbm) {
   })
   const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
 
+  let prev = 0
+  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
+    if (idx == 0) acc[year] = value * 0.35
+    else acc[year] = (value - prev) * 0.35
+    prev = Math.max(value, prev)
+    return acc
+  }, {}) 
+
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
     administrativeExpenses: administrativeExpenses[row.year],
+    civilWorks: civilWorks[row.year],
     // Split out of administrativeExpenses (= administrativeSalary + netSales
     // * adminPct) so the Cash Outflows table can show "Administrative
     // Salaries" and "General Administrative Expenses" as separate lines,

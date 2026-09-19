@@ -64,7 +64,7 @@ export function outflowBaseValue(rowKey, year, rowByYear, capexByYear) {
     case 'salesExpenses': return row?.salesExpenses ?? 0
     case 'machineryPurchase': return capex.machinery
     case 'buildingPurchase': return capex.buildings
-    case 'civilWorks': return 0
+    case 'civilWorks': return row?.civilWorks
     case 'computerEquipment': return capex.compute
     case 'transportEquipment': return capex.transport
     case 'creditPayment': return row?.creditPayment ?? 0
