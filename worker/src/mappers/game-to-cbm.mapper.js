@@ -119,6 +119,7 @@ export function mapGameRowsToCbm({
   services,
   yearZeroDemand,
   monthShares,
+  demandYearlyTotals,
 }) {
   const years = yearsFromGame(game);
   const compensationByEmployee = new Map();
@@ -185,12 +186,30 @@ export function mapGameRowsToCbm({
   }
 
   const shares = Array.from({ length: 12 }, () => 0);
+  const yearZeroOrders = Array.from({ length: 12 }, () => 0);
   for (const row of monthShares ?? []) {
     const index = Number(row.month) - 1;
-    if (index >= 0 && index < 12) shares[index] = asNumber(row.percentage, 0);
+    if (index < 0 || index >= 12) continue;
+    shares[index] = asNumber(row.percentage, 0);
+    const actual = asNumber(row.fixed_amount);
+    yearZeroOrders[index] = actual !== undefined ? actual : 0;
   }
   const yearZeroTotal = asNumber(yearZeroDemand?.total, 0);
-  const yearZeroOrders = shares.map((share) => yearZeroTotal * share);
+  const yearZeroYear = asNumber(yearZeroDemand?.year);
+  const hasMonthlyActuals = (monthShares ?? []).some(
+    (row) => asNumber(row.fixed_amount) !== undefined
+  );
+  if (!hasMonthlyActuals) {
+    for (let index = 0; index < 12; index += 1) {
+      yearZeroOrders[index] = yearZeroTotal * shares[index];
+    }
+  }
+  const history = (demandYearlyTotals ?? [])
+    .filter((row) => !row.is_projection && row.year !== yearZeroYear)
+    .map((row) => ({
+      year: row.year,
+      total: asNumber(row.total, 0),
+    }));
 
   return {
     metadata: {
@@ -271,6 +290,7 @@ export function mapGameRowsToCbm({
         'administration_percentage',
         premisesPercentage?.administration_percentage
       ),
+      demandGrowth: asNumber(premises?.demand_growth),
       depreciationBuildings: depreciationSeries(deprecationsByCategory, 'building', years),
       depreciationTransport: depreciationSeries(deprecationsByCategory, 'transport', years),
       depreciationCompute: depreciationSeries(deprecationsByCategory, 'compute', years),
@@ -287,7 +307,8 @@ export function mapGameRowsToCbm({
     demand: {
       monthShares: shares,
       yearZeroOrders,
-      yearZeroYear: asNumber(yearZeroDemand?.year),
+      history,
+      yearZeroYear,
       yearZeroTotal,
     },
     capacity: {

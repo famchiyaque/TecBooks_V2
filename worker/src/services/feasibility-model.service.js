@@ -13,6 +13,7 @@ import {
   listBomParts,
   listEmployeeCompensation,
   listMonthShares,
+  listDemandYearlyTotals,
   listPremisesDeprecationsYearly,
   listPremisesPercentageYearly,
   listPremisesYearly,
@@ -64,5 +65,6 @@ export async function getFeasibilityModel(database, { gameId, userId }) {
     services: await getExpenses(database, gameId),
     yearZeroDemand: await getYearZeroDemand(database, gameId),
     monthShares: await listMonthShares(database, gameId),
+    demandYearlyTotals: await listDemandYearlyTotals(database, gameId),
   });
 }

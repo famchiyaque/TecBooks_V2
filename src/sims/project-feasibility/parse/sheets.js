@@ -88,6 +88,8 @@ export function readPremisas(rows, project) {
       project.premises.depreciationByCategory[depreciationMatch[1]] = seriesFromRow(row, lastYearMap)
     }
   }
+  // Premisas!B33: scalar demand growth (0.07 = 7%). Not a yearly series.
+  project.premises.demandGrowth = toNumberOrUndefined(rows[32]?.[1])
 }
 
 export function readCOs(rows, project) {

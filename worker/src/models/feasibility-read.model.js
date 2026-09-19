@@ -172,17 +172,30 @@ export async function getYearZeroDemand(database, gameId) {
       `SELECT year, total
        FROM purchase_order_yearly_total
        WHERE game_id = ? AND is_projection = 0
-       ORDER BY year
+       ORDER BY year DESC
        LIMIT 1`
     )
     .bind(gameId)
     .first();
 }
 
+export async function listDemandYearlyTotals(database, gameId) {
+  const { results } = await database
+    .prepare(
+      `SELECT year, total, is_projection
+       FROM purchase_order_yearly_total
+       WHERE game_id = ?
+       ORDER BY year`
+    )
+    .bind(gameId)
+    .all();
+  return results ?? [];
+}
+
 export async function listMonthShares(database, gameId) {
   const { results } = await database
     .prepare(
-      `SELECT month, percentage
+      `SELECT month, percentage, fixed_amount
        FROM purchase_order_monthly_distribution
        WHERE game_id = ?
        ORDER BY month`
