@@ -216,5 +216,6 @@ Requirement docs (as-built, kept current with the code): [`documentation/require
 
 - Structure & conventions — [`documentation/app_architecture/NEW_PROJECT_STRUCTURE.md`](documentation/app_architecture/NEW_PROJECT_STRUCTURE.md)
 - CBM data flow — [`documentation/diagrams/CBM_WORKFLOW.md`](documentation/diagrams/CBM_WORKFLOW.md)
+- Project Feasibility Simulation (architecture, financial model, how to extend it) — [`documentation/business_logic/PROJECT_FEASIBILITY.md`](documentation/business_logic/PROJECT_FEASIBILITY.md)
 - Evaluador de Proyectos / cost table requirements (up to date) — [`documentation/requirements/50CreateTableOfCosts/`](documentation/requirements/50CreateTableOfCosts/)
 - Broader docs tree — [`documentation/`](documentation/)

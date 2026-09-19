@@ -3,12 +3,14 @@ import computeProductionCost, {
 } from "@/sims/project-feasibility/income/computeProductionCosts";
 import { sumAnnualSalariesByTitle } from "@/sims/project-feasibility/income/sumAnnualSalariesByTitle";
 import { cbmToCostTableInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs";
+import { computeNetSales } from "@/utils/dashboard/costCalculations";
 
 function emptyIncome() {
   return {
     productionCosts: { total: {}, costRawMaterials: {}, workForce: {}, adminExpenses: {} },
     utilityCost: { 10: [], 20: [], 30: [] },
     competitivaPrice: [],
+    customerOrders: [],
     sales: [],
   }
 }
@@ -32,16 +34,22 @@ function useIncome(project) {
     .sort((a, b) => a - b)
   const purchaseOrders = production?.purchaseOrders ?? {}
 
-  const competitivaPrice = years.map((_, idx) => {
-    return (
-      project.bom.salePrice *
-      Math.pow(1 + project.premises.nationalInflation[idx], idx)
-    )
-  })
+  // RF-44: the unit price is NOT recomputed here. cbmToCostTableInputs'
+  // projectSalesPrice is the single source of truth - it compounds the BOM
+  // price with each year's own inflation rate, and it is the same series
+  // computeNetSales uses for the Income Statement. Recomputing it locally as
+  // salePrice * (1 + inflation[idx])^idx diverged from that whenever the
+  // inflation series was not flat, so Inflows and the Income Statement could
+  // report different sales for one project.
+  const salesPricePerUnit = production?.salesPricePerUnit ?? {}
+  const competitivaPrice = years.map((year) => salesPricePerUnit[year] ?? 0)
 
-  const sales = years.map((year, idx) => {
-    return (competitivaPrice[idx] ?? 0) * (purchaseOrders[year] ?? 0)
-  })
+  const customerOrders = years.map((year) => purchaseOrders[year] ?? 0)
+
+  // RF-44: total income = CO x unit price, per year. Delegated to the same
+  // computeNetSales the Income Statement runs on, so both can't drift.
+  const netSalesByYear = computeNetSales(production)
+  const sales = years.map((year) => netSalesByYear[year] ?? 0)
 
   const utilityCost = years.reduce(
     (acc, year) => {
@@ -58,6 +66,7 @@ function useIncome(project) {
     productionCosts,
     utilityCost,
     competitivaPrice,
+    customerOrders,
     sales,
   }
 }
