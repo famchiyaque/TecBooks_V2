@@ -10,6 +10,9 @@ import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTa
 import { Logger } from '../utils/logger.js'
 import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
 
+import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js"
+import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest.js"
+
 const logger = new Logger('BuildCostOfSales')
 
 /**
@@ -106,6 +109,7 @@ export function buildCostOfSales(cbm) {
     computeAmortizationSchedule(
       financingAmount, opex.financingPeriods, opex.nationalLeadingRate[years[0]], years
     )
+
   logger.debug('buildCostOfSales: financing', {
     investment, machineryInvestment, managementBills, salariesTotal, financingAmount, financialExpenses, creditPayment,
   })

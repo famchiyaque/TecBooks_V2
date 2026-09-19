@@ -376,7 +376,6 @@ export function computeOperatingProfit(grossProfit, operatingExpenses) {
  */
 export function computeCumulativeInvestment(assetGroups, years) {
   const totalByYear = {};
-
   for (const year of years) {
     totalByYear[year] = assetGroups.reduce(
       (groupSum, assets) => groupSum + sumAssetsValueInYear(assets, year),
@@ -400,6 +399,7 @@ export function computeFinancingAmount(
   years,
 ) {
   const amountByYear = {};
+
   for (const year of years) {
     amountByYear[year] =
       (investmentByYear[year] || 0) +
