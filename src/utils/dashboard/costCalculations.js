@@ -52,7 +52,6 @@ export function areCostsNumeric(employees, production) {
 export function sumSalariesByCategory(employees) {
   const totals = { MOD: 0, MOIndirecta: 0, Ingenieria: 0, Administrative: 0 };
   
-  console.log("Employees", employees)
   for (const emp of employees) {
     const key = CATEGORY_TO_KEY[emp.category];
     if (!key) continue;
