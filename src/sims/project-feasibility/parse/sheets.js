@@ -78,6 +78,10 @@ export function readPremisas(rows, project) {
       project.timeline.financingPeriods = toNumberOrUndefined(row[1])
       continue
     }
+    if (label === 'demanda anual') {
+      project.premises.demandGrowth = toNumberOrUndefined(row[1])
+      continue
+    }
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)
@@ -88,8 +92,6 @@ export function readPremisas(rows, project) {
       project.premises.depreciationByCategory[depreciationMatch[1]] = seriesFromRow(row, lastYearMap)
     }
   }
-  // Premisas!B33: scalar demand growth (0.07 = 7%). Not a yearly series.
-  project.premises.demandGrowth = toNumberOrUndefined(rows[32]?.[1])
 }
 
 export function readCOs(rows, project) {
