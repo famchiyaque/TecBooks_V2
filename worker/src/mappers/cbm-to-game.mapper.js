@@ -185,6 +185,7 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       indirectProductCostPct: firstFinite(premises.indirectProductCostPct),
       salesExpensePct: firstFinite(premises.salesExpensePct),
       adminPct: firstFinite(premises.adminPct),
+      demandGrowth: asNumber(cbm?.premises?.demandGrowth),
       depreciationCategories: mapDepreciationCategories(cbm, years),
       yearly: years.map((year, index) => ({
         year,
@@ -230,6 +231,8 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       yearZeroYear: asNumber(cbm?.demand?.yearZeroYear),
       yearZeroTotal: asNumber(cbm?.demand?.yearZeroTotal),
       monthShares: cbm?.demand?.monthShares ?? [],
+      yearZeroOrders: cbm?.demand?.yearZeroOrders ?? [],
+      history: cbm?.demand?.history ?? [],
     },
     capacity: {
       qualityYield: asNumber(line.qualityYield),

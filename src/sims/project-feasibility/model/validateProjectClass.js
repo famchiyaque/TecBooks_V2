@@ -97,6 +97,15 @@ export function validateProjectClass(project) {
     pushIfNegative(errors, `Year-zero orders ${MONTHS[i]}`, value)
   })
 
+  const demandGrowth = premises.demandGrowth
+  if (demandGrowth !== undefined) {
+    if (!isFiniteNumber(demandGrowth)) errors.push('Demand growth is not a number')
+    else if (demandGrowth < 0) warnings.push('Demand growth should not be negative')
+    else if (demandGrowth > 1) {
+      warnings.push(`Demand growth is ${demandGrowth}; if it was meant to be a percentage, use a decimal (e.g. 0.07)`)
+    }
+  }
+
   pushIfNegative(errors, 'Seconds x unit', project.capacity?.line?.secondsPerUnit)
   pushIfNegative(errors, 'Quality yield', project.capacity?.line?.qualityYield)
 

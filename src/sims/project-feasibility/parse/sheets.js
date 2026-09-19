@@ -89,10 +89,6 @@ export function readPremisas(rows, project) {
       project.timeline.financingPeriods = toNumberOrUndefined(row[1])
       continue
     }
-    if (STARTING_MONEY_LABELS.has(label)) {
-      project.premises.startingMoney = toNumberOrUndefined(row[1])
-      continue
-    }
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)

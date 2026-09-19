@@ -9,8 +9,10 @@ import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
  * pulled from other modules, and only the last one belongs to this
  * requirement:
  *
- *   Customer Orders  <- demand/capacity module (projectPurchaseOrders)
- *   Unit Price       <- pricing module, RF-43 (projectSalesPrice)
+ *   Customer Orders  <- demand module (projectPurchaseOrders: year 0 actual,
+ *                       later years from annualized YTD × demandGrowth)
+ *   Unit Price       <- pricing module, RF-43 (projectSalesPrice, inflation)
+
  *   Total Income     <- CO x Unit Price, the one value RF-44 computes
  *
  * The first year is a partial ramp-up, so its volume is lower than the
