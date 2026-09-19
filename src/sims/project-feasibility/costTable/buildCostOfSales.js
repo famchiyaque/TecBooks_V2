@@ -44,7 +44,11 @@ export function buildCostOfSales(cbm) {
   // further down). Everything the Cost Table/Operating Expenses actually
   // display uses the per-year, inflation-grown version instead.
   const { MOD, MOIndirecta, Ingenieria, Administrative } = sumSalariesByCategory(employees)
-  const salariesByYear = sumSalariesByCategoryPerYear(employees, years, premises)
+  // BUG FIX: cbmToCostTableInputs()'s `premises` only carries
+  // indirectProductPercentage - nationalInflation lives on cbm.premises
+  // directly (the raw, index-based array getInflation expects), not on that
+  // destructured object.
+  const salariesByYear = sumSalariesByCategoryPerYear(employees, years, cbm.premises)
   const MODByYear = {}, MOIndirectaByYear = {}, IngenieriaByYear = {}, AdministrativeByYear = {}
   years.forEach((year) => {
     MODByYear[year] = salariesByYear[year].MOD
