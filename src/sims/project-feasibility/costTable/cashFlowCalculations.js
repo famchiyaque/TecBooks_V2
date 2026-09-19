@@ -4,8 +4,6 @@ import { Logger } from '../utils/logger.js'
 
 const logger = new Logger('CashFlowCalculations')
 
-const INITIAL_BALANCE = 1_000_000
-
 export const ENTRADA_ROWS = [
   { key: 'saldoInicial', label: 'Beginning Balance' },
   { key: 'ventas', label: 'Sales' },
@@ -13,6 +11,12 @@ export const ENTRADA_ROWS = [
   { key: 'prestamoCortoPlazo', label: 'Short-term Loans' },
   { key: 'otrosIngresos', label: 'Other Income' },
 ]
+
+/** Opening cash from Premisas (`startingMoney` → `premises.starting_money`). Missing → 0. */
+export function startingMoneyFromCbm(cbm) {
+  const value = cbm?.premises?.startingMoney
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
 
 /** rowByYear: costOfSalesByYear keyed by year (buildCostOfSales output). */
 export function baseEntradaValue(rowKey, year, rowByYear) {
@@ -29,7 +33,7 @@ export function baseEntradaValue(rowKey, year, rowByYear) {
 /**
  * Same running cash balance CashTable.jsx computes for its live UI (Saldo
  * Inicial[year] = prior year's Total Entradas - Total Salidas, chained from
- * INITIAL_BALANCE), but base values only - no Redux override-awareness,
+ * premises.startingMoney), but base values only - no Redux override-awareness,
  * since this is a plain calc function (Balance Sheet's Current Actives has
  * no access to the cash/outflow edits slices' override state, unlike the
  * Cash Flow tab's own component). Returns BOTH the beginning-of-year balance
@@ -47,6 +51,7 @@ export function computeCashBalanceByYear(cbm) {
   const rowByYear = Object.fromEntries(result.costOfSalesByYear.map((row) => [row.year, row]))
   const years = result.costOfSalesByYear.map((row) => row.year)
   const capexByYear = computeCapexByYear(cbm, years)
+  const openingCash = startingMoneyFromCbm(cbm)
 
   const totalEntradasSalidas = (year, saldoInicial) => {
     const totalEntradas = ENTRADA_ROWS.reduce((sum, row) => sum + (
@@ -61,7 +66,7 @@ export function computeCashBalanceByYear(cbm) {
   const saldoInicialByYear = {}
   years.forEach((year, index) => {
     saldoInicialByYear[year] = index === 0
-      ? INITIAL_BALANCE
+      ? openingCash
       : totalEntradasSalidas(years[index - 1], saldoInicialByYear[years[index - 1]])
   })
 
@@ -70,6 +75,6 @@ export function computeCashBalanceByYear(cbm) {
     endingBalanceByYear[year] = totalEntradasSalidas(year, saldoInicialByYear[year])
   })
 
-  logger.debug('computeCashBalanceByYear', { years, saldoInicialByYear, endingBalanceByYear })
+  logger.debug('computeCashBalanceByYear', { openingCash, years, saldoInicialByYear, endingBalanceByYear })
   return { saldoInicialByYear, endingBalanceByYear, years }
 }

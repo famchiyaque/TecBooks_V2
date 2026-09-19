@@ -5,22 +5,14 @@ import EditableTable from '@/components/global/EditableTable'
 import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
 import { buildCostOfSales } from './buildCostOfSales'
 import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
-import { ENTRADA_ROWS, baseEntradaValue } from './cashFlowCalculations'
+import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
 
-const INITIAL_BALANCE = 1_000_000
-
-/**
- * Cash Table "Entradas" (RF-63) - Saldo Inicial, Ventas (= BOM price * CO,
- * already computed as netSales), Préstamo a largo plazo (= financingAmount),
- * and the two manual rows (Préstamos a corto plazo / Otros Ingresos) the
- * activity diagram leaves as open inputs - double-click any cell to fill
- * those in, same override pattern as the other cost tables.
- */
 function CashTable({ project }) {
   const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
   const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
   const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows)
+  const openingCash = startingMoneyFromCbm(project.cbm)
 
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
@@ -47,7 +39,7 @@ function CashTable({ project }) {
     const map = {}
     years.forEach((year, index) => {
       if (index === 0) {
-        map[year] = INITIAL_BALANCE
+        map[year] = openingCash
         return
       }
       const prevYear = years[index - 1]
@@ -64,7 +56,7 @@ function CashTable({ project }) {
       map[year] = prevTotalEntradas - prevTotalSalidas
     })
     return map
-  }, [years, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear])
+  }, [years, openingCash, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear])
 
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>
