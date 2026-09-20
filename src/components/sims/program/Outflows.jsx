@@ -1,73 +1,95 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
-import AdminExpensesTable from "./expenses/AdminExpensesTable";
-import InvestmentTable from "./expenses/InvestmentTable";
-import ServicesTable from "./expenses/ServicesTable";
+import React, { useMemo } from "react";
 import useOutflows from "@/hooks/sims/project/useOutflows";
-import AmortizationInterestTable from "./income/AmortizationInterestTable";
-import FinancialExpensesTable from "./income/FinancialExpensesTable";
-import CollapsibleSection from "@/components/global/CollapsibleSection";
+import TableContainer from "@/components/global/TableContainer";
+import ServicesTable from "./expenses/ServicesTable";
 
 function Outflows({ project }) {
-  const investmentRef = useRef(null);
-  const [investmentHeight, setInvestmentHeight] = useState(null);
-
-  useLayoutEffect(() => {
-    const el = investmentRef.current;
-    if (!el) return;
-
-    const update = () => setInvestmentHeight(el.offsetHeight);
-    update();
-
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [project]);
-
-  const cbm = project?.cbm;
-  const years = cbm?.timeline?.years ?? [];
-
   const {
-    adminExpenses,
-    investment,
-    services,
-    amortizationInterests,
-    totalFinancialExpenses,
-  } = useOutflows(cbm ?? {});
+    years,
+    servicesCatalog,
+    rawMaterialRows,
+    salaryRows,
+    servicesYearRow,
+    fixedAssetRows,
+    financingRows,
+    totalOutflowRows,
+  } = useOutflows(project?.cbm ?? {});
+
+  const columns = useMemo(
+    () => [
+      { key: "concept", label: "" },
+      ...years.map((year) => ({
+        key: String(year),
+        label: String(year),
+        align: "right",
+        type: "currency",
+      })),
+    ],
+    [years],
+  );
+
+  const sections = useMemo(
+    () => [
+      {
+        id: "raw-materials",
+        title: "Raw Materials",
+        defaultExpanded: true,
+        rows: rawMaterialRows,
+      },
+      {
+        id: "salaries",
+        title: "Salaries",
+        defaultExpanded: true,
+        rows: salaryRows,
+      },
+      {
+        id: "services",
+        title: "Services",
+        titleTooltip:
+          "The catalog is the monthly breakdown. Total Services below is the annual cash outflow (monthly × 12, inflated after year 0).",
+        defaultExpanded: true,
+        preamble: <ServicesTable services={servicesCatalog} embedded />,
+        rows: servicesYearRow,
+      },
+      {
+        id: "fixed-assets",
+        title: "Fixed Assets",
+        defaultExpanded: true,
+        rows: fixedAssetRows,
+      },
+      {
+        id: "financing",
+        title: "Financing",
+        titleTooltip:
+          "Working capital sizes the loan at year 0. Amortization and interest are cash leaving. Loan Balance is the year-end remaining principal.",
+        defaultExpanded: true,
+        rows: financingRows,
+      },
+    ],
+    [
+      rawMaterialRows,
+      salaryRows,
+      servicesCatalog,
+      servicesYearRow,
+      fixedAssetRows,
+      financingRows,
+    ],
+  );
 
   return (
     <div className="flex flex-col mt-3 p-3">
-      <CollapsibleSection title="Administrative Expenses" defaultExpanded>
-        <AdminExpensesTable years={years} expenses={adminExpenses} />
-      </CollapsibleSection>
+      <p className="mb-3 text-sm text-slate-500">
+        Where money leaves this project: operating purchases and payroll,
+        services, asset purchases, and loan payments. Black rows are totals
+        or financing identities; they are not added again in Total Outflows.
+      </p>
 
-      <CollapsibleSection title="Investment & Services">
-        <div className="flex items-start gap-3">
-          <div ref={investmentRef}>
-            <InvestmentTable items={investment} />
-          </div>
-
-          <div
-            className="min-w-0 flex-1"
-            style={investmentHeight ? { height: investmentHeight } : undefined}
-          >
-            <ServicesTable services={services} />
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Amortization & Interest">
-        <AmortizationInterestTable
-          amortizationInterests={amortizationInterests}
-          baseYear={years[0]}
-        />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Financial Expenses">
-        <FinancialExpensesTable
-          totalFinancialExpenses={totalFinancialExpenses}
-          baseYear={years[0]}
-        />
-      </CollapsibleSection>
+      <TableContainer
+        columns={columns}
+        sections={sections}
+        footerRows={totalOutflowRows}
+        layout="fixed"
+      />
     </div>
   );
 }

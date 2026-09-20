@@ -13,8 +13,10 @@ const logger = new Logger("ComputeAmortizationInterest");
  *   amortization: number,
  *   interest: number[],
  *   yearAmortization: number[],
- *   yearInterest: number[]
- * }} Objeto con la cuota de amortización fija, el desglose mensual de intereses y sus agregados anuales.
+ *   yearInterest: number[],
+ *   yearBalance: number[]
+ * }} Objeto con la cuota de amortización fija, el desglose mensual de intereses,
+ *   agregados anuales, y el saldo al cierre de cada año de crédito (Monto).
  */
 export default function computeAmortizationInterest(totalInvestment, project) {
   const totalInvestmentInput = totalInvestment;
@@ -22,20 +24,36 @@ export default function computeAmortizationInterest(totalInvestment, project) {
   const interestRate = project.premises.nationalLeadingRate;
 
   const amortization = totalInvestment / periods;
+  const yearBalance = [];
   const interest = new Array(periods).fill(0).map((_, idx) => {
     const year = Math.floor(idx / 12);
-    const interest = ((interestRate[year] ?? interestRate.at(-1)) / 12) * totalInvestment;
+    const monthInterest =
+      ((interestRate[year] ?? interestRate.at(-1)) / 12) * totalInvestment;
     totalInvestment -= amortization;
-    return interest;
+    const monthNumber = idx + 1;
+    if (monthNumber % 12 === 0 || monthNumber === periods) {
+      yearBalance.push(snapLoan(totalInvestment));
+    }
+    return monthInterest;
   });
 
   const yearAmortization = computeAmortization(amortization, periods);
   const yearInterest = computeInterest(interest, periods);
 
-  const result = { amortization, interest, yearAmortization, yearInterest };
+  const result = {
+    amortization,
+    interest,
+    yearAmortization,
+    yearInterest,
+    yearBalance,
+  };
   console.log(result)
   logger.debug("computeAmortizationInterest", { totalInvestment: totalInvestmentInput, periods, interestRate, ...result });
   return result;
+}
+
+function snapLoan(value) {
+  return Math.abs(value) < 0.01 ? 0 : value;
 }
 
 /**

@@ -45,8 +45,9 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  *   layout="fixed"
  *   sections={[
  *     { id: "unit-costs", title: "Unit Costs", titleTooltip: "...", rows: unitCostRows, defaultExpanded: true },
- *     { id: "sales", title: "Sales", rows: salesRows, defaultExpanded: true },
+ *     { id: "sales", title: "Sales", rows: salesRows, defaultExpanded: true, preamble: <Catalog /> },
  *   ]}
+ *   footerRows={totalOutflowRows}
  * />
  *
  * Sectioned tables measure a hidden auto-layout copy of every row (including
@@ -57,6 +58,9 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  * Total row: pass `rowVariant: "total"` on any row object.
  * Mixed units: pass `valueType: "units" | "currency"` on a row to override the
  * column's `type` for that row only (the label column is never affected).
+ * Currency tone: pass `tone: "outflow" | "neutral"` on a row to override the
+ * default signed coloring (negative rose / positive emerald). Outflow is rose;
+ * neutral is slate. Leave `tone` off for Inflows-style signed colors.
  * ------------------------------------------------------------------------
  */
 
@@ -68,7 +72,16 @@ function formatUnits(value) {
   return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
-function CellValue({ column, value, valueType }) {
+function currencyToneClass(tone, value) {
+  const isEmpty = value === undefined || value === null || value === "";
+  if (isEmpty) return "text-slate-300";
+  if (tone === "outflow") return "text-rose-600";
+  if (tone === "neutral") return "text-slate-900";
+  const num = Number(value);
+  return !Number.isNaN(num) && num < 0 ? "text-rose-600" : "text-emerald-700";
+}
+
+function CellValue({ column, value, valueType, tone }) {
   // Row-level `valueType` wins over the column's `type` so one table can mix
   // units and money across the same year columns (Sales: Customer Orders is a
   // unit count, Unit Price and Total Income are currency).
@@ -79,20 +92,8 @@ function CellValue({ column, value, valueType }) {
   }
 
   if (type === "currency") {
-    const num = Number(value);
-    const isEmpty = value === undefined || value === null || value === "";
-    const isNegative = !Number.isNaN(num) && num < 0;
     return (
-      <span
-        className={
-          "tabular-nums " +
-          (isEmpty
-            ? "text-slate-300"
-            : isNegative
-              ? "text-rose-600"
-              : "text-emerald-700")
-        }
-      >
+      <span className={"tabular-nums " + currencyToneClass(tone, value)}>
         {formatCurrency(value)}
       </span>
     );
@@ -264,7 +265,7 @@ function DataRows({
                 (col.align === "right" ? "text-right" : "text-left") +
                 " " +
                 (isTotal
-                  ? "border-t border-slate-300 font-semibold text-slate-900"
+                  ? "border-t border-slate-300 font-normal text-slate-900"
                   : "text-slate-700") +
                 (col.wrap && !isFixed ? " min-w-[14rem]" : "") +
                 (col.wrap ? " text-slate-500" : "")
@@ -285,6 +286,7 @@ function DataRows({
                   // never on the label column - that cell holds
                   // the concept text, not a number to format
                   valueType={col.key === labelKey ? undefined : row.valueType}
+                  tone={col.key === labelKey ? undefined : row.tone}
                 />
               )}
             </td>
@@ -302,6 +304,7 @@ export default function TableContainer({
   columns,
   rows = [],
   sections,
+  footerRows,
   actions,
   dense = false,
   emptyLabel = "No information available.",
@@ -362,7 +365,7 @@ export default function TableContainer({
       cancelled = true;
       observer.disconnect();
     };
-  }, [useSections, columns, sections, cellPad]);
+  }, [useSections, columns, sections, footerRows, cellPad]);
 
   useLayoutEffect(() => {
     if (!useSections) return undefined;
@@ -443,6 +446,15 @@ export default function TableContainer({
                   rowKeyPrefix={"measure-" + section.id + "-"}
                 />
               ))}
+              {footerRows?.length > 0 && (
+                <DataRows
+                  {...dataRowProps}
+                  isFixed={false}
+                  applyColWidth={false}
+                  rows={footerRows}
+                  rowKeyPrefix="measure-footer-"
+                />
+              )}
             </tbody>
           </table>
         </div>
@@ -507,6 +519,13 @@ export default function TableContainer({
                       </button>
                     </td>
                   </tr>
+                  {expanded && section.preamble && (
+                    <tr>
+                      <td colSpan={columns.length} className="p-4">
+                        {section.preamble}
+                      </td>
+                    </tr>
+                  )}
                   {expanded && (
                     <DataRows
                       {...dataRowProps}
@@ -522,6 +541,16 @@ export default function TableContainer({
           ) : (
             <tbody>
               <DataRows {...dataRowProps} rows={rows} />
+            </tbody>
+          )}
+          {useSections && footerRows?.length > 0 && (
+            <tbody>
+              <DataRows
+                {...dataRowProps}
+                applyColWidth={!colWidths}
+                rows={footerRows}
+                rowKeyPrefix="footer-"
+              />
             </tbody>
           )}
         </table>
