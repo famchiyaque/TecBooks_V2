@@ -214,6 +214,9 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       name: service.description || service.subcategory || 'Service',
       description: service.description || '',
       defaultCost: asNumber(service.monthlyAmount, 0),
+      // BUG FIX: "Notes and Considerations" column - existed on the
+      // expenses table already, was just never written here.
+      notes: service.notes || '',
     })),
     assets: mapAssets(cbm),
     employees: mapEmployees(cbm),
