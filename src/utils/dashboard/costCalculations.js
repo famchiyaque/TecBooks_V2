@@ -114,6 +114,7 @@ export function computeNetSales(production) {
     const priceForYear = isPriceMap
       ? (salesPricePerUnit[year] ?? 0)
       : (salesPricePerUnit ?? 0);
+
     netSalesByYear[year] = orders * priceForYear;
   }
 
@@ -341,17 +342,20 @@ export function computeAdministrativeExpenses(
  */
 export function computeOperatingExpenses(
   administrativeByYear,
+  administrativeSalary,
   depreciationTotalByYear,
   salesExpensesByYear,
   years,
 ) {
   const operatingExpensesByYear = {};
+  
   for (const year of years) {
     operatingExpensesByYear[year] =
-      (administrativeByYear[year] || 0) +
-      (depreciationTotalByYear[year] || 0) +
-      (salesExpensesByYear[year] || 0);
+      (administrativeByYear[year] + administrativeSalary[year] || 0) +
+      (depreciationTotalByYear[year] || 0)
+      // (salesExpensesByYear[year] || 0);
   }
+
   return operatingExpensesByYear;
 }
 
@@ -375,7 +379,6 @@ export function computeOperatingProfit(grossProfit, operatingExpenses) {
  */
 export function computeCumulativeInvestment(assetGroups, years) {
   const totalByYear = {};
-
   for (const year of years) {
     totalByYear[year] = assetGroups.reduce(
       (groupSum, assets) => groupSum + sumAssetsValueInYear(assets, year),
@@ -394,19 +397,17 @@ export function computeCumulativeInvestment(assetGroups, years) {
 export function computeFinancingAmount(
   investmentByYear,
   salariesTotal,
-  managementBillsByYear,
+  administrativeExpenses,
   machineryInvestmentByYear,
-  years,
+  civilWorks,
+  year,
 ) {
-  const amountByYear = {};
-  for (const year of years) {
-    amountByYear[year] =
-      (investmentByYear[year] || 0) +
-      salariesTotal +
-      (managementBillsByYear[year] || 0) +
-      (machineryInvestmentByYear[year] || 0) * 0.35;
-  }
-  return amountByYear;
+  const assets = machineryInvestmentByYear[year] + investmentByYear[year]
+  const workForce = administrativeExpenses[year] + salariesTotal
+
+  const totalAmount = assets + workForce + civilWorks[year]
+  
+  return totalAmount;
 }
 
 /**
@@ -423,7 +424,7 @@ export function computeFinancingAmount(
  * corresponding month block (loan already paid off, or the loan outlives the
  * projection horizon) reports 0 for both.
  */
-export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {
+export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {  
   const financialExpensesByYear = {};
   const creditPaymentByYear = {};
   for (const year of years) {

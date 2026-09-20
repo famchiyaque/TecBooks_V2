@@ -8,6 +8,10 @@ import {
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 import { Logger } from '../utils/logger.js'
+import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
+
+import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js"
+import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest.js"
 
 const logger = new Logger('BuildCostOfSales')
 
@@ -77,25 +81,33 @@ export function buildCostOfSales(cbm) {
       + depreciationCompute[year] + depreciationMachinery[year]
   })
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
-  const administrativeExpenses = computeAdministrativeExpenses(AdministrativeByYear, opex.adminPct, netSales, years)
-  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
+  const administrativeExpenses = computeAdminExpenses(cbm)
+  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, AdministrativeByYear, depreciationTotal, salesExpenses, years)
   logger.debug('buildCostOfSales: operating expenses', {
     depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,
     salesExpenses, administrativeExpenses, operatingExpenses,
   })
-
   const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
   const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
   const machineryInvestment = computeCumulativeInvestment([opex.machines], years)
   const managementBills = {}
   years.forEach((year) => { managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0) })
+
+  let prev = 0
+  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
+    if (idx == 0) acc[year] = value * 0.35
+    else acc[year] = (value - prev) * 0.35
+    prev = Math.max(value, prev)
+    return acc
+  }, {}) 
+  
   // RF-56 BUG FIX: the loan is originated once, at project year zero - it is
   // a single fixed amount, not resized off a growing cumulative investment
-  // every year. investment/machineryInvestment/managementBills are read at
+  // every year. investment/machineryInvestment/administrativeExpenses are read at
   // years[0] on purpose (Egresos!B215 is itself a year-zero figure).
   const financingAmount = computeFinancingAmount(
-    investment, salariesTotal, managementBills, machineryInvestment, [years[0]]
-  )[years[0]]
+    investment, salariesTotal, administrativeExpenses, machineryInvestment, civilWorks, years[0]
+  )
 
   // RF-56 BUG FIX: one loan, amortized once over its own life in monthly
   // 12-month blocks - not a fresh full-life schedule re-loaded onto every
@@ -105,12 +117,13 @@ export function buildCostOfSales(cbm) {
     computeAmortizationSchedule(
       financingAmount, opex.financingPeriods, opex.nationalLeadingRate[years[0]], years
     )
+
   logger.debug('buildCostOfSales: financing', {
     investment, machineryInvestment, managementBills, salariesTotal, financingAmount, financialExpenses, creditPayment,
   })
 
   const incomeBeforeTaxes = {}
-  costOfSalesByYear.forEach((row) => {
+  costOfSalesByYear.forEach((row, idx) => {
     const operatingProfit = computeOperatingProfit(row.grossProfit, operatingExpenses[row.year])
     // RF-56 "Financial Income" has no source field - base 0 here, only ever
     // set through an override, same as this static row for every other year.
@@ -118,11 +131,13 @@ export function buildCostOfSales(cbm) {
       operatingProfit, financialExpenses[row.year], creditPayment[row.year], 0
     )
   })
+
   const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
 
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
     administrativeExpenses: administrativeExpenses[row.year],
+    civilWorks: civilWorks[row.year],
     // Split out of administrativeExpenses (= administrativeSalary + netSales
     // * adminPct) so the Cash Outflows table can show "Administrative
     // Salaries" and "General Administrative Expenses" as separate lines,
