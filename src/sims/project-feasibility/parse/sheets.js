@@ -324,6 +324,9 @@ export function readServicios(rows, project) {
       subcategory: subcategory ?? '',
       description: description ?? '',
       monthlyAmount: toNumberOrUndefined(row[3]),
+      // BUG FIX: ServicesTable's "Notes and Considerations" column (added
+      // 2026-09-01) was never fed by the parser - column E was never read.
+      notes: toStringOrUndefined(row[4]) ?? '',
     })
   }
 }
