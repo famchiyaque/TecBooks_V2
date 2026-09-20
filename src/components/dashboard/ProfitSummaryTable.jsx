@@ -291,6 +291,29 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
 
                   {isExpanded && breakdown && breakdownLines(breakdown).map((line) => (
                     <tr key={`${key}-${line.id}`} className="group bg-sky-50/50">
+                      {slice && (
+                        <td className="whitespace-nowrap py-1.5 pl-2 pr-0 text-right">
+                          {line.custom ? (
+                            <IconButton
+                              size="small"
+                              aria-label="delete row"
+                              onClick={() => dispatch(slice.actions.removeCustomRow(line.id))}
+                              className="!p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                            >
+                              <DeleteOutline fontSize="small" />
+                            </IconButton>
+                          ) : (
+                            <IconButton
+                              size="small"
+                              aria-label="add row"
+                              onClick={() => dispatch(slice.actions.addCustomRow())}
+                              className="!p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                            >
+                              <AddIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </td>
+                      )}
                       <td className="whitespace-nowrap py-1.5 pl-9 pr-2 text-slate-500">
                         {slice && line.custom ? (
                           <EditableBreakdownLabel
@@ -315,29 +338,6 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
                           )}
                         </td>
                       ))}
-                      {slice && (
-                        <td className="whitespace-nowrap py-1.5 pr-2 text-right">
-                          {line.custom ? (
-                            <IconButton
-                              size="small"
-                              aria-label="delete row"
-                              onClick={() => dispatch(slice.actions.removeCustomRow(line.id))}
-                              className="!p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                            >
-                              <DeleteOutline fontSize="small" />
-                            </IconButton>
-                          ) : (
-                            <IconButton
-                              size="small"
-                              aria-label="add row"
-                              onClick={() => dispatch(slice.actions.addCustomRow())}
-                              className="!p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                            >
-                              <AddIcon fontSize="small" />
-                            </IconButton>
-                          )}
-                        </td>
-                      )}
                     </tr>
                   ))}
 

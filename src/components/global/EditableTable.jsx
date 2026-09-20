@@ -125,6 +125,10 @@ function EditableLabelCell({ label, onCommit }) {
  * rebuilding hover/add/delete/edit from scratch - just declare `rows`,
  * `columns` and how to read a value, same as CostOfSalesTable does.
  *
+ * Add/delete row controls live in their own column at the START of each row
+ * (before Concept), not the end - easier to reach without scrolling right on
+ * a table with many year columns.
+ *
  * @param {string} title
  * @param {import('@/store/EditableTableSlice').EditableTableSlice} slice
  * @param {{key: string|number, label: string|number}[]} columns
@@ -168,6 +172,7 @@ function EditableTable({
         <Table size="small" className="w-full border-collapse text-xs">
           <TableHead>
             <TableRow className="border-b border-slate-200 bg-slate-50/60">
+              <TableCell sx={{ width: 64 }} />
               <TableCell className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}>
                 Concept
               </TableCell>
@@ -180,7 +185,6 @@ function EditableTable({
                   {label}
                 </TableCell>
               ))}
-              <TableCell sx={{ width: 64 }} />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -189,15 +193,6 @@ function EditableTable({
                 key={row.key}
                 className={`group transition-colors hover:bg-slate-50/60 ${rowIndex % 2 === 1 ? 'bg-slate-50/30' : ''}`}
               >
-                <TableCell className={`${CELL_PAD} whitespace-nowrap text-slate-700`}>{row.label}</TableCell>
-                {columns.map(({ key: columnKey }) => (
-                  <EditableValueCell
-                    key={columnKey}
-                    value={effectiveValue(row.key, columnKey, getValue(row.key, columnKey))}
-                    onCommit={(value) => dispatch(slice.actions.setOverride({ rowKey: row.key, columnKey, value }))}
-                    formatValue={formatValue}
-                  />
-                ))}
                 <TableCell align="right" className={CELL_PAD}>
                   <IconButton
                     size="small"
@@ -208,25 +203,20 @@ function EditableTable({
                     <AddIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
+                <TableCell className={`${CELL_PAD} whitespace-nowrap text-slate-700`}>{row.label}</TableCell>
+                {columns.map(({ key: columnKey }) => (
+                  <EditableValueCell
+                    key={columnKey}
+                    value={effectiveValue(row.key, columnKey, getValue(row.key, columnKey))}
+                    onCommit={(value) => dispatch(slice.actions.setOverride({ rowKey: row.key, columnKey, value }))}
+                    formatValue={formatValue}
+                  />
+                ))}
               </TableRow>
             ))}
 
             {customRows.map((customRow) => (
               <TableRow key={customRow.id} className="group transition-colors hover:bg-slate-50/60">
-                <EditableLabelCell
-                  label={customRow.label}
-                  onCommit={(label) => dispatch(slice.actions.setCustomRowLabel({ id: customRow.id, label }))}
-                />
-                {columns.map(({ key: columnKey }) => (
-                  <EditableValueCell
-                    key={columnKey}
-                    value={customRow.values[columnKey] || 0}
-                    onCommit={(value) => dispatch(
-                      slice.actions.setCustomRowValue({ id: customRow.id, columnKey, value })
-                    )}
-                    formatValue={formatValue}
-                  />
-                ))}
                 <TableCell align="right" className={`${CELL_PAD} whitespace-nowrap`}>
                   <IconButton
                     size="small"
@@ -245,14 +235,25 @@ function EditableTable({
                     <DeleteOutline fontSize="small" />
                   </IconButton>
                 </TableCell>
+                <EditableLabelCell
+                  label={customRow.label}
+                  onCommit={(label) => dispatch(slice.actions.setCustomRowLabel({ id: customRow.id, label }))}
+                />
+                {columns.map(({ key: columnKey }) => (
+                  <EditableValueCell
+                    key={columnKey}
+                    value={customRow.values[columnKey] || 0}
+                    onCommit={(value) => dispatch(
+                      slice.actions.setCustomRowValue({ id: customRow.id, columnKey, value })
+                    )}
+                    formatValue={formatValue}
+                  />
+                ))}
               </TableRow>
             ))}
 
             {rows.length === 0 && customRows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className={`${CELL_PAD} whitespace-nowrap italic text-slate-400`}>
-                  No rows yet
-                </TableCell>
                 <TableCell align="right" className={CELL_PAD}>
                   <IconButton
                     size="small"
@@ -262,10 +263,14 @@ function EditableTable({
                     <AddIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
+                <TableCell colSpan={columns.length + 1} className={`${CELL_PAD} whitespace-nowrap italic text-slate-400`}>
+                  No rows yet
+                </TableCell>
               </TableRow>
             )}
 
             <TableRow className="bg-slate-50/80">
+              <TableCell className="border-t border-slate-300" />
               <TableCell className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}>
                 <span className="inline-flex items-center gap-1">
                   <IconButton
@@ -291,7 +296,6 @@ function EditableTable({
                   {formatValue(totalsByColumn[index])}
                 </TableCell>
               ))}
-              <TableCell className="border-t border-slate-300" />
             </TableRow>
 
             {totalExpanded && (
@@ -304,6 +308,7 @@ function EditableTable({
 
             {summaryRows.map(({ key, label, compute }) => (
               <TableRow key={key}>
+                <TableCell />
                 <TableCell className={`${CELL_PAD} whitespace-nowrap font-medium text-slate-700`}>{label}</TableCell>
                 {columns.map(({ key: columnKey }, index) => {
                   const value = compute(totalsByColumn[index], columnKey)
@@ -313,7 +318,6 @@ function EditableTable({
                     </TableCell>
                   )
                 })}
-                <TableCell />
               </TableRow>
             ))}
           </TableBody>
