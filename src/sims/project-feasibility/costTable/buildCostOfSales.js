@@ -149,8 +149,14 @@ export function buildCostOfSales(cbm) {
     // Salaries" and "General Administrative Expenses" as separate lines,
     // same as Flujo sheet rows 18-19 (Egresos!B154 / Egresos!B206).
     administrativeSalary: AdministrativeByYear[row.year],
-    // Single fixed loan (see BUG FIX above) - same amount reported on every row.
-    financingAmount,
+    // BUG FIX: financingAmount is the loan's principal, disbursed once at
+    // origination (years[0]) - it was reported on every row, so the Cash
+    // Table's "Long-term Loan" row (its only consumer, see
+    // cashFlowCalculations.js) showed the whole loan coming in again every
+    // single year. Zero everywhere except the origination year - the
+    // per-year repayment schedule (financialExpenses/creditPayment below)
+    // already carries the loan's ongoing effect correctly.
+    financingAmount: row.year === years[0] ? financingAmount : 0,
     // Combined across however many asset categories the project has (was 4
     // separate fixed fields - see BUG FIX above); OperatingExpensesTable now
     // shows one "Depreciation" row instead of one per hardcoded category.
