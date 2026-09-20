@@ -1,56 +1,18 @@
-import React, { useMemo } from "react";
-import TableContainer from "@/components/global/TableContainer";
 import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
 
 /**
- * CompetitivePriceTable component
- *
- * Renders the projected competitive price per year.
- *
- * @param {number[]} competitivaPrice - Array of competitive prices, indexed by year offset.
- * @param {number} baseYear - The first year represented in the array.
- * @returns {JSX.Element} The rendered table.
+ * Unit-price rows for the Inflows joined table.
+ * Values are indexed by year offset, same order as `years`.
  */
-function CompetitivePriceTable({ competitivaPrice, baseYear }) {
-  const years = useMemo(
-    () => (competitivaPrice ?? []).map((_, i) => baseYear + i),
-    [competitivaPrice, baseYear],
-  );
+export function buildCompetitivePriceRows(competitivaPrice, years) {
+  const price = {
+    concept: "Competitive Price",
+    tooltip: INFLOWS_TOOLTIPS.unitPrice.competitivePrice,
+  };
 
-  const columns = useMemo(
-    () => [
-      { key: "concept", label: "" },
-      ...years.map((year) => ({
-        key: String(year),
-        label: String(year),
-        align: "right",
-        type: "currency",
-      })),
-    ],
-    [years],
-  );
+  years.forEach((year, i) => {
+    price[String(year)] = competitivaPrice?.[i];
+  });
 
-  const rows = useMemo(() => {
-    const price = {
-      concept: "Competitive Price",
-      tooltip: INFLOWS_TOOLTIPS.unitPrice.competitivePrice,
-    };
-
-    years.forEach((year, i) => {
-      price[String(year)] = competitivaPrice?.[i];
-    });
-
-    return [price];
-  }, [years, competitivaPrice]);
-
-  return (
-    <TableContainer
-      title="Unit Price"
-      titleTooltip={INFLOWS_TOOLTIPS.unitPrice.table}
-      columns={columns}
-      rows={rows}
-    />
-  );
+  return [price];
 }
-
-export default CompetitivePriceTable;
