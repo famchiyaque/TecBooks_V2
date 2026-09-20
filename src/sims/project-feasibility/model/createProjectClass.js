@@ -15,6 +15,7 @@ export function createProjectClass({ fileName } = {}) {
       financingPeriods: undefined,
     },
     premises: {
+      startingMoney: undefined,
       fxClose: emptyYearSeries(),
       nationalLeadingRate: emptyYearSeries(),
       cpp: emptyYearSeries(),
@@ -40,6 +41,7 @@ export function createProjectClass({ fileName } = {}) {
       // actually has - keyed by whatever category label X is, not limited
       // to the 4 above.
       depreciationByCategory: {},
+      demandGrowth: undefined,
     },
     demand: {
       monthShares: Array.from({ length: 12 }, () => undefined),

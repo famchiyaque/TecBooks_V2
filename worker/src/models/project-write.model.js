@@ -85,11 +85,12 @@ export async function insertPremises(database, gameId, premises, periods) {
     .prepare(
       `INSERT INTO premises (
         game_id, starting_money, exchange_rate, national_leading_rate, cpp, cetes, libor,
-        national_inflation, foreign_inflation, isr, impac, ptu, periods
-      ) VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        national_inflation, foreign_inflation, isr, impac, ptu, periods, demand_growth
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       gameId,
+      premises.startingMoney ?? 0,
       premises.exchangeRate,
       premises.nationalLeadingRate,
       premises.cpp,
@@ -100,7 +101,8 @@ export async function insertPremises(database, gameId, premises, periods) {
       premises.isr,
       premises.impac,
       premises.ptu,
-      periods
+      periods,
+      premises.demandGrowth
     )
     .run();
 
@@ -340,19 +342,43 @@ export async function insertBomGraph(database, teamId, bom, capacity) {
 }
 
 export async function insertDemand(database, gameId, demand) {
+  const yearlyRows = []
   if (demand.yearZeroYear !== null && demand.yearZeroTotal !== null) {
-    await database
-      .prepare(
-        `INSERT INTO purchase_order_yearly_total (game_id, year, total, is_projection)
-         VALUES (?, ?, ?, 0)`
-      )
-      .bind(gameId, demand.yearZeroYear, demand.yearZeroTotal)
-      .run();
+    yearlyRows.push({
+      year: demand.yearZeroYear,
+      total: demand.yearZeroTotal,
+    })
+  }
+  for (const row of demand.history ?? []) {
+    if (row?.year === demand.yearZeroYear) continue
+    if (typeof row?.year !== 'number' || typeof row?.total !== 'number') continue
+    if (!Number.isFinite(row.year) || !Number.isFinite(row.total)) continue
+    yearlyRows.push({ year: row.year, total: row.total })
   }
 
-  const months = (demand.monthShares ?? [])
-    .map((percentage, index) => ({ month: index + 1, percentage }))
-    .filter((row) => typeof row.percentage === 'number' && Number.isFinite(row.percentage));
+  if (yearlyRows.length) {
+    await runBatch(
+      database,
+      yearlyRows.map((row) =>
+        database
+          .prepare(
+            `INSERT INTO purchase_order_yearly_total (game_id, year, total, is_projection)
+             VALUES (?, ?, ?, 0)`
+          )
+          .bind(gameId, row.year, row.total)
+      )
+    )
+  }
+
+  const months = Array.from({ length: 12 }, (_, index) => {
+    const percentage = demand.monthShares?.[index]
+    const fixedAmount = demand.yearZeroOrders?.[index]
+    return {
+      month: index + 1,
+      percentage: typeof percentage === 'number' && Number.isFinite(percentage) ? percentage : null,
+      fixedAmount: typeof fixedAmount === 'number' && Number.isFinite(fixedAmount) ? fixedAmount : null,
+    }
+  }).filter((row) => row.percentage !== null || row.fixedAmount !== null)
 
   if (months.length) {
     await runBatch(
@@ -360,12 +386,12 @@ export async function insertDemand(database, gameId, demand) {
       months.map((row) =>
         database
           .prepare(
-            `INSERT INTO purchase_order_monthly_distribution (game_id, month, percentage)
-             VALUES (?, ?, ?)`
+            `INSERT INTO purchase_order_monthly_distribution (game_id, month, percentage, fixed_amount)
+             VALUES (?, ?, ?, ?)`
           )
-          .bind(gameId, row.month, row.percentage)
+          .bind(gameId, row.month, row.percentage ?? 0, row.fixedAmount)
       )
-    );
+    )
   }
 }
 

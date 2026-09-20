@@ -1,32 +1,5 @@
 import { HORIZON_YEARS } from '../constants.js'
-
-/**
- * RF-54-02: InputNovus only ever gives us one real data point - year-zero's
- * order total (COs sheet has no future-years column, unlike Template
- * Financiero's). To get a multi-year cost table without that data, project
- * forward the same way Expenses' AdminExpensesTable does: one base value
- * compounded by a per-year rate from Premisas, instead of reading a real
- * number per year. Quality yield has no comparable rate anywhere in
- * InputNovus, so it's held flat at the year-zero value - a documented
- * simplification, not a real read.
- */
-function projectPurchaseOrders(yearZeroYear, yearZeroTotal, inflationByIndex) {
-  const purchaseOrders = {}
-  let previous = yearZeroTotal
-
-  HORIZON_YEARS.forEach((year, index) => {
-    if (year < yearZeroYear) return
-    if (year === yearZeroYear) {
-      purchaseOrders[year] = yearZeroTotal
-      return
-    }
-    const rate = inflationByIndex[index] ?? 0
-    previous = previous * (1 + rate)
-    purchaseOrders[year] = previous
-  })
-
-  return purchaseOrders
-}
+import { projectPurchaseOrders } from '../demand/projectPurchaseOrders.js'
 
 function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
   const qualityYield = {}
@@ -39,8 +12,8 @@ function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
 
 /**
  * RF-56-XX BUG FIX: the sale price is not flat across the projection - it
- * grows by national inflation every year, same compounding shape as
- * projectPurchaseOrders (Ingresos!C23 = B23 * (1 + Premisas!C12)).
+ * grows by national inflation every year (Ingresos!C23 = B23 * (1 + Premisas!C12)).
+ * Volume (purchase orders) uses demandGrowth, not this inflation series.
  */
 function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
   const salesPricePerUnit = {}
@@ -84,11 +57,14 @@ export function cbmToCostTableInputs(cbm) {
   let qualityYield = {}
   let salesPricePerUnit = {}
   if (yearZeroYear !== undefined) {
-    purchaseOrders = projectPurchaseOrders(
+    purchaseOrders = projectPurchaseOrders({
       yearZeroYear,
-      cbm.demand?.yearZeroTotal,
-      cbm.premises?.nationalInflation ?? []
-    )
+      yearZeroTotal: cbm.demand?.yearZeroTotal,
+      yearZeroOrders: cbm.demand?.yearZeroOrders,
+      monthShares: cbm.demand?.monthShares,
+      history: cbm.demand?.history,
+      demandGrowth: cbm.premises?.demandGrowth,
+    })
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
     salesPricePerUnit = projectSalesPrice(
       yearZeroYear,
@@ -112,6 +88,7 @@ export function cbmToCostTableInputs(cbm) {
       salesPricePerUnit,
     },
     premises: {
+      startingMoney: typeof cbm.premises?.startingMoney === 'number' ? cbm.premises.startingMoney : 0,
       indirectProductPercentage,
     },
   }
