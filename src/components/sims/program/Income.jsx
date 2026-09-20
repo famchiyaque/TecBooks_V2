@@ -1,21 +1,74 @@
 import React, { useMemo } from "react";
 import useIncome from "@/hooks/sims/project/useIncome";
-import ProductionCostTable from "./income/ProductionCostTable";
-import UtilityCostTable from "./income/UtilityCostTable";
-import CompetitivePriceTable from "./income/CompetitivePriceTable";
-import SalesTable from "./income/SalesTable";
-import CollapsibleSection from "@/components/global/CollapsibleSection";
+import TableContainer from "@/components/global/TableContainer";
+import { buildProductionCostRows } from "./income/ProductionCostTable";
+import { buildUtilityCostRows } from "./income/UtilityCostTable";
+import { buildCompetitivePriceRows } from "./income/CompetitivePriceTable";
+import { buildSalesRows } from "./income/SalesTable";
 import { INFLOWS_TOOLTIPS } from "./income/inflowsTooltips";
 
 function Income({ project }) {
   const income = useIncome(project);
 
-  const baseYear = useMemo(() => {
-    const years = Object.keys(income?.productionCosts?.total ?? {})
-      .map(Number)
-      .sort((a, b) => a - b);
-    return years[0];
-  }, [income]);
+  const years = useMemo(
+    () =>
+      Object.keys(income?.productionCosts?.total ?? {})
+        .map(Number)
+        .sort((a, b) => a - b),
+    [income],
+  );
+
+  const columns = useMemo(
+    () => [
+      { key: "concept", label: "", width: "18rem" },
+      ...years.map((year) => ({
+        key: String(year),
+        label: String(year),
+        align: "right",
+        type: "currency",
+      })),
+    ],
+    [years],
+  );
+
+  const sections = useMemo(
+    () => [
+      {
+        id: "unit-costs",
+        title: "Unit Costs",
+        titleTooltip: INFLOWS_TOOLTIPS.unitCosts.table,
+        defaultExpanded: true,
+        rows: buildProductionCostRows(income.productionCosts, years),
+      },
+      {
+        id: "unit-price",
+        title: "Unit Price",
+        titleTooltip: INFLOWS_TOOLTIPS.unitPrice.table,
+        defaultExpanded: true,
+        rows: buildCompetitivePriceRows(income.competitivaPrice, years),
+      },
+      {
+        id: "sales",
+        title: "Sales",
+        titleTooltip: INFLOWS_TOOLTIPS.sales.table,
+        defaultExpanded: true,
+        rows: buildSalesRows({
+          customerOrders: income.customerOrders,
+          unitPrice: income.competitivaPrice,
+          sales: income.sales,
+          years,
+        }),
+      },
+      {
+        id: "unit-profit-margen",
+        title: "Unit Profit Margen",
+        titleTooltip: INFLOWS_TOOLTIPS.utilityPrice.table,
+        defaultExpanded: true,
+        rows: buildUtilityCostRows(income.utilityCost, years),
+      },
+    ],
+    [income, years],
+  );
 
   return (
     <div className="flex flex-col mt-3 p-3">
@@ -24,42 +77,7 @@ function Income({ project }) {
         and how they relate to the unit price of each BOM.
       </p>
 
-      <CollapsibleSection
-        title="Unit Costs"
-        tooltip={INFLOWS_TOOLTIPS.unitCosts.table}
-        defaultExpanded
-      >
-        <ProductionCostTable productionCosts={income.productionCosts} />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Unit Price"
-        tooltip={INFLOWS_TOOLTIPS.unitPrice.table}
-      >
-        <CompetitivePriceTable
-          competitivaPrice={income.competitivaPrice}
-          baseYear={baseYear}
-        />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Sales" tooltip={INFLOWS_TOOLTIPS.sales.table}>
-        <SalesTable
-          customerOrders={income.customerOrders}
-          unitPrice={income.competitivaPrice}
-          sales={income.sales}
-          baseYear={baseYear}
-        />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Unit Profit Margen"
-        tooltip={INFLOWS_TOOLTIPS.utilityPrice.table}
-      >
-        <UtilityCostTable
-          utilityCost={income.utilityCost}
-          baseYear={baseYear}
-        />
-      </CollapsibleSection>
+      <TableContainer columns={columns} sections={sections} layout="fixed" />
     </div>
   );
 }
