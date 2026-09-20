@@ -6,7 +6,7 @@ import { computeTrema, computeNPV, computeIRR, decideProject } from '@/utils/das
 import { buildCostOfSales } from './buildCostOfSales'
 import { cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 import { ENTRADA_ROWS, baseEntradaValue } from './cashFlowCalculations'
-import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
 
 function formatCurrency(value) {
   const num = Number(value) || 0
@@ -75,6 +75,7 @@ function ProjectEvaluationSummary({ project }) {
   const capexByYear = React.useMemo(() => (
     result.error ? {} : computeCapexByYear(project.cbm, years)
   ), [project, result, years])
+  const outflowRows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
   const opex = React.useMemo(() => cbmToOperatingExpenseInputs(project.cbm, years), [project, years])
 
   if (result.error) {
@@ -90,7 +91,7 @@ function ProjectEvaluationSummary({ project }) {
     )
     const totalSalidas = outflowEditsSlice.effectiveTotal(
       { overrides: outflowOverrides, customRows: outflowCustomRows },
-      OUTFLOW_ROWS,
+      outflowRows,
       (rowKey) => outflowBaseValue(rowKey, year, rowByYear, capexByYear),
       year
     )

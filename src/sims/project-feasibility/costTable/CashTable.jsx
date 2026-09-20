@@ -4,7 +4,7 @@ import { Alert } from '@mui/material'
 import EditableTable from '@/components/global/EditableTable'
 import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
 import { buildCostOfSales } from './buildCostOfSales'
-import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
 import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
 
 function CashTable({ project }) {
@@ -30,6 +30,8 @@ function CashTable({ project }) {
     result.error ? {} : computeCapexByYear(project.cbm, years)
   ), [project, result, years])
 
+  const outflowRows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
+
   // Saldo Inicial[year] = prior year's Flujo Neto (Entradas - Salidas), first
   // year seeded with the initial cash balance. Sequential (each year only
   // ever looks back one year), and override-aware on BOTH sides: editing
@@ -51,12 +53,12 @@ function CashTable({ project }) {
       )
       const prevOutflowValue = (rowKey) => outflowBaseValue(rowKey, prevYear, rowByYear, capexByYear)
       const prevTotalSalidas = outflowEditsSlice.effectiveTotal(
-        { overrides: outflowOverrides, customRows: outflowCustomRows }, OUTFLOW_ROWS, prevOutflowValue, prevYear
+        { overrides: outflowOverrides, customRows: outflowCustomRows }, outflowRows, prevOutflowValue, prevYear
       )
       map[year] = prevTotalEntradas - prevTotalSalidas
     })
     return map
-  }, [years, openingCash, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear])
+  }, [years, openingCash, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear, outflowRows])
 
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>
