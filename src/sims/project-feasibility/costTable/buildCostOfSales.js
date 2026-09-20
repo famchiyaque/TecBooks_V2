@@ -82,7 +82,7 @@ export function buildCostOfSales(cbm) {
   })
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
   const administrativeExpenses = computeAdminExpenses(cbm)
-  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, depreciationTotal, salesExpenses, years)
+  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, AdministrativeByYear, depreciationTotal, salesExpenses, years)
   logger.debug('buildCostOfSales: operating expenses', {
     depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,
     salesExpenses, administrativeExpenses, operatingExpenses,
@@ -107,7 +107,7 @@ export function buildCostOfSales(cbm) {
   // years[0] on purpose (Egresos!B215 is itself a year-zero figure).
   const financingAmount = computeFinancingAmount(
     investment, salariesTotal, administrativeExpenses, machineryInvestment, civilWorks, years[0]
-  )[years[0]]
+  )
 
   // RF-56 BUG FIX: one loan, amortized once over its own life in monthly
   // 12-month blocks - not a fresh full-life schedule re-loaded onto every
@@ -123,7 +123,7 @@ export function buildCostOfSales(cbm) {
   })
 
   const incomeBeforeTaxes = {}
-  costOfSalesByYear.forEach((row) => {
+  costOfSalesByYear.forEach((row, idx) => {
     const operatingProfit = computeOperatingProfit(row.grossProfit, operatingExpenses[row.year])
     // RF-56 "Financial Income" has no source field - base 0 here, only ever
     // set through an override, same as this static row for every other year.
@@ -131,6 +131,7 @@ export function buildCostOfSales(cbm) {
       operatingProfit, financialExpenses[row.year], creditPayment[row.year], 0
     )
   })
+
   const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
 
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({

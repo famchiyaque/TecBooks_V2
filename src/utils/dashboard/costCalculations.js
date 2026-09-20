@@ -342,17 +342,20 @@ export function computeAdministrativeExpenses(
  */
 export function computeOperatingExpenses(
   administrativeByYear,
+  administrativeSalary,
   depreciationTotalByYear,
   salesExpensesByYear,
   years,
 ) {
   const operatingExpensesByYear = {};
+  
   for (const year of years) {
     operatingExpensesByYear[year] =
-      (administrativeByYear[year] || 0) +
-      (depreciationTotalByYear[year] || 0) +
-      (salesExpensesByYear[year] || 0);
+      (administrativeByYear[year] + administrativeSalary[year] || 0) +
+      (depreciationTotalByYear[year] || 0)
+      // (salesExpensesByYear[year] || 0);
   }
+
   return operatingExpensesByYear;
 }
 
@@ -421,8 +424,7 @@ export function computeFinancingAmount(
  * corresponding month block (loan already paid off, or the loan outlives the
  * projection horizon) reports 0 for both.
  */
-export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {
-  
+export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {  
   const financialExpensesByYear = {};
   const creditPaymentByYear = {};
   for (const year of years) {
