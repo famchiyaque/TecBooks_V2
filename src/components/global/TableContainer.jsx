@@ -75,9 +75,11 @@ function formatUnits(value) {
 function currencyToneClass(tone, value) {
   const isEmpty = value === undefined || value === null || value === "";
   if (isEmpty) return "text-slate-300";
-  if (tone === "outflow") return "text-rose-600";
-  if (tone === "neutral") return "text-slate-900";
   const num = Number(value);
+  if (tone === "outflow") {
+    return !Number.isNaN(num) && num === 0 ? "text-slate-900" : "text-rose-600";
+  }
+  if (tone === "neutral") return "text-slate-900";
   return !Number.isNaN(num) && num < 0 ? "text-rose-600" : "text-emerald-700";
 }
 
@@ -265,7 +267,8 @@ function DataRows({
                 (col.align === "right" ? "text-right" : "text-left") +
                 " " +
                 (isTotal
-                  ? "border-t border-slate-300 font-normal text-slate-900"
+                  ? "border-t border-slate-300 text-slate-900 " +
+                    (col.key === labelKey ? "font-semibold" : "font-normal")
                   : "text-slate-700") +
                 (col.wrap && !isFixed ? " min-w-[14rem]" : "") +
                 (col.wrap ? " text-slate-500" : "")

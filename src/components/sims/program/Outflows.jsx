@@ -47,7 +47,7 @@ function Outflows({ project }) {
         title: "Services",
         titleTooltip:
           "The catalog is the monthly breakdown. Total Services below is the annual cash outflow (monthly × 12, inflated after year 0).",
-        defaultExpanded: true,
+        defaultExpanded: false,
         preamble: <ServicesTable services={servicesCatalog} embedded />,
         rows: servicesYearRow,
       },

@@ -265,13 +265,13 @@ export function computeOutflows(cbm) {
           "Sum of all fixed-asset purchases and installation, in any acquisition year.",
       },
     ),
-    yearRow("Amortization", amortizationByYear, years, { tone: "outflow" }),
-    yearRow("Interest", interestByYear, years, { tone: "outflow" }),
     yearRow("Loan Balance", loanBalanceByYear, years, {
       tone: "neutral",
       tooltip:
         "Year-end remaining principal (Monto) after that year's amortization. Working capital + total fixed assets originated the loan.",
     }),
+    yearRow("Amortization", amortizationByYear, years, { tone: "outflow" }),
+    yearRow("Interest", interestByYear, years, { tone: "outflow" }),
   ];
 
   const totalOutflowRows = [
