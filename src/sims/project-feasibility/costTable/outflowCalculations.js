@@ -1,8 +1,42 @@
-import { cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
+import { cbmToOperatingExpenseInputs, mapAssetsToYears } from './cbmToCostTableInputs'
 import { assetsCapexInYear } from '@/utils/dashboard/assetSchedule.js'
 import { Logger } from '../utils/logger.js'
 
 const logger = new Logger('OutflowCalculations')
+
+// Buildings/Transport/Compute keep their own named row (unchanged labels) -
+// matched the same way computeFixedAssets.js matches them for depreciation,
+// so both places agree on what counts as "Buildings" etc regardless of
+// exact wording/language in the project's Inversion sheet.
+const KNOWN_ASSET_CATEGORY_MATCH = [
+  { match: 'equipo de transporte', key: 'transport' },
+  { match: 'transport equipment', key: 'transport' },
+  { match: 'edificios', key: 'buildings' },
+  { match: 'buildings', key: 'buildings' },
+  { match: 'equipo de computo', key: 'compute' },
+  { match: 'computer equipment', key: 'compute' },
+]
+
+function normalizeCategoryName(text) {
+  return String(text ?? '').toLowerCase().replace(/[.]/g, '').trim()
+}
+
+function knownAssetKeyForCategory(category) {
+  const normalized = normalizeCategoryName(category)
+  return KNOWN_ASSET_CATEGORY_MATCH.find((item) => normalized.startsWith(item.match))?.key ?? null
+}
+
+/**
+ * BUG FIX: capex used to only ever look at Buildings/Transport/Compute/
+ * Machinery - any category the project's Inversion sheet named something
+ * else (e.g. "Animales") was silently never counted as a cash outflow.
+ * These are whatever's left in assets.byCategory after removing the 3
+ * known ones - each gets its own dynamic Cash Outflows row.
+ */
+export function getExtraAssetCategories(cbm) {
+  const categories = cbm.assets?.byCategory ?? {}
+  return Object.keys(categories).filter((category) => !knownAssetKeyForCategory(category))
+}
 
 /**
  * RF-63 BUG FIX: Cash Outflows ("Salidas", Flujo sheet rows 13-30). Reuses
@@ -14,45 +48,74 @@ const logger = new Logger('OutflowCalculations')
  */
 export function computeCapexByYear(cbm, years) {
   const opex = cbmToOperatingExpenseInputs(cbm, years)
+  const categories = cbm.assets?.byCategory ?? {}
+  const extraCategories = getExtraAssetCategories(cbm)
+  const extraAssetsByCategory = Object.fromEntries(
+    extraCategories.map((category) => [category, mapAssetsToYears(categories[category], years)])
+  )
 
   const capexByYear = {}
   years.forEach((year) => {
+    const extra = {}
+    extraCategories.forEach((category) => {
+      extra[category] = assetsCapexInYear(extraAssetsByCategory[category], year, years)
+    })
     capexByYear[year] = {
       machinery: assetsCapexInYear(opex.machines, year, years),
       buildings: assetsCapexInYear(opex.assets.buildings, year, years),
       compute: assetsCapexInYear(opex.assets.compute, year, years),
       transport: assetsCapexInYear(opex.assets.transport, year, years),
+      extra,
     }
   })
-  logger.debug('computeCapexByYear', { years, capexByYear })
+  logger.debug('computeCapexByYear', { years, extraCategories, capexByYear })
   return capexByYear
 }
 
-export const OUTFLOW_ROWS = [
-  { key: 'rawMaterial', label: 'Raw Materials' },
-  { key: 'directLabour', label: 'Direct Labor' },
-  { key: 'indirectManufacturing', label: 'Indirect Manufacturing Salaries' },
-  { key: 'engineeringSalaries', label: 'Engineering Salaries' },
-  { key: 'indirectMaterials', label: 'Indirect Materials' },
-  { key: 'administrativeSalary', label: 'Administrative Salaries' },
-  { key: 'administrativeGeneral', label: 'General Administrative Expenses' },
-  { key: 'salesExpenses', label: 'Sales Expenses' },
-  { key: 'machineryPurchase', label: 'Machinery Purchase' },
-  { key: 'buildingPurchase', label: 'Building Construction/Purchase' },
-  { key: 'civilWorks', label: 'Civil Works (Machinery Installation)' },
-  { key: 'computerEquipment', label: 'Computer Equipment Purchase' },
-  { key: 'transportEquipment', label: 'Transport Equipment Purchase' },
-  { key: 'creditPayment', label: 'Credit Payment' },
-  { key: 'creditInterest', label: 'Credit Interest' },
-  { key: 'taxes', label: 'Taxes' },
-  { key: 'insurance', label: 'Insurance' },
-  { key: 'otherExpenses', label: 'Other Expenses' },
-]
+/**
+ * Fixed rows (unchanged), plus one dynamic row per Inversion category that
+ * isn't Buildings/Transport/Compute/Machinery - a function of the project
+ * now, not a static list, since which extra categories exist (if any)
+ * varies per project.
+ */
+export function buildOutflowRows(cbm) {
+  const extraRows = getExtraAssetCategories(cbm).map((category) => ({
+    key: `extraAsset:${category}`,
+    label: `${category} Purchase`,
+  }))
+
+  return [
+    { key: 'rawMaterial', label: 'Raw Materials' },
+    { key: 'directLabour', label: 'Direct Labor' },
+    { key: 'indirectManufacturing', label: 'Indirect Manufacturing Salaries' },
+    { key: 'engineeringSalaries', label: 'Engineering Salaries' },
+    { key: 'indirectMaterials', label: 'Indirect Materials' },
+    { key: 'administrativeSalary', label: 'Administrative Salaries' },
+    { key: 'administrativeGeneral', label: 'General Administrative Expenses' },
+    { key: 'salesExpenses', label: 'Sales Expenses' },
+    { key: 'machineryPurchase', label: 'Machinery Purchase' },
+    { key: 'buildingPurchase', label: 'Building Construction/Purchase' },
+    { key: 'civilWorks', label: 'Civil Works (Machinery Installation)' },
+    { key: 'computerEquipment', label: 'Computer Equipment Purchase' },
+    { key: 'transportEquipment', label: 'Transport Equipment Purchase' },
+    ...extraRows,
+    { key: 'creditPayment', label: 'Credit Payment' },
+    { key: 'creditInterest', label: 'Credit Interest' },
+    { key: 'taxes', label: 'Taxes' },
+    { key: 'insurance', label: 'Insurance' },
+    { key: 'otherExpenses', label: 'Other Expenses' },
+  ]
+}
 
 /** rowByYear: costOfSalesByYear keyed by year. capexByYear: computeCapexByYear's output. */
 export function outflowBaseValue(rowKey, year, rowByYear, capexByYear) {
   const row = rowByYear[year]
-  const capex = capexByYear[year] ?? { machinery: 0, buildings: 0, compute: 0, transport: 0 }
+  const capex = capexByYear[year] ?? { machinery: 0, buildings: 0, compute: 0, transport: 0, extra: {} }
+
+  if (rowKey.startsWith('extraAsset:')) {
+    return capex.extra?.[rowKey.slice('extraAsset:'.length)] ?? 0
+  }
+
   switch (rowKey) {
     case 'rawMaterial': return row?.rawMaterial ?? 0
     case 'directLabour': return row?.directLabour ?? 0
