@@ -9,10 +9,10 @@ import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
  * pulled from other modules, and only the last one belongs to this
  * requirement:
  *
- *   Customer Orders  <- cbmToCostTableInputs (projectPurchaseOrdersFromCapacity:
- *                       year 0 real captured total, later years from the
- *                       plant's own installed capacity for that year -
- *                       derivedBase.annualCapacityByYear, Capacidad sheet)
+ *   Customer Orders  <- demand module (projectPurchaseOrders: year 0 actual,
+ *                       later years from annualized YTD × demandGrowth,
+ *                       Premisas "Demanda anual" - Capacidad/installed
+ *                       capacity is a separate, derived check, not a source)
  *   Unit Price       <- pricing module, RF-43 (projectSalesPrice, inflation)
 
  *   Total Income     <- CO x Unit Price, the one value RF-44 computes

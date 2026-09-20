@@ -102,6 +102,15 @@ export function readPremisas(rows, project) {
       insideDepreciationItemBlock = false
       continue
     }
+    // Premisas!B33 "Demanda anual" - scalar growth rate (0.07 = 7%), not a
+    // yearly series. Drives projectPurchaseOrders' compounding after year
+    // zero (see cbmToCostTableInputs.js) - was dropped in an earlier rewrite
+    // of this loop, which is why CO came out flat for a while.
+    if (label === 'demanda anual') {
+      project.premises.demandGrowth = toNumberOrUndefined(row[1])
+      insideDepreciationItemBlock = false
+      continue
+    }
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)

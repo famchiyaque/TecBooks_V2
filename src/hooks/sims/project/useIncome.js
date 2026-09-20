@@ -1,39 +1,9 @@
-import { useSelector } from "react-redux";
 import computeProductionCost, {
   toCostPerWorkOrder,
 } from "@/sims/project-feasibility/income/computeProductionCosts";
 import { sumAnnualSalariesByTitle } from "@/sims/project-feasibility/income/sumAnnualSalariesByTitle";
 import { cbmToCostTableInputs } from "@/sims/project-feasibility/costTable/cbmToCostTableInputs";
-import { applyDerivedBase } from "@/sims/project-feasibility/model/applyDerivedBase";
-import { HORIZON_YEARS } from "@/sims/project-feasibility/constants";
 import { computeNetSales } from "@/utils/dashboard/costCalculations";
-import { capacityLineEditsSlice } from "@/store/costTable.store";
-
-/**
- * Applies Capacity Line edits (CapacityLineTable, capacityLineEditsSlice) on
- * top of the parsed project, then re-derives annualCapacityByYear/qualityYield
- * so a Quality Yield/Shifts/etc. edit is instantly reflected in Customer
- * Orders - same relationship the original Excel had (Capacidad -> Ingresos).
- */
-function applyCapacityLineOverrides(project, overrides) {
-  if (!overrides || Object.keys(overrides).length === 0) return project;
-
-  const line = { ...project.capacity.line };
-  let changed = false;
-  Object.entries(overrides).forEach(([key, value]) => {
-    const [field, yearStr] = key.split(":");
-    const index = HORIZON_YEARS.indexOf(Number(yearStr));
-    if (index === -1 || !(field in line)) return;
-    line[field] = [...(line[field] ?? [])];
-    line[field][index] = value;
-    changed = true;
-  });
-  if (!changed) return project;
-
-  const withOverrides = { ...project, capacity: { ...project.capacity, line } };
-  applyDerivedBase(withOverrides);
-  return withOverrides;
-}
 
 function emptyIncome() {
   return {
@@ -46,12 +16,10 @@ function emptyIncome() {
 }
 
 function useIncome(project) {
-  const capacityLineOverrides = useSelector(capacityLineEditsSlice.selectOverrides)
   project = project?.cbm
   if (!project?.timeline || !project?.bom || !project?.premises) {
     return emptyIncome()
   }
-  project = applyCapacityLineOverrides(project, capacityLineOverrides)
 
   const inputs = cbmToCostTableInputs(project)
   const production = inputs.production

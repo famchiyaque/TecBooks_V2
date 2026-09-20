@@ -11,6 +11,43 @@ function pct(value) {
   return asNumber(value)
 }
 
+const LINE_FIELDS = [
+  'qualityYield',
+  'secondsPerUnit',
+  'hoursShift',
+  'shifts',
+  'productionLines',
+  'weekWorkingDays',
+  'monthsWorkingWeeks',
+  'yearWorkingMonths',
+]
+
+/**
+ * BUG FIX: game-to-cbm.mapper.js (DB round-trip - there's no per-year
+ * capacity table yet, only one flat row per project) still hands this a
+ * single number per field instead of a HORIZON_YEARS-indexed array. Left
+ * as-is, CapacityLineTable/useIncome's array spread on it threw (crashed
+ * the whole tab on any edit) and every year past index 0 read as undefined
+ * (blank cells, flat/zeroed Customer Orders). Normalize once here - repeat
+ * the captured scalar across every year, the same "flat until told
+ * otherwise" convention the rest of the app already uses - so every
+ * consumer of project.capacity.line can assume an array, always.
+ */
+function normalizeCapacityLine(line) {
+  const normalized = {}
+  LINE_FIELDS.forEach((field) => {
+    const value = line?.[field]
+    if (Array.isArray(value)) {
+      normalized[field] = value
+    } else if (typeof value === 'number' && Number.isFinite(value)) {
+      normalized[field] = HORIZON_YEARS.map(() => value)
+    } else {
+      normalized[field] = HORIZON_YEARS.map(() => undefined)
+    }
+  })
+  return normalized
+}
+
 const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES']
 
 /**
@@ -63,6 +100,7 @@ export function applyDerivedBase(project) {
   // 0 only, for the one existing consumer (BreakEvenSummary's per-unit labor
   // cost) that expects a single year-zero number - annualCapacityByYear is
   // the new per-year series everything else should use going forward.
+  project.capacity.line = normalizeCapacityLine(project.capacity.line)
   const line = project.capacity.line
 
   const { unitsPerHour, capacity: annualCapacity } = capacityForIndex(line, 0)
