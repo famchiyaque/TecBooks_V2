@@ -20,7 +20,7 @@ function Income({ project }) {
 
   const columns = useMemo(
     () => [
-      { key: "concept", label: "", width: "18rem" },
+      { key: "concept", label: "" },
       ...years.map((year) => ({
         key: String(year),
         label: String(year),

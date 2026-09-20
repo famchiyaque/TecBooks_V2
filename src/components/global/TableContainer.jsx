@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 import InfoTooltip from "@/components/global/InfoTooltip";
 
@@ -48,6 +48,11 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  *     { id: "sales", title: "Sales", rows: salesRows, defaultExpanded: true },
  *   ]}
  * />
+ *
+ * Sectioned tables measure a hidden auto-layout copy of every row (including
+ * collapsed sections) and lock those pixel widths on the visible table, so
+ * year columns stay aligned when a section closes and cells grow to fit
+ * their longest value instead of clipping.
  *
  * Total row: pass `rowVariant: "total"` on any row object.
  * Mixed units: pass `valueType: "units" | "currency"` on a row to override the
@@ -113,6 +118,36 @@ function buildGroupSpans(rows, groupKey) {
   return spans;
 }
 
+function widthsEqual(a, b) {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((width, i) => width === b[i]);
+}
+
+function displayColumnWidths(contentWidths, availableWidth) {
+  if (!contentWidths?.length) return null;
+
+  const [conceptWidth, ...yearContent] = contentWidths;
+  if (yearContent.length === 0) {
+    return [Math.max(conceptWidth, availableWidth || 0)];
+  }
+
+  // Size every year column to the widest year cell so the numeric grid is even
+  // and no year clips, then give leftover card width to the year columns.
+  const yearWidth = Math.max(...yearContent);
+  const next = [conceptWidth, ...yearContent.map(() => yearWidth)];
+  const total = next.reduce((sum, width) => sum + width, 0);
+  if (availableWidth > total) {
+    const extra = availableWidth - total;
+    const share = Math.floor(extra / yearContent.length);
+    const remainder = extra - share * yearContent.length;
+    return next.map((width, i) =>
+      i === 0 ? width : width + share + (i === next.length - 1 ? remainder : 0),
+    );
+  }
+  return next;
+}
+
 function SectionChevron({ expanded }) {
   return (
     <svg
@@ -131,6 +166,36 @@ function SectionChevron({ expanded }) {
   );
 }
 
+function TableHeader({ columns, cellPad, scrollBody, applyColWidth }) {
+  return (
+    <thead>
+      <tr
+        className={
+          "border-b border-slate-200 " +
+          (scrollBody ? "sticky top-0 z-10 bg-slate-50" : "bg-slate-50/60")
+        }
+      >
+        {columns.map((col) => (
+          <th
+            key={col.key}
+            scope="col"
+            className={
+              cellPad +
+              " whitespace-nowrap text-[13px] font-medium text-slate-500 " +
+              (col.align === "right" ? "text-right" : "text-left")
+            }
+            style={
+              applyColWidth && col.width ? { width: col.width } : undefined
+            }
+          >
+            {col.label}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  );
+}
+
 function DataRows({
   rows,
   columns,
@@ -140,25 +205,29 @@ function DataRows({
   labelKey,
   emptyLabel,
   rowKeyPrefix = "",
+  applyColWidth = true,
+  endBorder = false,
 }) {
   const groupSpans = groupColumn
     ? buildGroupSpans(rows, groupColumn.key)
     : null;
 
   if (rows.length === 0) {
-    return emptyRows(emptyLabel, columns, cellPad);
+    return emptyRows(emptyLabel, columns, cellPad, endBorder);
   }
 
   return rows.map((row, rowIndex) => {
     const isTotal = row.rowVariant === "total";
+    const isLast = rowIndex === rows.length - 1;
     return (
       <tr
         key={rowKeyPrefix + (row.id ?? rowIndex)}
         className={
-          isTotal
+          (isTotal
             ? "bg-slate-50/80 rounded-b-md"
             : "transition-colors hover:bg-slate-50/60 " +
-              (rowIndex % 2 === 1 ? "bg-slate-50/30" : "")
+              (rowIndex % 2 === 1 ? "bg-slate-50/30" : "")) +
+          (isLast && endBorder ? " border-b-[3px] border-slate-400" : "")
         }
       >
         {columns.map((col) => {
@@ -174,7 +243,9 @@ function DataRows({
                   " align-top border-r border-slate-100 bg-slate-50/50 font-medium text-slate-700 " +
                   (isFixed ? "break-words" : "whitespace-nowrap")
                 }
-                style={col.width ? { width: col.width } : undefined}
+                style={
+                  applyColWidth && col.width ? { width: col.width } : undefined
+                }
               >
                 {row[col.key]}
               </td>
@@ -198,7 +269,9 @@ function DataRows({
                 (col.wrap && !isFixed ? " min-w-[14rem]" : "") +
                 (col.wrap ? " text-slate-500" : "")
               }
-              style={col.width ? { width: col.width } : undefined}
+              style={
+                applyColWidth && col.width ? { width: col.width } : undefined
+              }
             >
               {col.key === labelKey && row.tooltip ? (
                 <span className="inline-flex items-center">
@@ -242,6 +315,10 @@ export default function TableContainer({
   const labelKey = columns[0]?.key;
   const useSections = Array.isArray(sections);
   const [openSections, setOpenSections] = useState({});
+  const measureRef = useRef(null);
+  const containerRef = useRef(null);
+  const [contentWidths, setContentWidths] = useState(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
 
   const isSectionOpen = (section) =>
     openSections[section.id] ?? section.defaultExpanded ?? false;
@@ -262,10 +339,60 @@ export default function TableContainer({
     emptyLabel,
   };
 
+  useLayoutEffect(() => {
+    if (!useSections) return undefined;
+
+    const table = measureRef.current;
+    if (!table) return undefined;
+
+    let cancelled = false;
+    const read = () => {
+      if (cancelled) return;
+      const next = Array.from(table.querySelectorAll("thead th")).map((th) =>
+        Math.ceil(th.getBoundingClientRect().width),
+      );
+      setContentWidths((prev) => (widthsEqual(prev, next) ? prev : next));
+    };
+
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(table);
+    document.fonts?.ready?.then(read);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [useSections, columns, sections, cellPad]);
+
+  useLayoutEffect(() => {
+    if (!useSections) return undefined;
+
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const read = () => {
+      const next = container.clientWidth;
+      setAvailableWidth((prev) => (prev === next ? prev : next));
+    };
+
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [useSections]);
+
+  const colWidths = useMemo(
+    () =>
+      useSections ? displayColumnWidths(contentWidths, availableWidth) : null,
+    [useSections, contentWidths, availableWidth],
+  );
+
+  const tableWidth = colWidths?.reduce((sum, width) => sum + width, 0);
+
   return (
     <section
       className={
-        "rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02] " +
+        "relative rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02] " +
         (scrollBody ? "flex h-full flex-col overflow-hidden " : "") +
         className
       }
@@ -289,50 +416,79 @@ export default function TableContainer({
         </div>
       )}
 
+      {useSections && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-0 -z-10"
+          style={{ left: -99999, visibility: "hidden" }}
+        >
+          <table
+            ref={measureRef}
+            className="min-w-max border-collapse text-sm"
+          >
+            <TableHeader
+              columns={columns}
+              cellPad={cellPad}
+              scrollBody={false}
+              applyColWidth={false}
+            />
+            <tbody>
+              {sections.map((section) => (
+                <DataRows
+                  key={section.id}
+                  {...dataRowProps}
+                  isFixed={false}
+                  applyColWidth={false}
+                  rows={section.rows ?? []}
+                  rowKeyPrefix={"measure-" + section.id + "-"}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <div
+        ref={containerRef}
         className={
           (scrollBody ? "flex-1 min-h-0 overflow-y-auto " : "") +
-          (isFixed ? "" : "overflow-x-auto")
+          (isFixed && !useSections ? "" : "overflow-x-auto")
         }
       >
         <table
           className={
-            "w-full border-collapse text-sm " +
-            (isFixed ? "table-fixed" : "min-w-max")
+            "border-collapse text-sm " +
+            (isFixed || colWidths ? "table-fixed " : "min-w-max ") +
+            (tableWidth ? "" : "w-full")
           }
+          style={tableWidth ? { width: tableWidth } : undefined}
         >
-          <thead>
-            <tr
-              className={
-                "border-b border-slate-200 " +
-                (scrollBody
-                  ? "sticky top-0 z-10 bg-slate-50"
-                  : "bg-slate-50/60")
-              }
-            >
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  scope="col"
-                  className={
-                    cellPad +
-                    " whitespace-nowrap text-[13px] font-medium text-slate-500 " +
-                    (col.align === "right" ? "text-right" : "text-left")
-                  }
-                  style={col.width ? { width: col.width } : undefined}
-                >
-                  {col.label}
-                </th>
+          {colWidths && (
+            <colgroup>
+              {columns.map((col, i) => (
+                <col key={col.key} style={{ width: colWidths[i] }} />
               ))}
-            </tr>
-          </thead>
+            </colgroup>
+          )}
+          <TableHeader
+            columns={columns}
+            cellPad={cellPad}
+            scrollBody={scrollBody}
+            applyColWidth={!colWidths}
+          />
 
           {useSections ? (
             sections.map((section) => {
               const expanded = isSectionOpen(section);
               return (
                 <tbody key={section.id}>
-                  <tr className="border-b border-slate-200">
+                  <tr
+                    className={
+                      expanded
+                        ? "border-b border-slate-200"
+                        : "border-b-[3px] border-slate-400"
+                    }
+                  >
                     <td colSpan={columns.length} className="p-0">
                       <button
                         type="button"
@@ -354,6 +510,8 @@ export default function TableContainer({
                   {expanded && (
                     <DataRows
                       {...dataRowProps}
+                      applyColWidth={!colWidths}
+                      endBorder
                       rows={section.rows ?? []}
                       rowKeyPrefix={section.id + "-"}
                     />
@@ -372,9 +530,9 @@ export default function TableContainer({
   );
 }
 
-function emptyRows(emptyLabel, columns, cellPad) {
+function emptyRows(emptyLabel, columns, cellPad, endBorder = false) {
   return (
-    <tr>
+    <tr className={endBorder ? "border-b-[3px] border-slate-400" : ""}>
       <td
         colSpan={columns.length}
         className={cellPad + " text-center text-sm text-slate-400"}
