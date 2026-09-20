@@ -3,18 +3,15 @@ import { useSelector } from 'react-redux'
 import { Alert } from '@mui/material'
 import EditableTable from '@/components/global/EditableTable'
 import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
-import { buildCostOfSales } from './buildCostOfSales'
 import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
 import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
 
-function CashTable({ project }) {
+function CashTable({ project, result }) {
   const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
   const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
   const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows)
   const openingCash = startingMoneyFromCbm(project.cbm)
-
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   const rowByYear = React.useMemo(() => {
     if (result.error) return {}

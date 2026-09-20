@@ -2,7 +2,6 @@ import React from 'react'
 import { Alert } from '@mui/material'
 import EditableTable from '@/components/global/EditableTable'
 import { outflowEditsSlice } from '@/store/costTable.store'
-import { buildCostOfSales } from './buildCostOfSales'
 import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
 
 /**
@@ -13,9 +12,7 @@ import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCal
  * (Civil Works, Insurance, Other Expenses) - editable like every other row
  * here, same double-click override pattern.
  */
-function OutflowsTable({ project }) {
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
-
+function OutflowsTable({ project, result }) {
   const years = React.useMemo(
     () => (result.error ? [] : result.costOfSalesByYear.map((row) => row.year)),
     [result]

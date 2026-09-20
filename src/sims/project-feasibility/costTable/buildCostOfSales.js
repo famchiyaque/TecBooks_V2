@@ -8,10 +8,10 @@ import {
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 import { Logger } from '../utils/logger.js'
+import {ENTRADA_ROWS} from "@/sims/project-feasibility/costTable/cashFlowCalculations.js"
+import {OUTFLOW_ROWS} from "@/sims/project-feasibility/costTable/outflowCalculations.js"
 import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
-
-import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js"
-import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest.js"
+import {computeCashFlowByYear} from "@/sims/project-feasibility/costTable/computeCashFlowByYear.js"
 
 const logger = new Logger('BuildCostOfSales')
 
@@ -133,22 +133,25 @@ export function buildCostOfSales(cbm) {
   })
 
   const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
+  
+  console.log("Sales: ", netSales)
+  console.log("Long Term loan", financingAmount)
 
-  const incomeStatementByYear = costOfSalesByYear.map((row) => ({
+  const incomeStatementByYear = costOfSalesByYear.map((row, idx) => ({
     ...row,
     administrativeExpenses: administrativeExpenses[row.year],
-    civilWorks: civilWorks[row.year],
     // Split out of administrativeExpenses (= administrativeSalary + netSales
     // * adminPct) so the Cash Outflows table can show "Administrative
     // Salaries" and "General Administrative Expenses" as separate lines,
     // same as Flujo sheet rows 18-19 (Egresos!B154 / Egresos!B206).
     administrativeSalary: AdministrativeByYear[row.year],
     // Single fixed loan (see BUG FIX above) - same amount reported on every row.
-    financingAmount,
+    financingAmount: idx == 0 ? financingAmount : 0,
     depreciationBuildings: depreciationBuildings[row.year],
     depreciationTransport: depreciationTransport[row.year],
     depreciationMachinery: depreciationMachinery[row.year],
     depreciationCompute: depreciationCompute[row.year],
+    civilWorks: civilWorks[row.year],
     salesExpenses: salesExpenses[row.year],
     operatingExpenses: operatingExpenses[row.year],
     operatingProfit: computeOperatingProfit(row.grossProfit, operatingExpenses[row.year]),
@@ -163,7 +166,18 @@ export function buildCostOfSales(cbm) {
     netIncome: computeNetIncome(incomeBeforeTaxes[row.year], taxes[row.year].total),
   }))
 
-  const result = { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }
+  const rowByYear = Object.fromEntries(
+    incomeStatementByYear.map(row => [row.year, row])
+  )
+
+  const cashFlow = computeCashFlowByYear(
+    cbm,
+    years,
+    rowByYear
+  )
+
+  const result = { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees, cashFlow }
+
   logger.debug('buildCostOfSales: final income statement', result)
   return result
 }

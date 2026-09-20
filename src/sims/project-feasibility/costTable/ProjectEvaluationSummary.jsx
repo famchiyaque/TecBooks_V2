@@ -54,15 +54,13 @@ function Stat({ label, value, highlight }) {
  * is built from) - reads both edits slices directly so it stays live
  * against overrides made in either table, same as Profit Summary does.
  */
-function ProjectEvaluationSummary({ project }) {
+function ProjectEvaluationSummary({ project, result }) {
   const [riskPremium, setRiskPremium] = React.useState(0.1)
 
   const entradaOverrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const entradaCustomRows = useSelector(cashFlowEditsSlice.selectCustomRows)
   const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
   const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows)
-
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   const years = React.useMemo(
     () => (result.error ? [] : result.costOfSalesByYear.map((row) => row.year)),

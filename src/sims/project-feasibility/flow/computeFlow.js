@@ -35,6 +35,7 @@ function computeFlow(project) {
     year = parseInt(year);
     if (year != years.at(-1)) initialBalance[year + 1] = amount;
   });
+  // console.log("TotalExpenses", totalExpenses)
 
   const totalIncome = Object.entries(initialBalance).reduce(
     (acc, [year, amount]) => {
@@ -45,10 +46,13 @@ function computeFlow(project) {
     {},
   );
 
+  // console.log("TotalIncome", totalIncome)
   const netFlow = Object.entries(totalIncome).reduce((acc, [year, amount]) => {
     acc[year] = amount - totalExpenses[year];
     return acc;
   }, {});
+
+  // console.log("NetFlow", netFlow)
 
   const result = { totalIncome, totalExpenses, netFlow };
   logger.warn("computeFlow (legacy/unused - superseded by cashFlowCalculations.js, kept for reference)", result);
