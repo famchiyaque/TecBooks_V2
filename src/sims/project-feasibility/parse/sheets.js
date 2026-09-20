@@ -161,7 +161,11 @@ export function readCapacidad(rows, project) {
   for (const row of rows.slice(1)) {
     const label = normalizeLabel(row?.[0])
     if (label && !SKIP_LINE_LABELS.has(label) && LINE_LABELS[label]) {
-      project.capacity.line[LINE_LABELS[label]] = toNumberOrUndefined(row[1])
+      // BUG FIX: Quality Yield/Shifts/Production Lines/etc. genuinely change
+      // year to year (Capacidad's own sheet has a year column per field,
+      // same header this yearMap already comes from) - was only ever reading
+      // column B (year zero), throwing away every later year.
+      project.capacity.line[LINE_LABELS[label]] = seriesFromRow(row, yearMap)
     }
 
     const code = toStringOrUndefined(row?.[3])

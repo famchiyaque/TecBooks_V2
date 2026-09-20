@@ -37,6 +37,7 @@ import {
   taxesEditsSlice,
   cashFlowEditsSlice,
   outflowEditsSlice,
+  capacityLineEditsSlice,
 } from "@/store/costTable.store";
 import {
   currentActivesSlice,
@@ -168,6 +169,7 @@ function ProjectDashboard() {
           [taxesEditsSlice.name]: taxesEditsSlice.reducer,
           [cashFlowEditsSlice.name]: cashFlowEditsSlice.reducer,
           [outflowEditsSlice.name]: outflowEditsSlice.reducer,
+          [capacityLineEditsSlice.name]: capacityLineEditsSlice.reducer,
           [currentActivesSlice.name]: currentActivesSlice.reducer,
           [deferedActivesSlice.name]: deferedActivesSlice.reducer,
           [currentPassiveSlice.name]: currentPassiveSlice.reducer,

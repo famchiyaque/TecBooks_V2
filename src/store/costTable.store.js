@@ -24,6 +24,13 @@ export const cashFlowEditsSlice = new EditableTableSlice('cashFlowEdits');
 // so an override/custom row on one side doesn't leak into the other's total.
 export const outflowEditsSlice = new EditableTableSlice('outflowEdits');
 
+// Capacity Line (Capacidad sheet: Quality Yield, Shifts, Production Lines,
+// etc.) - per-year overrides only, no custom rows/Total (these are physical
+// plant parameters, not summable money rows). Read live by useIncome to
+// recompute derivedBase.annualCapacityByYear, which post-year-zero Customer
+// Orders come from (see cbmToCostTableInputs.js).
+export const capacityLineEditsSlice = new EditableTableSlice('capacityLineEdits');
+
 const costTableSlice = createSlice({
   name: 'costTable',
   initialState: {

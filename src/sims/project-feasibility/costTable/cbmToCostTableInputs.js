@@ -1,13 +1,37 @@
 import { HORIZON_YEARS } from '../constants.js'
-import { projectPurchaseOrders } from '../demand/projectPurchaseOrders.js'
 
-function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
+// BUG FIX: Quality Yield genuinely changes year to year (Capacidad's own
+// sheet has a year column for it) - was reading a single year-zero value
+// and repeating it flat across the whole projection.
+function projectQualityYield(yearZeroYear, qualityYieldSeries) {
   const qualityYield = {}
-  HORIZON_YEARS.forEach((year) => {
+  HORIZON_YEARS.forEach((year, index) => {
     if (year < yearZeroYear) return
-    qualityYield[year] = qualityYieldAtYearZero
+    qualityYield[year] = qualityYieldSeries?.[index]
   })
   return qualityYield
+}
+
+/**
+ * BUG FIX: purchase orders used to grow off demandGrowth - a premise with
+ * no source field anywhere in InputNovus, so it was always 0 and every
+ * future year came out identical to the annualized base. Later years now
+ * come from the plant's own installed capacity for that year
+ * (annualCapacityByYear - Shifts/Production Lines/etc from Capacidad genuinely
+ * change year to year, see applyDerivedBase) - year zero stays exactly the
+ * real, captured order total, untouched.
+ */
+function projectPurchaseOrdersFromCapacity(yearZeroYear, yearZeroTotal, annualCapacityByYear) {
+  const purchaseOrders = {}
+  HORIZON_YEARS.forEach((year, index) => {
+    if (year < yearZeroYear) return
+    if (year === yearZeroYear) {
+      purchaseOrders[year] = yearZeroTotal
+      return
+    }
+    purchaseOrders[year] = annualCapacityByYear?.[index]
+  })
+  return purchaseOrders
 }
 
 /**
@@ -57,14 +81,11 @@ export function cbmToCostTableInputs(cbm) {
   let qualityYield = {}
   let salesPricePerUnit = {}
   if (yearZeroYear !== undefined) {
-    purchaseOrders = projectPurchaseOrders({
+    purchaseOrders = projectPurchaseOrdersFromCapacity(
       yearZeroYear,
-      yearZeroTotal: cbm.demand?.yearZeroTotal,
-      yearZeroOrders: cbm.demand?.yearZeroOrders,
-      monthShares: cbm.demand?.monthShares,
-      history: cbm.demand?.history,
-      demandGrowth: cbm.premises?.demandGrowth,
-    })
+      cbm.demand?.yearZeroTotal,
+      cbm.derivedBase?.annualCapacityByYear
+    )
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
     salesPricePerUnit = projectSalesPrice(
       yearZeroYear,

@@ -4,8 +4,10 @@ import ProductionCostTable from "./income/ProductionCostTable";
 import UtilityCostTable from "./income/UtilityCostTable";
 import CompetitivePriceTable from "./income/CompetitivePriceTable";
 import SalesTable from "./income/SalesTable";
+import CapacityLineTable from "./income/CapacityLineTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 import { INFLOWS_TOOLTIPS } from "./income/inflowsTooltips";
+import { HORIZON_YEARS } from "@/sims/project-feasibility/constants";
 
 function Income({ project }) {
   const income = useIncome(project);
@@ -49,6 +51,7 @@ function Income({ project }) {
           sales={income.sales}
           baseYear={baseYear}
         />
+        <CapacityLineTable capacityLine={project?.cbm?.capacity?.line} years={HORIZON_YEARS} />
       </CollapsibleSection>
 
       <CollapsibleSection

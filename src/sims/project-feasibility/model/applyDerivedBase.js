@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger.js'
+import { HORIZON_YEARS } from '../constants.js'
 
 const logger = new Logger('ApplyDerivedBase')
 
@@ -30,26 +31,42 @@ function classifyEmployeeCategory(name, type) {
 }
 
 /**
+ * annualCapacity = unitsPerHour x hoursShift x shifts x productionLines x
+ * weekWorkingDays x monthsWorkingWeeks x yearWorkingMonths, unitsPerHour =
+ * 3600/secondsPerUnit - Capacidad sheet's own "Anual Capacity" formula.
+ * Exported so CapacityLineTable can show the same computed number the edits
+ * feed into (annualCapacityByYear below), without duplicating the formula.
+ */
+export function capacityForIndex(line, index) {
+  const seconds = line.secondsPerUnit?.[index]
+  const unitsPerHour = typeof seconds === 'number' && seconds > 0 ? 3600 / seconds : undefined
+  const factors = [
+    unitsPerHour,
+    line.hoursShift?.[index],
+    line.shifts?.[index],
+    line.productionLines?.[index],
+    line.weekWorkingDays?.[index],
+    line.monthsWorkingWeeks?.[index],
+    line.yearWorkingMonths?.[index],
+  ]
+  return factors.every((n) => typeof n === 'number' && Number.isFinite(n))
+    ? { unitsPerHour, capacity: factors.reduce((acc, n) => acc * n, 1) }
+    : { unitsPerHour, capacity: undefined }
+}
+
+/**
  * Completes ProjectClass with values implied by inputs (not dashboard statements).
  */
 export function applyDerivedBase(project) {
-  const seconds = project.capacity.line.secondsPerUnit
-  const unitsPerHour =
-    typeof seconds === 'number' && seconds > 0 ? 3600 / seconds : undefined
-
+  // capacity.line fields are now per-year arrays (HORIZON_YEARS-indexed) -
+  // see readCapacidad's BUG FIX. annualCapacity (scalar) keeps reading index
+  // 0 only, for the one existing consumer (BreakEvenSummary's per-unit labor
+  // cost) that expects a single year-zero number - annualCapacityByYear is
+  // the new per-year series everything else should use going forward.
   const line = project.capacity.line
-  const factors = [
-    unitsPerHour,
-    line.hoursShift,
-    line.shifts,
-    line.productionLines,
-    line.weekWorkingDays,
-    line.monthsWorkingWeeks,
-    line.yearWorkingMonths,
-  ]
-  const annualCapacity = factors.every((n) => typeof n === 'number' && Number.isFinite(n))
-    ? factors.reduce((acc, n) => acc * n, 1)
-    : undefined
+
+  const { unitsPerHour, capacity: annualCapacity } = capacityForIndex(line, 0)
+  const annualCapacityByYear = HORIZON_YEARS.map((_, index) => capacityForIndex(line, index).capacity)
 
   const machines = project.capacity.machines
   const operatorCount = machines.reduce((acc, machine) => acc + asNumber(machine.operators), 0)
@@ -100,6 +117,7 @@ export function applyDerivedBase(project) {
   project.derivedBase = {
     unitsPerHour,
     annualCapacity,
+    annualCapacityByYear,
     operatorCount,
     supervisorCount,
     bomMaterialCost,
