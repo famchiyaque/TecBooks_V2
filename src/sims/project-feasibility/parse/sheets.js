@@ -55,6 +55,11 @@ const ASSET_BLOCKS = [
   { match: 'equipo de computo', key: 'compute' },
 ]
 
+// Matches an Inversion category that's really machinery (see readInversion's
+// BUG FIX below) - "maquinaria" (Spanish) or "machinery" (English, post
+// save/reload round-trip label).
+const MACHINERY_CATEGORY_PATTERN = /^maquinaria|^machinery/
+
 // Any "Porcentaje depreciacion X" row becomes its own category rate - not
 // just the 4 fixed PREMISES_ROWS fields InputNovus happens to always have.
 // Mirrors readInversion's structural category detection: X can be anything,
@@ -230,6 +235,7 @@ export function readBOM(rows, project) {
 export function readInversion(rows, project) {
   let currentKey = null
   let currentCategory = null
+  let isMachineryCategory = false
   let yearMap = {}
 
   for (const row of rows) {
@@ -237,8 +243,19 @@ export function readInversion(rows, project) {
     if (Object.keys(rowYearMap).length > 0) {
       currentCategory = toStringOrUndefined(row?.[0])
       yearMap = rowYearMap
-      if (currentCategory) project.assets.byCategory[currentCategory] ??= []
       const label = normalizeLabel(row?.[0])
+      // BUG FIX: some Inversion sheets ALSO have their own "Maquinaria y
+      // equipo" category, even though Capacidad's machine list
+      // (capacity.machines, see readCapacidad) already IS the app's one
+      // source of truth for machinery - Cash Outflows' "Machinery Purchase"
+      // row, the loan's machineryInvestment, and Balance Sheet's "Machinery
+      // and Equipment" category (computeFixedAssets.js) all read from
+      // capacity.machines already. Registering this Inversion category too
+      // double-counted the same machinery in all three. Skip adding it to
+      // byCategory entirely - still tracked structurally below so its rows
+      // are consumed (not misread as the next category), just discarded.
+      isMachineryCategory = MACHINERY_CATEGORY_PATTERN.test(label)
+      if (currentCategory && !isMachineryCategory) project.assets.byCategory[currentCategory] ??= []
       const block = ASSET_BLOCKS.find((item) => label.startsWith(item.match))
       currentKey = block?.key ?? null
       continue
@@ -250,9 +267,11 @@ export function readInversion(rows, project) {
       if (isBlank(row?.[1])) {
         currentKey = null
         currentCategory = null
+        isMachineryCategory = false
       }
       continue
     }
+    if (isMachineryCategory) continue
 
     const asset = { name, acquisitionByYear: seriesFromRow(row, yearMap) }
     project.assets.byCategory[currentCategory].push(asset)
