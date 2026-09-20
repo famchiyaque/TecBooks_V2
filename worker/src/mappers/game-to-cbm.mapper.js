@@ -342,6 +342,7 @@ export function mapGameRowsToCbm({
       subcategory: service.subcategory ?? '',
       description: service.description || service.name || '',
       monthlyAmount: asNumber(service.default_cost, 0),
+      notes: service.notes ?? '',
     })),
   };
 }

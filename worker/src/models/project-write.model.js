@@ -202,8 +202,8 @@ export async function insertExpenses(database, gameId, expenses) {
     expenses.map((expense) =>
       database
         .prepare(
-          `INSERT INTO expenses (game_id, category, subcategory, name, description, default_cost, expense_type)
-           VALUES (?, ?, ?, ?, ?, ?, 'fixed')`
+          `INSERT INTO expenses (game_id, category, subcategory, name, description, default_cost, expense_type, notes)
+           VALUES (?, ?, ?, ?, ?, ?, 'fixed', ?)`
         )
         .bind(
           gameId,
@@ -211,7 +211,8 @@ export async function insertExpenses(database, gameId, expenses) {
           expense.subcategory,
           expense.name,
           expense.description,
-          expense.defaultCost
+          expense.defaultCost,
+          expense.notes ?? ''
         )
     )
   );

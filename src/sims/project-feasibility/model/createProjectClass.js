@@ -51,15 +51,20 @@ export function createProjectClass({ fileName } = {}) {
       yearZeroTotal: undefined,
     },
     capacity: {
+      // BUG FIX: was a single flat value per field (year-zero only) even
+      // though Capacidad's own sheet has a year column per field and these
+      // genuinely change year to year (Shifts, Production Lines, Quality
+      // Yield, etc. - see readCapacidad). Per-year series now, same
+      // HORIZON_YEARS-indexed array shape as premises.* fields.
       line: {
-        qualityYield: undefined,
-        secondsPerUnit: undefined,
-        hoursShift: undefined,
-        shifts: undefined,
-        productionLines: undefined,
-        weekWorkingDays: undefined,
-        monthsWorkingWeeks: undefined,
-        yearWorkingMonths: undefined,
+        qualityYield: emptyYearSeries(),
+        secondsPerUnit: emptyYearSeries(),
+        hoursShift: emptyYearSeries(),
+        shifts: emptyYearSeries(),
+        productionLines: emptyYearSeries(),
+        weekWorkingDays: emptyYearSeries(),
+        monthsWorkingWeeks: emptyYearSeries(),
+        yearWorkingMonths: emptyYearSeries(),
       },
       machines: [],
     },
@@ -81,6 +86,7 @@ export function createProjectClass({ fileName } = {}) {
     derivedBase: {
       unitsPerHour: undefined,
       annualCapacity: undefined,
+      annualCapacityByYear: emptyYearSeries(),
       operatorCount: 0,
       supervisorCount: 0,
       bomMaterialCost: undefined,

@@ -214,6 +214,9 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       name: service.description || service.subcategory || 'Service',
       description: service.description || '',
       defaultCost: asNumber(service.monthlyAmount, 0),
+      // BUG FIX: "Notes and Considerations" column - existed on the
+      // expenses table already, was just never written here.
+      notes: service.notes || '',
     })),
     assets: mapAssets(cbm),
     employees: mapEmployees(cbm),
@@ -235,13 +238,18 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       history: cbm?.demand?.history ?? [],
     },
     capacity: {
-      qualityYield: asNumber(line.qualityYield),
-      secondsPerUnit: asNumber(line.secondsPerUnit),
-      hoursShift: asNumber(line.hoursShift),
-      shifts: asNumber(line.shifts),
-      productionLineCount: asNumber(line.productionLines),
-      weekWorkingDays: asNumber(line.weekWorkingDays),
-      yearWorkingMonths: asNumber(line.yearWorkingMonths),
+      // BUG FIX: line.* are now HORIZON_YEARS-indexed arrays (see readCapacidad),
+      // so asNumber(array) always fell back to null here, silently dropping
+      // every Capacidad value before it ever reached the DB. firstFinite
+      // reads the first real value in the series instead - same fallback the
+      // scalar `capacity` table's own columns need since they have no year.
+      qualityYield: firstFinite(line.qualityYield),
+      secondsPerUnit: firstFinite(line.secondsPerUnit),
+      hoursShift: firstFinite(line.hoursShift),
+      shifts: firstFinite(line.shifts),
+      productionLineCount: firstFinite(line.productionLines),
+      weekWorkingDays: firstFinite(line.weekWorkingDays),
+      yearWorkingMonths: firstFinite(line.yearWorkingMonths),
     },
   };
 }

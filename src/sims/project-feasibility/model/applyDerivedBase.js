@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger.js'
+import { HORIZON_YEARS } from '../constants.js'
 
 const logger = new Logger('ApplyDerivedBase')
 
@@ -8,6 +9,43 @@ function asNumber(value) {
 
 function pct(value) {
   return asNumber(value)
+}
+
+const LINE_FIELDS = [
+  'qualityYield',
+  'secondsPerUnit',
+  'hoursShift',
+  'shifts',
+  'productionLines',
+  'weekWorkingDays',
+  'monthsWorkingWeeks',
+  'yearWorkingMonths',
+]
+
+/**
+ * BUG FIX: game-to-cbm.mapper.js (DB round-trip - there's no per-year
+ * capacity table yet, only one flat row per project) still hands this a
+ * single number per field instead of a HORIZON_YEARS-indexed array. Left
+ * as-is, CapacityLineTable/useIncome's array spread on it threw (crashed
+ * the whole tab on any edit) and every year past index 0 read as undefined
+ * (blank cells, flat/zeroed Customer Orders). Normalize once here - repeat
+ * the captured scalar across every year, the same "flat until told
+ * otherwise" convention the rest of the app already uses - so every
+ * consumer of project.capacity.line can assume an array, always.
+ */
+function normalizeCapacityLine(line) {
+  const normalized = {}
+  LINE_FIELDS.forEach((field) => {
+    const value = line?.[field]
+    if (Array.isArray(value)) {
+      normalized[field] = value
+    } else if (typeof value === 'number' && Number.isFinite(value)) {
+      normalized[field] = HORIZON_YEARS.map(() => value)
+    } else {
+      normalized[field] = HORIZON_YEARS.map(() => undefined)
+    }
+  })
+  return normalized
 }
 
 const ENGINEERING_EXACT_NAMES = ['GERENTE DE OPERACIONES']
@@ -30,26 +68,43 @@ function classifyEmployeeCategory(name, type) {
 }
 
 /**
+ * annualCapacity = unitsPerHour x hoursShift x shifts x productionLines x
+ * weekWorkingDays x monthsWorkingWeeks x yearWorkingMonths, unitsPerHour =
+ * 3600/secondsPerUnit - Capacidad sheet's own "Anual Capacity" formula.
+ * Exported so CapacityLineTable can show the same computed number the edits
+ * feed into (annualCapacityByYear below), without duplicating the formula.
+ */
+export function capacityForIndex(line, index) {
+  const seconds = line.secondsPerUnit?.[index]
+  const unitsPerHour = typeof seconds === 'number' && seconds > 0 ? 3600 / seconds : undefined
+  const factors = [
+    unitsPerHour,
+    line.hoursShift?.[index],
+    line.shifts?.[index],
+    line.productionLines?.[index],
+    line.weekWorkingDays?.[index],
+    line.monthsWorkingWeeks?.[index],
+    line.yearWorkingMonths?.[index],
+  ]
+  return factors.every((n) => typeof n === 'number' && Number.isFinite(n))
+    ? { unitsPerHour, capacity: factors.reduce((acc, n) => acc * n, 1) }
+    : { unitsPerHour, capacity: undefined }
+}
+
+/**
  * Completes ProjectClass with values implied by inputs (not dashboard statements).
  */
 export function applyDerivedBase(project) {
-  const seconds = project.capacity.line.secondsPerUnit
-  const unitsPerHour =
-    typeof seconds === 'number' && seconds > 0 ? 3600 / seconds : undefined
-
+  // capacity.line fields are now per-year arrays (HORIZON_YEARS-indexed) -
+  // see readCapacidad's BUG FIX. annualCapacity (scalar) keeps reading index
+  // 0 only, for the one existing consumer (BreakEvenSummary's per-unit labor
+  // cost) that expects a single year-zero number - annualCapacityByYear is
+  // the new per-year series everything else should use going forward.
+  project.capacity.line = normalizeCapacityLine(project.capacity.line)
   const line = project.capacity.line
-  const factors = [
-    unitsPerHour,
-    line.hoursShift,
-    line.shifts,
-    line.productionLines,
-    line.weekWorkingDays,
-    line.monthsWorkingWeeks,
-    line.yearWorkingMonths,
-  ]
-  const annualCapacity = factors.every((n) => typeof n === 'number' && Number.isFinite(n))
-    ? factors.reduce((acc, n) => acc * n, 1)
-    : undefined
+
+  const { unitsPerHour, capacity: annualCapacity } = capacityForIndex(line, 0)
+  const annualCapacityByYear = HORIZON_YEARS.map((_, index) => capacityForIndex(line, index).capacity)
 
   const machines = project.capacity.machines
   const operatorCount = machines.reduce((acc, machine) => acc + asNumber(machine.operators), 0)
@@ -100,6 +155,7 @@ export function applyDerivedBase(project) {
   project.derivedBase = {
     unitsPerHour,
     annualCapacity,
+    annualCapacityByYear,
     operatorCount,
     supervisorCount,
     bomMaterialCost,

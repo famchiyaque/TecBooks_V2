@@ -8,7 +8,9 @@ import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
  * requirement:
  *
  *   Customer Orders  <- demand module (projectPurchaseOrders: year 0 actual,
- *                       later years from annualized YTD × demandGrowth)
+ *                       later years from annualized YTD × demandGrowth,
+ *                       Premisas "Demanda anual" - Capacidad/installed
+ *                       capacity is a separate, derived check, not a source)
  *   Unit Price       <- pricing module, RF-43 (projectSalesPrice, inflation)
  *
  *   Total Income     <- CO x Unit Price, the one value RF-44 computes

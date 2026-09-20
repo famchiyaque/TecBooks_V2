@@ -1,12 +1,13 @@
 import {
   areCostsNumeric, sumSalariesByCategory, sumSalariesByCategoryPerYear, computeNetSales,
   computeRawMaterialCost, computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
-  computeAssetDepreciation, computeSalesExpenses, computeAdministrativeExpenses,
+  computeSalesExpenses, computeAdministrativeExpenses,
   computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
   computeFinancingAmount, computeAmortizationSchedule, computeIncomeBeforeTaxes,
   computeTaxes, computeNetIncome,
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
+import { computeFixedAssetsByCategory } from '../balance/computeFixedAssets.js'
 import { Logger } from '../utils/logger.js'
 import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
 
@@ -71,20 +72,25 @@ export function buildCostOfSales(cbm) {
   logger.debug('buildCostOfSales: cost of sales', { salariesByYear, MP, netSales, indirectMaterials, costOfSalesByYear, unclassifiedEmployees })
 
   const opex = cbmToOperatingExpenseInputs(cbm, years)
-  const depreciationBuildings = computeAssetDepreciation(opex.assets.buildings, opex.depreciationBuildings, years)
-  const depreciationTransport = computeAssetDepreciation(opex.assets.transport, opex.depreciationTransport, years)
-  const depreciationCompute = computeAssetDepreciation(opex.assets.compute, opex.depreciationCompute, years)
-  const depreciationMachinery = computeAssetDepreciation(opex.machines, opex.depreciationMachinery, years)
+  // BUG FIX: used to call computeAssetDepreciation once per hardcoded
+  // category (Buildings/Transport/Compute/Machinery) - any category the
+  // Excel's Inversion sheet names something else was silently never
+  // depreciated. Reuses the same dynamic, per-item depreciation Balance
+  // Sheet > Fixed Assets already computes (computeFixedAssetsByCategory),
+  // summed across however many categories the project actually has.
+  const fixedAssetsByCategory = computeFixedAssetsByCategory(cbm, years)
   const depreciationTotal = {}
   years.forEach((year) => {
-    depreciationTotal[year] = depreciationBuildings[year] + depreciationTransport[year]
-      + depreciationCompute[year] + depreciationMachinery[year]
+    depreciationTotal[year] = Object.values(fixedAssetsByCategory).reduce((sum, { rows }) => {
+      const row = rows.find((candidate) => candidate.year === year)
+      return sum + (row?.annualDepreciation || 0)
+    }, 0)
   })
   const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
   const administrativeExpenses = computeAdminExpenses(cbm)
   const operatingExpenses = computeOperatingExpenses(administrativeExpenses, AdministrativeByYear, depreciationTotal, salesExpenses, years)
   logger.debug('buildCostOfSales: operating expenses', {
-    depreciationBuildings, depreciationTransport, depreciationCompute, depreciationMachinery, depreciationTotal,
+    fixedAssetsCategories: Object.keys(fixedAssetsByCategory), depreciationTotal,
     salesExpenses, administrativeExpenses, operatingExpenses,
   })
   const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
@@ -145,10 +151,10 @@ export function buildCostOfSales(cbm) {
     administrativeSalary: AdministrativeByYear[row.year],
     // Single fixed loan (see BUG FIX above) - same amount reported on every row.
     financingAmount,
-    depreciationBuildings: depreciationBuildings[row.year],
-    depreciationTransport: depreciationTransport[row.year],
-    depreciationMachinery: depreciationMachinery[row.year],
-    depreciationCompute: depreciationCompute[row.year],
+    // Combined across however many asset categories the project has (was 4
+    // separate fixed fields - see BUG FIX above); OperatingExpensesTable now
+    // shows one "Depreciation" row instead of one per hardcoded category.
+    depreciation: depreciationTotal[row.year],
     salesExpenses: salesExpenses[row.year],
     operatingExpenses: operatingExpenses[row.year],
     operatingProfit: computeOperatingProfit(row.grossProfit, operatingExpenses[row.year]),

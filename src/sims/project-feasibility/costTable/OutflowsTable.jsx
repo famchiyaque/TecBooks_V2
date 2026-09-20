@@ -3,7 +3,7 @@ import { Alert } from '@mui/material'
 import EditableTable from '@/components/global/EditableTable'
 import { outflowEditsSlice } from '@/store/costTable.store'
 import { buildCostOfSales } from './buildCostOfSales'
-import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
 
 /**
  * Cash Outflows "Salidas" (RF-63, Flujo sheet rows 12-32) - every fixed
@@ -30,6 +30,8 @@ function OutflowsTable({ project }) {
     result.error ? {} : computeCapexByYear(project.cbm, years)
   ), [project, result, years])
 
+  const rows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
+
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>
   }
@@ -42,7 +44,7 @@ function OutflowsTable({ project }) {
       title="Cash Outflows"
       slice={outflowEditsSlice}
       columns={columns}
-      rows={OUTFLOW_ROWS}
+      rows={rows}
       getValue={getValue}
       totalLabel="Total Cash Outflows"
     />

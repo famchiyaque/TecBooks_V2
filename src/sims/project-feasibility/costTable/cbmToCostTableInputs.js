@@ -1,11 +1,14 @@
 import { HORIZON_YEARS } from '../constants.js'
 import { projectPurchaseOrders } from '../demand/projectPurchaseOrders.js'
 
-function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
+// BUG FIX: Quality Yield genuinely changes year to year (Capacidad's own
+// sheet has a year column for it) - was reading a single year-zero value
+// and repeating it flat across the whole projection.
+function projectQualityYield(yearZeroYear, qualityYieldSeries) {
   const qualityYield = {}
-  HORIZON_YEARS.forEach((year) => {
+  HORIZON_YEARS.forEach((year, index) => {
     if (year < yearZeroYear) return
-    qualityYield[year] = qualityYieldAtYearZero
+    qualityYield[year] = qualityYieldSeries?.[index]
   })
   return qualityYield
 }
@@ -13,7 +16,9 @@ function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
 /**
  * RF-56-XX BUG FIX: the sale price is not flat across the projection - it
  * grows by national inflation every year (Ingresos!C23 = B23 * (1 + Premisas!C12)).
- * Volume (purchase orders) uses demandGrowth, not this inflation series.
+ * Volume (purchase orders) uses demandGrowth, not this inflation series -
+ * see projectPurchaseOrders (demand module). Capacity (Capacidad sheet) is
+ * a separate, derived utilization check - it does not drive CO.
  */
 function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
   const salesPricePerUnit = {}

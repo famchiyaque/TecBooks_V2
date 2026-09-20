@@ -59,7 +59,10 @@ const ASSET_BLOCKS = [
 // just the 4 fixed PREMISES_ROWS fields InputNovus happens to always have.
 // Mirrors readInversion's structural category detection: X can be anything,
 // including a category Inversion invents that has no fixed field for it.
-const DEPRECIATION_RATE_PATTERN = /^porcentaje depreciacion (.+)$/
+// BUG FIX: "de" is optional - some Premisas sheets write "Porcentaje de
+// depreciacion X" (matches the 4 built-in categories' own wording, which
+// never had "de"), others "Porcentaje depreciacion X".
+const DEPRECIATION_RATE_PATTERN = /^porcentaje (?:de )?depreciacion (.+)$/
 
 // Excel row 33 / column B on Premisas: opening cash (scalar, not a year series).
 const STARTING_MONEY_ROW_INDEX = 32
@@ -74,11 +77,20 @@ const STARTING_MONEY_LABELS = new Set([
 
 export function readPremisas(rows, project) {
   let lastYearMap = {}
+  // BUG FIX: some Premisas sheets give ONE rate per item, not per category
+  // ("Porcentaje de depreciacion Animales" as a year-header row, then Vaca/
+  // Cerdo/Perro below it each with their own %) - same category-then-bare-
+  // item-rows shape readInversion already handles for the Inversion sheet.
+  // While true, any otherwise-unrecognized labeled row is captured as that
+  // item's own rate (computeFixedAssets.js's rateSeriesForItem looks up an
+  // item by its own name first, exactly this key).
+  let insideDepreciationItemBlock = false
   for (const row of rows) {
     const label = normalizeLabel(row?.[0])
     if (!label) {
       const maybeYears = yearColumnMap(row)
       if (Object.keys(maybeYears).length) lastYearMap = maybeYears
+      insideDepreciationItemBlock = false
       continue
     }
     const asYears = yearColumnMap(row)
@@ -87,16 +99,40 @@ export function readPremisas(rows, project) {
     }
     if (label === 'periodos' || label.startsWith('periodos')) {
       project.timeline.financingPeriods = toNumberOrUndefined(row[1])
+      insideDepreciationItemBlock = false
+      continue
+    }
+    // Premisas!B33 "Demanda anual" - scalar growth rate (0.07 = 7%), not a
+    // yearly series. Drives projectPurchaseOrders' compounding after year
+    // zero (see cbmToCostTableInputs.js) - was dropped in an earlier rewrite
+    // of this loop, which is why CO came out flat for a while.
+    if (label === 'demanda anual') {
+      project.premises.demandGrowth = toNumberOrUndefined(row[1])
+      insideDepreciationItemBlock = false
       continue
     }
     const field = PREMISES_ROWS[label]
     if (field) {
       project.premises[field] = seriesFromRow(row, lastYearMap)
+      insideDepreciationItemBlock = false
       continue
     }
     const depreciationMatch = label.match(DEPRECIATION_RATE_PATTERN)
     if (depreciationMatch) {
+      // A row can BE a year header itself (e.g. "Porcentaje de depreciacion
+      // Animales | 2025 | 2026 | ...") rather than carrying rate values
+      // directly - lastYearMap was just set from this row's own year columns
+      // above, so it's ready for the per-item rows that follow.
+      if (Object.keys(asYears).length > 0) {
+        insideDepreciationItemBlock = true
+        continue
+      }
       project.premises.depreciationByCategory[depreciationMatch[1]] = seriesFromRow(row, lastYearMap)
+      insideDepreciationItemBlock = false
+      continue
+    }
+    if (insideDepreciationItemBlock) {
+      project.premises.depreciationByCategory[label] = seriesFromRow(row, lastYearMap)
     }
   }
 
@@ -134,7 +170,11 @@ export function readCapacidad(rows, project) {
   for (const row of rows.slice(1)) {
     const label = normalizeLabel(row?.[0])
     if (label && !SKIP_LINE_LABELS.has(label) && LINE_LABELS[label]) {
-      project.capacity.line[LINE_LABELS[label]] = toNumberOrUndefined(row[1])
+      // BUG FIX: Quality Yield/Shifts/Production Lines/etc. genuinely change
+      // year to year (Capacidad's own sheet has a year column per field,
+      // same header this yearMap already comes from) - was only ever reading
+      // column B (year zero), throwing away every later year.
+      project.capacity.line[LINE_LABELS[label]] = seriesFromRow(row, yearMap)
     }
 
     const code = toStringOrUndefined(row?.[3])
@@ -297,6 +337,9 @@ export function readServicios(rows, project) {
       subcategory: subcategory ?? '',
       description: description ?? '',
       monthlyAmount: toNumberOrUndefined(row[3]),
+      // BUG FIX: ServicesTable's "Notes and Considerations" column (added
+      // 2026-09-01) was never fed by the parser - column E was never read.
+      notes: toStringOrUndefined(row[4]) ?? '',
     })
   }
 }
