@@ -92,7 +92,7 @@ export class Logger {
 
     const prefix = `[${entry.timestamp}] [${this.scope}] [${level.toUpperCase()}]`
     const method = level === 'debug' ? 'log' : level
-    console[method](prefix, message, ...args)
+    // console[method](prefix, message, ...args)
   }
 
   /** Full in-memory log history (all scopes, all levels), oldest first. */
