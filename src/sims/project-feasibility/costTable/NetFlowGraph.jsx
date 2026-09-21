@@ -32,8 +32,8 @@ function calcTrendline(values) {
   return xs.map((x) => intercept + slope * x);
 }
 
-function NetFlowGraph({ project }) {
-  const { netFlow } = useCashFlow(project);
+function NetFlowGraph({ project, result }) {
+  const { netFlow } = useCashFlow(project, result);
 
   const { categories, values, trend } = useMemo(() => {
     const flow = netFlow || {};

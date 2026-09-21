@@ -1,9 +1,13 @@
-import React from 'react'
-import { Alert } from '@mui/material'
-import EditableTable from '@/components/global/EditableTable'
-import { outflowEditsSlice } from '@/store/costTable.store'
-import { buildCostOfSales } from './buildCostOfSales'
-import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import React from "react";
+import { Alert } from "@mui/material";
+import EditableTable from "@/components/global/EditableTable";
+import { outflowEditsSlice } from "@/store/costTable.store";
+import { buildCostOfSales } from "./buildCostOfSales";
+import {
+  buildOutflowRows,
+  computeCapexByYear,
+  outflowBaseValue,
+} from "./outflowCalculations";
 
 /**
  * Cash Outflows "Salidas" (RF-63, Flujo sheet rows 12-32) - every fixed
@@ -13,31 +17,33 @@ import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflo
  * (Civil Works, Insurance, Other Expenses) - editable like every other row
  * here, same double-click override pattern.
  */
-function OutflowsTable({ project }) {
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
-
+function OutflowsTable({ project, result }) {
   const years = React.useMemo(
     () => (result.error ? [] : result.costOfSalesByYear.map((row) => row.year)),
-    [result]
-  )
+    [result],
+  );
 
   const rowByYear = React.useMemo(() => {
-    if (result.error) return {}
-    return Object.fromEntries(result.costOfSalesByYear.map((row) => [row.year, row]))
-  }, [result])
+    if (result.error) return {};
+    return Object.fromEntries(
+      result.costOfSalesByYear.map((row) => [row.year, row]),
+    );
+  }, [result]);
 
-  const capexByYear = React.useMemo(() => (
-    result.error ? {} : computeCapexByYear(project.cbm, years)
-  ), [project, result, years])
+  const capexByYear = React.useMemo(
+    () => (result.error ? {} : computeCapexByYear(project.cbm, years)),
+    [project, result, years],
+  );
 
-  const rows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
+  const rows = React.useMemo(() => buildOutflowRows(project.cbm), [project]);
 
   if (result.error) {
-    return <Alert severity="warning">{result.error}</Alert>
+    return <Alert severity="warning">{result.error}</Alert>;
   }
 
-  const getValue = (rowKey, year) => outflowBaseValue(rowKey, year, rowByYear, capexByYear)
-  const columns = years.map((year) => ({ key: year, label: year }))
+  const getValue = (rowKey, year) =>
+    outflowBaseValue(rowKey, year, rowByYear, capexByYear);
+  const columns = years.map((year) => ({ key: year, label: year }));
 
   return (
     <EditableTable
@@ -48,7 +54,7 @@ function OutflowsTable({ project }) {
       getValue={getValue}
       totalLabel="Total Cash Outflows"
     />
-  )
+  );
 }
 
-export default OutflowsTable
+export default OutflowsTable;
