@@ -3,20 +3,6 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import useCashFlow from "@/hooks/sims/project/useFlow.js";
 
-const tempFlow = {
-  2025: -18257128.24,
-  2026: -44015447.96,
-  2027: -33841189.55,
-  2028: -19828651.55,
-  2029: -1749965.85,
-  2030: 26060244.96,
-  2031: 58027648.86,
-  2032: 94637345.57,
-  2033: 136658735.14,
-  2034: 182108183.39,
-  2035: 233071642.93,
-};
-
 // Calcula la línea de tendencia (regresión lineal simple) sobre los valores
 function calcTrendline(values) {
   const n = values.length;
