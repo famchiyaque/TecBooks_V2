@@ -29,6 +29,12 @@ export function buildCostOfSales(cbm) {
   }
   const { employees, production, premises } = cbmToCostTableInputs(cbm)
 
+  console.log('[DEBUG-MP] production.purchaseOrders:', JSON.stringify(production.purchaseOrders))
+  console.log('[DEBUG-MP] production.qualityYield:', JSON.stringify(production.qualityYield))
+  console.log('[DEBUG-MP] production.materialCostPerUnit:', production.materialCostPerUnit)
+  console.log('[DEBUG-MP] cbm.derivedBase:', JSON.stringify(cbm.derivedBase))
+  console.log('[DEBUG-MP] cbm.demand:', JSON.stringify(cbm.demand))
+
   if (employees.length === 0) {
     logger.warn('buildCostOfSales: no registered employees')
     return { error: 'This project has no registered employees.' }

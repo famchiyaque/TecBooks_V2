@@ -1,4 +1,4 @@
-import { MONTHS, SKIP_SERVICES_SUBCATEGORY } from '../constants.js'
+import { HORIZON_YEARS, MONTHS, SKIP_SERVICES_SUBCATEGORY } from '../constants.js'
 import {
   isBlank,
   normalizeLabel,
@@ -175,11 +175,17 @@ export function readCapacidad(rows, project) {
   for (const row of rows.slice(1)) {
     const label = normalizeLabel(row?.[0])
     if (label && !SKIP_LINE_LABELS.has(label) && LINE_LABELS[label]) {
-      // BUG FIX: Quality Yield/Shifts/Production Lines/etc. genuinely change
-      // year to year (Capacidad's own sheet has a year column per field,
-      // same header this yearMap already comes from) - was only ever reading
-      // column B (year zero), throwing away every later year.
-      project.capacity.line[LINE_LABELS[label]] = seriesFromRow(row, yearMap)
+      // BUG FIX: Capacidad's header row has TWO "2025" columns (column B for
+      // line params, column I for machine acquisition cost) - yearColumnMap
+      // keeps the LAST match per year (left-to-right overwrite), so
+      // yearMap[2025] pointed at the machine cost column, not column B.
+      // seriesFromRow(row, yearMap) was reading a machine's acquisition cost
+      // (e.g. 2,800,000) as if it were Quality Yield (0.8). Line params are
+      // a single scalar (label in column A, value in column B only, no real
+      // per-year series) - read column B directly, replicated flat across
+      // HORIZON_YEARS, never through the machine-section yearMap.
+      const value = toNumberOrUndefined(row?.[1])
+      project.capacity.line[LINE_LABELS[label]] = HORIZON_YEARS.map(() => value)
     }
 
     const code = toStringOrUndefined(row?.[3])
