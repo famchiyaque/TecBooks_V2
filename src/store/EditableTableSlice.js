@@ -3,11 +3,16 @@ import { configureStore, createSlice, nanoid } from '@reduxjs/toolkit'
 /**
  * Reusable state for any "editable table": per-cell overrides on a fixed set
  * of rows, plus custom rows the user adds/removes. One instance per table
- * (e.g. `new EditableTableSlice('costTable')`, `new EditableTableSlice('balanceSheet')`)
- * - each gets its own independent Redux slice/store, no collisions between tables.
+ * (e.g. `new EditableTableSlice('costTable', 'cost_table')`) - each gets its
+ * own independent Redux slice/store, no collisions between tables.
+ *
+ * `type` is this table's identity against the `table-row-values` worker API
+ * (GET/PUT `/api/table-row-values/:gameId/:type`) - see
+ * worker/src/requests/table-row-values.request.js for the full whitelist.
+ * Defaults to `name` when omitted.
  *
  * Usage:
- *   export const myTableSlice = new EditableTableSlice('myTable')
+ *   export const myTableSlice = new EditableTableSlice('myTable', 'my_table')
  *   const store = myTableSlice.createStore()          // own store per table instance
  *   <Provider store={store}><EditableTable slice={myTableSlice} .../></Provider>
  *
@@ -15,8 +20,9 @@ import { configureStore, createSlice, nanoid } from '@reduxjs/toolkit'
  * into its reducer map (see costTable.store.js).
  */
 export class EditableTableSlice {
-  constructor(name) {
+  constructor(name, type = name) {
     this.name = name
+    this.type = type
 
     this._slice = createSlice({
       name,
@@ -43,6 +49,8 @@ export class EditableTableSlice {
           if (row) row.values[columnKey] = value
         },
         reset: () => ({ overrides: {}, customRows: [] }),
+        /** Replaces the whole slice with server state - see fromApiRows(). */
+        hydrate: (state, action) => action.payload,
       },
     })
 
@@ -86,5 +94,43 @@ export class EditableTableSlice {
     }, 0)
     const customTotal = customRows.reduce((sum, row) => sum + (row.values[columnKey] || 0), 0)
     return fixedTotal + customTotal
+  }
+
+  /**
+   * Flattens this slice's {overrides, customRows} into the row[] shape the
+   * table-row-values API expects: one entry per (rowKey, year) cell.
+   * columnKey is always a year across every EditableTable consumer today.
+   */
+  toApiRows({ overrides, customRows }) {
+    const rows = []
+    for (const [key, value] of Object.entries(overrides)) {
+      const separatorIndex = key.lastIndexOf(':')
+      const rowKey = key.slice(0, separatorIndex)
+      const year = Number(key.slice(separatorIndex + 1))
+      rows.push({ rowKey, label: null, isCustom: false, year, value })
+    }
+    for (const row of customRows) {
+      for (const [year, value] of Object.entries(row.values)) {
+        rows.push({ rowKey: row.id, label: row.label, isCustom: true, year: Number(year), value })
+      }
+    }
+    return rows
+  }
+
+  /** Inverse of toApiRows() - rebuilds {overrides, customRows} from the API's flat row[] shape. */
+  fromApiRows(rows) {
+    const overrides = {}
+    const customRowsById = new Map()
+    for (const row of rows) {
+      if (row.isCustom) {
+        if (!customRowsById.has(row.rowKey)) {
+          customRowsById.set(row.rowKey, { id: row.rowKey, label: row.label ?? 'New row', values: {} })
+        }
+        customRowsById.get(row.rowKey).values[row.year] = row.value
+      } else {
+        overrides[`${row.rowKey}:${row.year}`] = row.value
+      }
+    }
+    return { overrides, customRows: Array.from(customRowsById.values()) }
   }
 }

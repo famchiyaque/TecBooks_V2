@@ -4,6 +4,7 @@ import { expensesRoute } from "./expenses.route";
 import { authRoute } from "./auth.route.js";
 import { programsRoute } from "./programs.route.js";
 import { feasibilityRoute } from "./feasibility.route.js";
+import { tableRowValuesRoute } from "./table-row-values.route.js";
 
 const router = new Hono();
 
@@ -11,6 +12,7 @@ router.route("/example", exampleRoute);
 router.route("/expenses", expensesRoute);
 router.route("/programs", programsRoute);
 router.route("/feasibility", feasibilityRoute);
+router.route("/table-row-values", tableRowValuesRoute);
 router.route("/auth", authRoute);
 
 export default router;

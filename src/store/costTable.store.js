@@ -3,26 +3,26 @@ import { EditableTableSlice } from './EditableTableSlice.js';
 
 // This table's editable-cells/custom-rows state - see EditableTableSlice for
 // the reusable pattern (any other table just needs its own instance of this).
-export const costTableEditsSlice = new EditableTableSlice('costTableEdits');
+export const costTableEditsSlice = new EditableTableSlice('costTableEdits', 'cost_table');
 
 // RF-55: separate instance (not reused from costTableEditsSlice) so a custom
 // row added to the Cost Table doesn't also get summed into Operating
 // Expenses' total, and vice versa - each table owns its own custom rows.
-export const operatingExpenseEditsSlice = new EditableTableSlice('operatingExpenseEdits');
+export const operatingExpenseEditsSlice = new EditableTableSlice('operatingExpenseEdits', 'operating_expenses');
 
 // RF-56: same reasoning - Financial Result (Financial Expenses, Credit
 // Payment, Financial Income) owns its own custom rows/overrides.
-export const financialResultEditsSlice = new EditableTableSlice('financialResultEdits');
+export const financialResultEditsSlice = new EditableTableSlice('financialResultEdits', 'financial_result');
 
 // RF-57: same reasoning - Taxes (ISR, PTU) owns its own custom rows/overrides.
-export const taxesEditsSlice = new EditableTableSlice('taxesEdits');
+export const taxesEditsSlice = new EditableTableSlice('taxesEdits', 'taxes');
 
 // RF-63: same reasoning - Cash Table (Entradas) owns its own custom rows/overrides.
-export const cashFlowEditsSlice = new EditableTableSlice('cashFlowEdits');
+export const cashFlowEditsSlice = new EditableTableSlice('cashFlowEdits', 'cash_inflows');
 
 // RF-63: Cash Outflows (Salidas) - separate from cashFlowEditsSlice (Entradas)
 // so an override/custom row on one side doesn't leak into the other's total.
-export const outflowEditsSlice = new EditableTableSlice('outflowEdits');
+export const outflowEditsSlice = new EditableTableSlice('outflowEdits', 'cash_outflows');
 
 const costTableSlice = createSlice({
   name: 'costTable',

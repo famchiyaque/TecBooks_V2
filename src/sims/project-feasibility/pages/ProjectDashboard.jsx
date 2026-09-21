@@ -22,6 +22,7 @@ import Balance from "@/components/sims/program/Balance";
 import CashFlow from "@/components/sims/program/CashFlow";
 import FinancialRatios from "@/components/sims/program/FinancialRatios";
 import useFeasibilityModel from "@/hooks/sims/project/useFeasibilityModel";
+import useTableRowValuesSync from "@/hooks/sims/project/useTableRowValuesSync";
 import { PageTour } from "@/tours/PageTour";
 import TourButton from "@/components/global/TourButton";
 import { HORIZON_YEARS } from "../constants";
@@ -177,6 +178,11 @@ function ProjectDashboard() {
       }),
     [project?.id],
   );
+
+  // Hydrates the 11 slices above from the worker (table-row-values API) and
+  // keeps them saved as the user edits - see useTableRowValuesSync. Also
+  // needs to run before the early returns below.
+  useTableRowValuesSync(editsStore, project?.gameId);
 
   if (status === "loading") return null;
 

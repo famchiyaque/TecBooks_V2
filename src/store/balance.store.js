@@ -8,8 +8,8 @@ import { EditableTableSlice } from "./EditableTableSlice.js";
 // get summed into another's total - same reasoning as costTable.store.js's
 // per-table slices, and why Current Passives and Long term passives (which
 // used to share one "passives" slice) got split into two below.
-export const currentActivesSlice = new EditableTableSlice("currentActives");
-export const deferedActivesSlice = new EditableTableSlice("deferedActives");
-export const currentPassiveSlice = new EditableTableSlice("currentPassives");
-export const longTermPassiveSlice = new EditableTableSlice("longTermPassives");
-export const equitySlice = new EditableTableSlice("equity");
+export const currentActivesSlice = new EditableTableSlice("currentActives", "current_actives");
+export const deferedActivesSlice = new EditableTableSlice("deferedActives", "defered_actives");
+export const currentPassiveSlice = new EditableTableSlice("currentPassives", "current_passives");
+export const longTermPassiveSlice = new EditableTableSlice("longTermPassives", "long_term_passives");
+export const equitySlice = new EditableTableSlice("equity", "equity");
