@@ -67,7 +67,12 @@ function BreakEvenSummary({ project }) {
 
   const fixedCosts = row.administrativeExpenses + row.indirectManufacturing
     + row.engineeringSalaries + row.creditPayment
-  const variableCostPerUnit = (production.materialCostPerUnit || 0)
+  const materialCostPerUnit =
+    typeof production.materialCostPerUnit === "object" &&
+    production.materialCostPerUnit !== null
+      ? production.materialCostPerUnit[row.year] || 0
+      : production.materialCostPerUnit || 0
+  const variableCostPerUnit = materialCostPerUnit
     + (annualCapacity > 0 ? row.directLabour / annualCapacity : 0)
   const contributionMargin = salePrice - variableCostPerUnit
 

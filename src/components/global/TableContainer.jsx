@@ -45,8 +45,9 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  *   layout="fixed"
  *   sections={[
  *     { id: "unit-costs", title: "Unit Costs", titleTooltip: "...", rows: unitCostRows, defaultExpanded: true },
- *     { id: "sales", title: "Sales", rows: salesRows, defaultExpanded: true },
+ *     { id: "sales", title: "Sales", rows: salesRows, defaultExpanded: true, preamble: <Catalog /> },
  *   ]}
+ *   footerRows={totalOutflowRows}
  * />
  *
  * Sectioned tables measure a hidden auto-layout copy of every row (including
@@ -57,6 +58,9 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  * Total row: pass `rowVariant: "total"` on any row object.
  * Mixed units: pass `valueType: "units" | "currency"` on a row to override the
  * column's `type` for that row only (the label column is never affected).
+ * Currency tone: pass `tone: "outflow" | "neutral"` on a row to override the
+ * default signed coloring (negative rose / positive emerald). Outflow is rose;
+ * neutral is slate. Leave `tone` off for Inflows-style signed colors.
  * ------------------------------------------------------------------------
  */
 
@@ -68,7 +72,18 @@ function formatUnits(value) {
   return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
-function CellValue({ column, value, valueType }) {
+function currencyToneClass(tone, value) {
+  const isEmpty = value === undefined || value === null || value === "";
+  if (isEmpty) return "text-slate-300";
+  const num = Number(value);
+  if (tone === "outflow") {
+    return !Number.isNaN(num) && num === 0 ? "text-slate-900" : "text-rose-600";
+  }
+  if (tone === "neutral") return "text-slate-900";
+  return !Number.isNaN(num) && num < 0 ? "text-rose-600" : "text-emerald-700";
+}
+
+function CellValue({ column, value, valueType, tone }) {
   // Row-level `valueType` wins over the column's `type` so one table can mix
   // units and money across the same year columns (Sales: Customer Orders is a
   // unit count, Unit Price and Total Income are currency).
@@ -79,20 +94,8 @@ function CellValue({ column, value, valueType }) {
   }
 
   if (type === "currency") {
-    const num = Number(value);
-    const isEmpty = value === undefined || value === null || value === "";
-    const isNegative = !Number.isNaN(num) && num < 0;
     return (
-      <span
-        className={
-          "tabular-nums " +
-          (isEmpty
-            ? "text-slate-300"
-            : isNegative
-              ? "text-rose-600"
-              : "text-emerald-700")
-        }
-      >
+      <span className={"tabular-nums " + currencyToneClass(tone, value)}>
         {formatCurrency(value)}
       </span>
     );
@@ -166,27 +169,52 @@ function SectionChevron({ expanded }) {
   );
 }
 
-function TableHeader({ columns, cellPad, scrollBody, applyColWidth }) {
+function stickyLeft(stickyOffsets, colIndex) {
+  if (!stickyOffsets || colIndex >= stickyOffsets.length) return undefined;
+  return stickyOffsets[colIndex];
+}
+
+function stickyClassName(stickyOffsets, colIndex, zClass) {
+  if (stickyLeft(stickyOffsets, colIndex) == null) return "";
+  return " sticky " + zClass;
+}
+
+function cellStyle(col, applyColWidth, stickyOffsets, colIndex) {
+  const left = stickyLeft(stickyOffsets, colIndex);
+  const width = applyColWidth && col.width ? col.width : undefined;
+  if (left == null && !width) return undefined;
+  return {
+    ...(width ? { width } : {}),
+    ...(left != null ? { left } : {}),
+  };
+}
+
+function TableHeader({
+  columns,
+  cellPad,
+  scrollBody,
+  applyColWidth,
+  stickyOffsets,
+}) {
   return (
     <thead>
       <tr
         className={
           "border-b border-slate-200 " +
-          (scrollBody ? "sticky top-0 z-10 bg-slate-50" : "bg-slate-50/60")
+          (scrollBody ? "sticky top-0 z-10 bg-slate-50" : "bg-slate-50")
         }
       >
-        {columns.map((col) => (
+        {columns.map((col, colIndex) => (
           <th
             key={col.key}
             scope="col"
             className={
               cellPad +
               " whitespace-nowrap text-[13px] font-medium text-slate-500 " +
-              (col.align === "right" ? "text-right" : "text-left")
+              (col.align === "right" ? "text-right" : "text-left") +
+              stickyClassName(stickyOffsets, colIndex, "z-20 bg-slate-50")
             }
-            style={
-              applyColWidth && col.width ? { width: col.width } : undefined
-            }
+            style={cellStyle(col, applyColWidth, stickyOffsets, colIndex)}
           >
             {col.label}
           </th>
@@ -207,6 +235,7 @@ function DataRows({
   rowKeyPrefix = "",
   applyColWidth = true,
   endBorder = false,
+  stickyOffsets,
 }) {
   const groupSpans = groupColumn
     ? buildGroupSpans(rows, groupColumn.key)
@@ -223,14 +252,21 @@ function DataRows({
       <tr
         key={rowKeyPrefix + (row.id ?? rowIndex)}
         className={
+          "group " +
           (isTotal
-            ? "bg-slate-50/80 rounded-b-md"
-            : "transition-colors hover:bg-slate-50/60 " +
-              (rowIndex % 2 === 1 ? "bg-slate-50/30" : "")) +
+            ? "bg-slate-50"
+            : "transition-colors hover:bg-slate-50 " +
+              (rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white")) +
           (isLast && endBorder ? " border-b-[3px] border-slate-400" : "")
         }
       >
-        {columns.map((col) => {
+        {columns.map((col, colIndex) => {
+          const stickyBg =
+            stickyLeft(stickyOffsets, colIndex) == null
+              ? ""
+              : isTotal || rowIndex % 2 === 1
+                ? " bg-slate-50 group-hover:bg-slate-50"
+                : " bg-white group-hover:bg-slate-50";
           if (groupColumn && col.key === groupColumn.key) {
             const span = groupSpans[rowIndex];
             if (span === 0) return null;
@@ -240,12 +276,11 @@ function DataRows({
                 rowSpan={span}
                 className={
                   cellPad +
-                  " align-top border-r border-slate-100 bg-slate-50/50 font-medium text-slate-700 " +
-                  (isFixed ? "break-words" : "whitespace-nowrap")
+                  " align-top border-r border-slate-100 bg-slate-50 font-medium text-slate-700 " +
+                  (isFixed ? "break-words" : "whitespace-nowrap") +
+                  stickyClassName(stickyOffsets, colIndex, "z-10")
                 }
-                style={
-                  applyColWidth && col.width ? { width: col.width } : undefined
-                }
+                style={cellStyle(col, applyColWidth, stickyOffsets, colIndex)}
               >
                 {row[col.key]}
               </td>
@@ -264,14 +299,15 @@ function DataRows({
                 (col.align === "right" ? "text-right" : "text-left") +
                 " " +
                 (isTotal
-                  ? "border-t border-slate-300 font-semibold text-slate-900"
+                  ? "border-t border-slate-300 text-slate-900 " +
+                    (col.key === labelKey ? "font-semibold" : "font-normal")
                   : "text-slate-700") +
                 (col.wrap && !isFixed ? " min-w-[14rem]" : "") +
-                (col.wrap ? " text-slate-500" : "")
+                (col.wrap ? " text-slate-500" : "") +
+                stickyClassName(stickyOffsets, colIndex, "z-10") +
+                stickyBg
               }
-              style={
-                applyColWidth && col.width ? { width: col.width } : undefined
-              }
+              style={cellStyle(col, applyColWidth, stickyOffsets, colIndex)}
             >
               {col.key === labelKey && row.tooltip ? (
                 <span className="inline-flex items-center">
@@ -285,6 +321,7 @@ function DataRows({
                   // never on the label column - that cell holds
                   // the concept text, not a number to format
                   valueType={col.key === labelKey ? undefined : row.valueType}
+                  tone={col.key === labelKey ? undefined : row.tone}
                 />
               )}
             </td>
@@ -302,6 +339,7 @@ export default function TableContainer({
   columns,
   rows = [],
   sections,
+  footerRows,
   actions,
   dense = false,
   emptyLabel = "No information available.",
@@ -319,6 +357,8 @@ export default function TableContainer({
   const containerRef = useRef(null);
   const [contentWidths, setContentWidths] = useState(null);
   const [availableWidth, setAvailableWidth] = useState(0);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const isSectionOpen = (section) =>
     openSections[section.id] ?? section.defaultExpanded ?? false;
@@ -362,7 +402,7 @@ export default function TableContainer({
       cancelled = true;
       observer.disconnect();
     };
-  }, [useSections, columns, sections, cellPad]);
+  }, [useSections, columns, sections, footerRows, cellPad]);
 
   useLayoutEffect(() => {
     if (!useSections) return undefined;
@@ -388,12 +428,39 @@ export default function TableContainer({
   );
 
   const tableWidth = colWidths?.reduce((sum, width) => sum + width, 0);
+  const stickyOffsets =
+    useSections && colWidths?.length > 1 ? [0, colWidths[0]] : undefined;
+
+  useLayoutEffect(() => {
+    if (!useSections) return undefined;
+
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const read = () => {
+      const nextRight =
+        container.scrollWidth - container.clientWidth - container.scrollLeft >
+        2;
+      const nextScrolled = container.scrollLeft > 2;
+      setCanScrollRight((prev) => (prev === nextRight ? prev : nextRight));
+      setIsScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled));
+    };
+
+    read();
+    container.addEventListener("scroll", read, { passive: true });
+    const observer = new ResizeObserver(read);
+    observer.observe(container);
+    return () => {
+      container.removeEventListener("scroll", read);
+      observer.disconnect();
+    };
+  }, [useSections, tableWidth, availableWidth, openSections]);
 
   return (
     <section
       className={
-        "relative rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02] " +
-        (scrollBody ? "flex h-full flex-col overflow-hidden " : "") +
+        "relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02] " +
+        (scrollBody ? "flex h-full flex-col " : "") +
         className
       }
     >
@@ -443,25 +510,42 @@ export default function TableContainer({
                   rowKeyPrefix={"measure-" + section.id + "-"}
                 />
               ))}
+              {footerRows?.length > 0 && (
+                <DataRows
+                  {...dataRowProps}
+                  isFixed={false}
+                  applyColWidth={false}
+                  rows={footerRows}
+                  rowKeyPrefix="measure-footer-"
+                />
+              )}
             </tbody>
           </table>
         </div>
       )}
 
+      <div className="relative min-w-0">
       <div
         ref={containerRef}
         className={
           (scrollBody ? "flex-1 min-h-0 overflow-y-auto " : "") +
-          (isFixed && !useSections ? "" : "overflow-x-auto")
+          (isFixed && !useSections ? "" : "overflow-x-auto ") +
+          (useSections
+            ? "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            : "")
         }
       >
         <table
           className={
-            "border-collapse text-sm " +
+            "text-sm " +
+            (useSections ? "border-separate " : "border-collapse ") +
             (isFixed || colWidths ? "table-fixed " : "min-w-max ") +
             (tableWidth ? "" : "w-full")
           }
-          style={tableWidth ? { width: tableWidth } : undefined}
+          style={{
+            ...(tableWidth ? { width: tableWidth } : {}),
+            ...(useSections ? { borderSpacing: 0 } : {}),
+          }}
         >
           {colWidths && (
             <colgroup>
@@ -475,6 +559,7 @@ export default function TableContainer({
             cellPad={cellPad}
             scrollBody={scrollBody}
             applyColWidth={!colWidths}
+            stickyOffsets={stickyOffsets}
           />
 
           {useSections ? (
@@ -496,8 +581,11 @@ export default function TableContainer({
                         onClick={() => toggleSection(section)}
                         className={
                           cellPad +
-                          " flex w-full items-center justify-between gap-4 bg-slate-50/80 text-left hover:bg-slate-50"
+                          " sticky left-0 flex items-center justify-between gap-4 bg-slate-50 text-left hover:bg-slate-100"
                         }
+                        style={{
+                          width: availableWidth ? availableWidth : "100%",
+                        }}
                       >
                         <span className="inline-flex items-center text-[15px] font-semibold text-slate-900">
                           {section.title}
@@ -507,10 +595,18 @@ export default function TableContainer({
                       </button>
                     </td>
                   </tr>
+                  {expanded && section.preamble && (
+                    <tr>
+                      <td colSpan={columns.length} className="p-4">
+                        {section.preamble}
+                      </td>
+                    </tr>
+                  )}
                   {expanded && (
                     <DataRows
                       {...dataRowProps}
                       applyColWidth={!colWidths}
+                      stickyOffsets={stickyOffsets}
                       endBorder
                       rows={section.rows ?? []}
                       rowKeyPrefix={section.id + "-"}
@@ -524,7 +620,32 @@ export default function TableContainer({
               <DataRows {...dataRowProps} rows={rows} />
             </tbody>
           )}
+          {useSections && footerRows?.length > 0 && (
+            <tbody>
+              <DataRows
+                {...dataRowProps}
+                applyColWidth={!colWidths}
+                stickyOffsets={stickyOffsets}
+                rows={footerRows}
+                rowKeyPrefix="footer-"
+              />
+            </tbody>
+          )}
         </table>
+      </div>
+      {useSections && isScrolled && colWidths?.length > 1 && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-20 w-px bg-slate-400"
+          style={{ left: colWidths[0] + colWidths[1] }}
+        />
+      )}
+      {useSections && canScrollRight && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 z-30 w-[50px] bg-gradient-to-r from-transparent via-white/55 to-white"
+        />
+      )}
       </div>
     </section>
   );

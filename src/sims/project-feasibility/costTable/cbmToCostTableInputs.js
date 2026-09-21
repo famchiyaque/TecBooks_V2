@@ -61,6 +61,7 @@ export function cbmToCostTableInputs(cbm) {
   let purchaseOrders = {}
   let qualityYield = {}
   let salesPricePerUnit = {}
+  let materialCostPerUnit = cbm.derivedBase?.bomMaterialCost
   if (yearZeroYear !== undefined) {
     purchaseOrders = projectPurchaseOrders({
       yearZeroYear,
@@ -71,10 +72,16 @@ export function cbmToCostTableInputs(cbm) {
       demandGrowth: cbm.premises?.demandGrowth,
     })
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
+    const inflation = cbm.premises?.nationalInflation ?? []
     salesPricePerUnit = projectSalesPrice(
       yearZeroYear,
       cbm.bom?.salePrice,
-      cbm.premises?.nationalInflation ?? []
+      inflation
+    )
+    materialCostPerUnit = projectSalesPrice(
+      yearZeroYear,
+      cbm.derivedBase?.bomMaterialCost,
+      inflation
     )
   }
 
@@ -88,7 +95,8 @@ export function cbmToCostTableInputs(cbm) {
     production: {
       purchaseOrders,
       qualityYield,
-      materialCostPerUnit: cbm.derivedBase?.bomMaterialCost,
+      // {year: cost} map, grown by the same inflation as salesPricePerUnit.
+      materialCostPerUnit,
       // {year: price} map, grown by national inflation - see projectSalesPrice.
       salesPricePerUnit,
     },

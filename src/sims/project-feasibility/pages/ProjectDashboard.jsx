@@ -48,8 +48,8 @@ import {
 
 const TABS = [
   // { id: "premises", label: "Premises" },
-  { id: "inflows", label: "Inflows" },
   { id: "outflows", label: "Outflows" },
+  { id: "inflows", label: "Inflows" },
   { id: "income-statement", label: "Income Statement" },
   { id: "cash-flows", label: "Cash Flows" },
   { id: "balance", label: "Balance Sheet" },
@@ -71,7 +71,7 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Financial statements",
       description:
-        "Switch between Inflows, Outflows, Income Statement, Cash Flows, Balance Sheet and Ratios.",
+        "Switch between Outflows, Inflows, Income Statement, Cash Flows, Balance Sheet and Ratios.",
     },
   },
   {
@@ -79,7 +79,7 @@ const projectDashboardTour = new PageTour([
     popover: {
       title: "Tab contents",
       description:
-        "Inflows, Outflows, Income Statement, Cash Flows, Balance Sheet and Ratios all load this project's live tables.",
+        "Outflows, Inflows, Income Statement, Cash Flows, Balance Sheet and Ratios all load this project's live tables.",
     },
   },
 ]);

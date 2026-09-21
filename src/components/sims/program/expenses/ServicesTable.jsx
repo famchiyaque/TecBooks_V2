@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import TableContainer from "@/components/global/TableContainer";
 
-export default function ServicesTable({ services }) {
+export default function ServicesTable({ services, embedded = false }) {
   const columns = useMemo(
     () => [
       {
@@ -26,13 +26,11 @@ export default function ServicesTable({ services }) {
 
   return (
     <TableContainer
-      title="Services"
+      title={embedded ? undefined : "Services"}
       columns={columns}
       rows={services}
       emptyLabel="No services registered."
-      layout="fixed"
-      scrollBody
-      className="h-full flex-1 min-w-0"
+      className={embedded ? "rounded-none border-0 shadow-none" : ""}
     />
   );
 }

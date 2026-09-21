@@ -2,7 +2,8 @@ export const INFLOWS_TOOLTIPS = {
   unitCosts: {
     table:
       "This table breaks down the cost to produce each unit by calculating each aspect of production per the amount of units needed to satisfy purchase orders. Work orders = purchase orders ÷ quality yield.",
-    rawMaterials: "BOM price / quality yield",
+    rawMaterials:
+      "Total raw materials / purchase orders. Total raw materials = projected BOM price (grown by inflation) × work orders. Work orders = purchase orders ÷ quality yield.",
     directLabor: "Total Annual Direct Labor Salaries / purchase orders",
     indirectLabor: "Total Annual Indirect Labor Salaries / purchase orders",
     engineering: "Total Annual Engineering Salaries / purchase orders",

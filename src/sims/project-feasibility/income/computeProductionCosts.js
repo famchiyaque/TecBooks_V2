@@ -43,7 +43,8 @@ function inflationFactor(premises, yearIndex) {
 
 /**
  * Costs per Unit: yearly totals ÷ purchase orders (COs). Raw materials
- * yearly total is work orders × BOM, so this equals BOM / quality yield.
+ * yearly total is work orders × that year's inflated BOM price, so the
+ * unit row is total raw materials / purchase orders.
  * Labor uses annual category totals (12 × monthly × headcount), inflated
  * by year, then ÷ purchase orders — not the shared
  * computeWorkforceAnualSalaries path (Outflows). Admin from
@@ -62,6 +63,12 @@ export function toCostPerWorkOrder(
   const workForce = {};
   const total = {};
   const denominators = {};
+  const bomPrices = {};
+  const purchaseOrdersByYear = {};
+  const workOrdersByYear = {};
+  const isBomMap =
+    typeof production?.materialCostPerUnit === "object" &&
+    production?.materialCostPerUnit !== null;
 
   years.forEach((year, yearIndex) => {
     const purchaseOrders = production?.purchaseOrders?.[year] || 0;
@@ -71,6 +78,11 @@ export function toCostPerWorkOrder(
     const inflation = inflationFactor(premises, yearIndex);
 
     denominators[year] = { customerOrders: purchaseOrders, workOrders };
+    purchaseOrdersByYear[year] = purchaseOrders;
+    workOrdersByYear[year] = workOrders;
+    bomPrices[year] = isBomMap
+      ? (production.materialCostPerUnit[year] ?? 0)
+      : (production?.materialCostPerUnit || 0);
 
     costRawMaterials[year] = perPurchaseOrder(
       productionCosts.costRawMaterials?.[year] ?? 0,
@@ -91,6 +103,9 @@ export function toCostPerWorkOrder(
       Object.values(workForce[year]).reduce((sum, val) => sum + val, 0);
   });
 
+  console.log("[Unit Costs] BOM prices", bomPrices);
+  console.log("[Unit Costs] purchase orders", purchaseOrdersByYear);
+  console.log("[Unit Costs] work orders", workOrdersByYear);
   console.log("[Unit Costs] work orders vs customer orders", denominators);
   console.log(
     "[Unit Costs] yearly admin expenses (before ÷ purchase orders)",

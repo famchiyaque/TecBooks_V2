@@ -34,10 +34,16 @@ export function areCostsNumeric(employees, production) {
       ? Object.values(production.salesPricePerUnit)
       : [production.salesPricePerUnit];
 
+  const materialCostValues =
+    typeof production.materialCostPerUnit === "object" &&
+    production.materialCostPerUnit !== null
+      ? Object.values(production.materialCostPerUnit)
+      : [production.materialCostPerUnit];
+
   const productionOk = [
     ...Object.values(production.purchaseOrders || {}),
     ...Object.values(production.qualityYield || {}),
-    production.materialCostPerUnit,
+    ...materialCostValues,
     ...salesPriceValues,
   ].every(isFiniteNumber);
 
@@ -125,17 +131,24 @@ export function computeNetSales(production) {
  * MP (raw material cost) per year.
  * WO = CO / Quality yield (work orders needed to fulfill purchase orders at the given quality yield -
  * a low yield means MORE work orders are needed to net the same good units, matching Capacidad!E17: '=E16/E3')
+ * materialCostPerUnit may be a flat scalar (standalone Cost Table) or a
+ * {year: cost} map grown by national inflation (CBM path).
  */
 export function computeRawMaterialCost(production) {
   const { purchaseOrders, qualityYield, materialCostPerUnit } =
     production ?? {};
   const rawMaterialByYear = {};
+  const isCostMap =
+    typeof materialCostPerUnit === "object" && materialCostPerUnit !== null;
 
   for (const year of Object.keys(purchaseOrders ?? {})) {
     const workOrders = (qualityYield[year] || 0) === 0
       ? 0
       : (purchaseOrders[year] || 0) / qualityYield[year];
-    rawMaterialByYear[year] = workOrders * (materialCostPerUnit || 0);
+    const unitCost = isCostMap
+      ? (materialCostPerUnit[year] ?? 0)
+      : (materialCostPerUnit || 0);
+    rawMaterialByYear[year] = workOrders * unitCost;
   }
 
   return rawMaterialByYear;
