@@ -1,29 +1,38 @@
-import { cbmToOperatingExpenseInputs, mapAssetsToYears } from './cbmToCostTableInputs'
-import { assetsCapexInYear } from '@/utils/dashboard/assetSchedule.js'
-import { Logger } from '../utils/logger.js'
+import {
+  cbmToOperatingExpenseInputs,
+  mapAssetsToYears,
+} from "./cbmToCostTableInputs";
+import { assetsCapexInYear } from "@/utils/dashboard/assetSchedule.js";
+import { Logger } from "../utils/logger.js";
 
-const logger = new Logger('OutflowCalculations')
+const logger = new Logger("OutflowCalculations");
 
 // Buildings/Transport/Compute keep their own named row (unchanged labels) -
 // matched the same way computeFixedAssets.js matches them for depreciation,
 // so both places agree on what counts as "Buildings" etc regardless of
 // exact wording/language in the project's Inversion sheet.
 const KNOWN_ASSET_CATEGORY_MATCH = [
-  { match: 'equipo de transporte', key: 'transport' },
-  { match: 'transport equipment', key: 'transport' },
-  { match: 'edificios', key: 'buildings' },
-  { match: 'buildings', key: 'buildings' },
-  { match: 'equipo de computo', key: 'compute' },
-  { match: 'computer equipment', key: 'compute' },
-]
+  { match: "equipo de transporte", key: "transport" },
+  { match: "transport equipment", key: "transport" },
+  { match: "edificios", key: "buildings" },
+  { match: "buildings", key: "buildings" },
+  { match: "equipo de computo", key: "compute" },
+  { match: "computer equipment", key: "compute" },
+];
 
 function normalizeCategoryName(text) {
-  return String(text ?? '').toLowerCase().replace(/[.]/g, '').trim()
+  return String(text ?? "")
+    .toLowerCase()
+    .replace(/[.]/g, "")
+    .trim();
 }
 
 function knownAssetKeyForCategory(category) {
-  const normalized = normalizeCategoryName(category)
-  return KNOWN_ASSET_CATEGORY_MATCH.find((item) => normalized.startsWith(item.match))?.key ?? null
+  const normalized = normalizeCategoryName(category);
+  return (
+    KNOWN_ASSET_CATEGORY_MATCH.find((item) => normalized.startsWith(item.match))
+      ?.key ?? null
+  );
 }
 
 // BUG FIX: readInversion now skips a machinery-named Inversion category at
@@ -33,7 +42,7 @@ function knownAssetKeyForCategory(category) {
 // Filtered here too so an already-saved project stops double-counting
 // without needing a re-upload.
 function isMachineryCategory(category) {
-  return /^maquinaria|^machinery/.test(normalizeCategoryName(category))
+  return /^maquinaria|^machinery/.test(normalizeCategoryName(category));
 }
 
 /**
@@ -45,10 +54,11 @@ function isMachineryCategory(category) {
  * dynamic Cash Outflows row.
  */
 export function getExtraAssetCategories(cbm) {
-  const categories = cbm.assets?.byCategory ?? {}
-  return Object.keys(categories).filter((category) => (
-    !knownAssetKeyForCategory(category) && !isMachineryCategory(category)
-  ))
+  const categories = cbm.assets?.byCategory ?? {};
+  return Object.keys(categories).filter(
+    (category) =>
+      !knownAssetKeyForCategory(category) && !isMachineryCategory(category),
+  );
 }
 
 /**
@@ -60,29 +70,36 @@ export function getExtraAssetCategories(cbm) {
  * single year the asset is still listed.
  */
 export function computeCapexByYear(cbm, years) {
-  const opex = cbmToOperatingExpenseInputs(cbm, years)
-  const categories = cbm.assets?.byCategory ?? {}
-  const extraCategories = getExtraAssetCategories(cbm)
+  const opex = cbmToOperatingExpenseInputs(cbm, years);
+  const categories = cbm.assets?.byCategory ?? {};
+  const extraCategories = getExtraAssetCategories(cbm);
   const extraAssetsByCategory = Object.fromEntries(
-    extraCategories.map((category) => [category, mapAssetsToYears(categories[category], years)])
-  )
+    extraCategories.map((category) => [
+      category,
+      mapAssetsToYears(categories[category], years),
+    ]),
+  );
 
-  const capexByYear = {}
+  const capexByYear = {};
   years.forEach((year) => {
-    const extra = {}
+    const extra = {};
     extraCategories.forEach((category) => {
-      extra[category] = assetsCapexInYear(extraAssetsByCategory[category], year, years)
-    })
+      extra[category] = assetsCapexInYear(
+        extraAssetsByCategory[category],
+        year,
+        years,
+      );
+    });
     capexByYear[year] = {
       machinery: assetsCapexInYear(opex.machines, year, years),
       buildings: assetsCapexInYear(opex.assets.buildings, year, years),
       compute: assetsCapexInYear(opex.assets.compute, year, years),
       transport: assetsCapexInYear(opex.assets.transport, year, years),
       extra,
-    }
-  })
-  logger.debug('computeCapexByYear', { years, extraCategories, capexByYear })
-  return capexByYear
+    };
+  });
+  logger.debug("computeCapexByYear", { years, extraCategories, capexByYear });
+  return capexByYear;
 }
 
 /**
@@ -95,63 +112,88 @@ export function buildOutflowRows(cbm) {
   const extraRows = getExtraAssetCategories(cbm).map((category) => ({
     key: `extraAsset:${category}`,
     label: `${category} Purchase`,
-  }))
+  }));
 
   return [
-    { key: 'rawMaterial', label: 'Raw Materials' },
-    { key: 'directLabour', label: 'Direct Labor' },
-    { key: 'indirectManufacturing', label: 'Indirect Manufacturing Salaries' },
-    { key: 'engineeringSalaries', label: 'Engineering Salaries' },
-    { key: 'indirectMaterials', label: 'Indirect Materials' },
-    { key: 'administrativeSalary', label: 'Administrative Salaries' },
-    { key: 'administrativeGeneral', label: 'General Administrative Expenses' },
-    { key: 'salesExpenses', label: 'Sales Expenses' },
-    { key: 'machineryPurchase', label: 'Machinery Purchase' },
-    { key: 'buildingPurchase', label: 'Building Construction/Purchase' },
-    { key: 'civilWorks', label: 'Civil Works (Machinery Installation)' },
-    { key: 'computerEquipment', label: 'Computer Equipment Purchase' },
-    { key: 'transportEquipment', label: 'Transport Equipment Purchase' },
+    { key: "rawMaterial", label: "Raw Materials" },
+    { key: "directLabour", label: "Direct Labor" },
+    { key: "indirectManufacturing", label: "Indirect Manufacturing Salaries" },
+    { key: "engineeringSalaries", label: "Engineering Salaries" },
+    { key: "indirectMaterials", label: "Indirect Materials" },
+    { key: "administrativeSalary", label: "Administrative Salaries" },
+    { key: "administrativeGeneral", label: "General Administrative Expenses" },
+    { key: "salesExpenses", label: "Sales Expenses" },
+    { key: "machineryPurchase", label: "Machinery Purchase" },
+    { key: "buildingPurchase", label: "Building Construction/Purchase" },
+    { key: "civilWorks", label: "Civil Works (Machinery Installation)" },
+    { key: "computerEquipment", label: "Computer Equipment Purchase" },
+    { key: "transportEquipment", label: "Transport Equipment Purchase" },
     ...extraRows,
-    { key: 'creditPayment', label: 'Credit Payment' },
-    { key: 'creditInterest', label: 'Credit Interest' },
-    { key: 'taxes', label: 'Taxes' },
-    { key: 'insurance', label: 'Insurance' },
-    { key: 'otherExpenses', label: 'Other Expenses' },
-  ]
+    { key: "creditPayment", label: "Credit Payment" },
+    { key: "creditInterest", label: "Credit Interest" },
+    { key: "taxes", label: "Taxes" },
+    { key: "insurance", label: "Insurance" },
+    { key: "otherExpenses", label: "Other Expenses" },
+  ];
 }
 
 /** rowByYear: costOfSalesByYear keyed by year. capexByYear: computeCapexByYear's output. */
 export function outflowBaseValue(rowKey, year, rowByYear, capexByYear) {
-  const row = rowByYear[year]
-  const capex = capexByYear[year] ?? { machinery: 0, buildings: 0, compute: 0, transport: 0, extra: {} }
+  const row = rowByYear[year];
+  const capex = capexByYear[year] ?? {
+    machinery: 0,
+    buildings: 0,
+    compute: 0,
+    transport: 0,
+    extra: {},
+  };
 
-  if (rowKey.startsWith('extraAsset:')) {
-    return capex.extra?.[rowKey.slice('extraAsset:'.length)] ?? 0
+  if (rowKey.startsWith("extraAsset:")) {
+    return capex.extra?.[rowKey.slice("extraAsset:".length)] ?? 0;
   }
 
   switch (rowKey) {
-    case 'rawMaterial': return row?.rawMaterial ?? 0
-    case 'directLabour': return row?.directLabour ?? 0
-    case 'indirectManufacturing': return row?.indirectManufacturing ?? 0
-    case 'engineeringSalaries': return row?.engineeringSalaries ?? 0
-    case 'indirectMaterials': return row?.indirectMaterials ?? 0
-    case 'administrativeSalary': return row?.administrativeSalary ?? 0
+    case "rawMaterial":
+      return row?.rawMaterial ?? 0;
+    case "directLabour":
+      return row?.directLabour ?? 0;
+    case "indirectManufacturing":
+      return row?.indirectManufacturing ?? 0;
+    case "engineeringSalaries":
+      return row?.engineeringSalaries ?? 0;
+    case "indirectMaterials":
+      return row?.indirectMaterials ?? 0;
+    case "administrativeSalary":
+      return row?.administrativeSalary ?? 0;
     // BUG FIX: administrativeExpenses = administrativeSalary + netSales*adminPct
     // (see buildCostOfSales.js) - returning the full total here double-counted
     // the salary, since "Administrative Salaries" is already its own row above.
     // This is the remainder only (the netSales*adminPct part).
-    case 'administrativeGeneral': return (row?.administrativeExpenses ?? 0) - (row?.administrativeSalary ?? 0)
-    case 'salesExpenses': return row?.salesExpenses ?? 0
-    case 'machineryPurchase': return capex.machinery
-    case 'buildingPurchase': return capex.buildings
-    case 'civilWorks': return row?.civilWorks
-    case 'computerEquipment': return capex.compute
-    case 'transportEquipment': return capex.transport
-    case 'creditPayment': return row?.creditPayment ?? 0
-    case 'creditInterest': return row?.financialExpenses ?? 0
-    case 'taxes': return (row?.isr ?? 0) + (row?.ptu ?? 0)
-    case 'insurance': return 0
-    case 'otherExpenses': return 0
-    default: return 0
+    case "administrativeGeneral":
+      return row?.administrativeExpenses ?? 0;
+    case "salesExpenses":
+      return row?.salesExpenses ?? 0;
+    case "machineryPurchase":
+      return capex.machinery;
+    case "buildingPurchase":
+      return capex.buildings;
+    case "civilWorks":
+      return row?.civilWorks;
+    case "computerEquipment":
+      return capex.compute;
+    case "transportEquipment":
+      return capex.transport;
+    case "creditPayment":
+      return row?.creditPayment ?? 0;
+    case "creditInterest":
+      return row?.financialExpenses ?? 0;
+    case "taxes":
+      return (row?.isr ?? 0) + (row?.ptu ?? 0);
+    case "insurance":
+      return 0;
+    case "otherExpenses":
+      return 0;
+    default:
+      return 0;
   }
 }

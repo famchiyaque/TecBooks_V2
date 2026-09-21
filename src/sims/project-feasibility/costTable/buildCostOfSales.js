@@ -1,20 +1,35 @@
 import {
-  areCostsNumeric, sumSalariesByCategory, sumSalariesByCategoryPerYear, computeNetSales,
-  computeRawMaterialCost, computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
-  computeSalesExpenses, computeAdministrativeExpenses,
-  computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
-  computeFinancingAmount, computeAmortizationSchedule, computeIncomeBeforeTaxes,
-  computeTaxes, computeNetIncome,
-} from '@/utils/dashboard/costCalculations'
-import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
-import { computeFixedAssetsByCategory } from '../balance/computeFixedAssets.js'
-import { Logger } from '../utils/logger.js'
-import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
+  areCostsNumeric,
+  sumSalariesByCategory,
+  sumSalariesByCategoryPerYear,
+  computeNetSales,
+  computeRawMaterialCost,
+  computeIndirectMaterialCosts,
+  buildCostOfSalesTable,
+  findUnclassifiedEmployees,
+  computeSalesExpenses,
+  computeAdministrativeExpenses,
+  computeOperatingExpenses,
+  computeOperatingProfit,
+  computeCumulativeInvestment,
+  computeFinancingAmount,
+  computeAmortizationSchedule,
+  computeIncomeBeforeTaxes,
+  computeTaxes,
+  computeNetIncome,
+} from "@/utils/dashboard/costCalculations";
+import {
+  cbmToCostTableInputs,
+  cbmToOperatingExpenseInputs,
+} from "./cbmToCostTableInputs";
+import { computeFixedAssetsByCategory } from "../balance/computeFixedAssets.js";
+import { Logger } from "../utils/logger.js";
+import { computeAdminExpenses } from "@/utils/dashboard/computeAdminExpenses.js";
 
-import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js"
-import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest.js"
+import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js";
+import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest.js";
 
-const logger = new Logger('BuildCostOfSales')
+const logger = new Logger("BuildCostOfSales");
 
 /**
  * Shared by ProjectCostSummary (Cost Table section) and ProfitSummary
@@ -24,127 +39,213 @@ const logger = new Logger('BuildCostOfSales')
  */
 export function buildCostOfSales(cbm) {
   if (!cbm) {
-    logger.warn('buildCostOfSales: no cbm - project is stored as rows')
-    return { error: 'This project is stored as rows. Cost tables will load from the server in a follow-up.' }
+    logger.warn("buildCostOfSales: no cbm - project is stored as rows");
+    return {
+      error:
+        "This project is stored as rows. Cost tables will load from the server in a follow-up.",
+    };
   }
-  const { employees, production, premises } = cbmToCostTableInputs(cbm)
+  const { employees, production, premises } = cbmToCostTableInputs(cbm);
 
-  console.log('[DEBUG-MP] production.purchaseOrders:', JSON.stringify(production.purchaseOrders))
-  console.log('[DEBUG-MP] production.qualityYield:', JSON.stringify(production.qualityYield))
-  console.log('[DEBUG-MP] production.materialCostPerUnit:', production.materialCostPerUnit)
-  console.log('[DEBUG-MP] cbm.derivedBase:', JSON.stringify(cbm.derivedBase))
-  console.log('[DEBUG-MP] cbm.demand:', JSON.stringify(cbm.demand))
+  console.log(
+    "[DEBUG-MP] production.purchaseOrders:",
+    JSON.stringify(production.purchaseOrders),
+  );
+  console.log(
+    "[DEBUG-MP] production.qualityYield:",
+    JSON.stringify(production.qualityYield),
+  );
+  console.log(
+    "[DEBUG-MP] production.materialCostPerUnit:",
+    production.materialCostPerUnit,
+  );
+  console.log("[DEBUG-MP] cbm.derivedBase:", JSON.stringify(cbm.derivedBase));
+  console.log("[DEBUG-MP] cbm.demand:", JSON.stringify(cbm.demand));
 
   if (employees.length === 0) {
-    logger.warn('buildCostOfSales: no registered employees')
-    return { error: 'This project has no registered employees.' }
+    logger.warn("buildCostOfSales: no registered employees");
+    return { error: "This project has no registered employees." };
   }
   if (!areCostsNumeric(employees, production)) {
-    logger.warn('buildCostOfSales: non-numeric data in employees or production', { employees, production })
-    return { error: 'This project has non-numeric data in employees or production.' }
+    logger.warn(
+      "buildCostOfSales: non-numeric data in employees or production",
+      { employees, production },
+    );
+    return {
+      error: "This project has non-numeric data in employees or production.",
+    };
   }
 
-  const years = Object.keys(production.purchaseOrders).map(Number)
+  const years = Object.keys(production.purchaseOrders).map(Number);
   if (years.length === 0) {
-    logger.warn('buildCostOfSales: no year-zero record')
-    return { error: 'This project has no year-zero record.' }
+    logger.warn("buildCostOfSales: no year-zero record");
+    return { error: "This project has no year-zero record." };
   }
 
   // Flat, year-zero totals - only for financingAmount below (the loan is
   // sized once, at origination, off year-zero costs - see RF-56 BUG FIX
   // further down). Everything the Cost Table/Operating Expenses actually
   // display uses the per-year, inflation-grown version instead.
-  const { MOD, MOIndirecta, Ingenieria, Administrative } = sumSalariesByCategory(employees)
+  const { MOD, MOIndirecta, Ingenieria, Administrative } =
+    sumSalariesByCategory(employees);
   // BUG FIX: cbmToCostTableInputs()'s `premises` only carries
   // indirectProductPercentage - nationalInflation lives on cbm.premises
   // directly (the raw, index-based array getInflation expects), not on that
   // destructured object.
-  const salariesByYear = sumSalariesByCategoryPerYear(employees, years, cbm.premises)
-  const MODByYear = {}, MOIndirectaByYear = {}, IngenieriaByYear = {}, AdministrativeByYear = {}
+  const salariesByYear = sumSalariesByCategoryPerYear(
+    employees,
+    years,
+    cbm.premises,
+  );
+  const MODByYear = {},
+    MOIndirectaByYear = {},
+    IngenieriaByYear = {},
+    AdministrativeByYear = {};
   years.forEach((year) => {
-    MODByYear[year] = salariesByYear[year].MOD
-    MOIndirectaByYear[year] = salariesByYear[year].MOIndirecta
-    IngenieriaByYear[year] = salariesByYear[year].Ingenieria
-    AdministrativeByYear[year] = salariesByYear[year].Administrative
-  })
+    MODByYear[year] = salariesByYear[year].MOD;
+    MOIndirectaByYear[year] = salariesByYear[year].MOIndirecta;
+    IngenieriaByYear[year] = salariesByYear[year].Ingenieria;
+    AdministrativeByYear[year] = salariesByYear[year].Administrative;
+  });
 
-  const MP = computeRawMaterialCost(production)
-  const netSales = computeNetSales(production)
-  const indirectMaterials = computeIndirectMaterialCosts(premises, netSales)
+  const MP = computeRawMaterialCost(production);
+  const netSales = computeNetSales(production);
+  const indirectMaterials = computeIndirectMaterialCosts(premises, netSales);
   const costOfSalesByYear = buildCostOfSalesTable(years, {
-    MP, MOD: MODByYear, MOIndirecta: MOIndirectaByYear, Ingenieria: IngenieriaByYear, indirectMaterials, netSales,
-  })
-  const unclassifiedEmployees = findUnclassifiedEmployees(employees)
-  logger.debug('buildCostOfSales: cost of sales', { salariesByYear, MP, netSales, indirectMaterials, costOfSalesByYear, unclassifiedEmployees })
+    MP,
+    MOD: MODByYear,
+    MOIndirecta: MOIndirectaByYear,
+    Ingenieria: IngenieriaByYear,
+    indirectMaterials,
+    netSales,
+  });
+  const unclassifiedEmployees = findUnclassifiedEmployees(employees);
+  logger.debug("buildCostOfSales: cost of sales", {
+    salariesByYear,
+    MP,
+    netSales,
+    indirectMaterials,
+    costOfSalesByYear,
+    unclassifiedEmployees,
+  });
 
-  const opex = cbmToOperatingExpenseInputs(cbm, years)
+  const opex = cbmToOperatingExpenseInputs(cbm, years);
   // BUG FIX: used to call computeAssetDepreciation once per hardcoded
   // category (Buildings/Transport/Compute/Machinery) - any category the
   // Excel's Inversion sheet names something else was silently never
   // depreciated. Reuses the same dynamic, per-item depreciation Balance
   // Sheet > Fixed Assets already computes (computeFixedAssetsByCategory),
   // summed across however many categories the project actually has.
-  const fixedAssetsByCategory = computeFixedAssetsByCategory(cbm, years)
-  const depreciationTotal = {}
+  const fixedAssetsByCategory = computeFixedAssetsByCategory(cbm, years);
+  const depreciationTotal = {};
   years.forEach((year) => {
-    depreciationTotal[year] = Object.values(fixedAssetsByCategory).reduce((sum, { rows }) => {
-      const row = rows.find((candidate) => candidate.year === year)
-      return sum + (row?.annualDepreciation || 0)
-    }, 0)
-  })
-  const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
-  const administrativeExpenses = computeAdminExpenses(cbm)
-  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, AdministrativeByYear, depreciationTotal, salesExpenses, years)
-  logger.debug('buildCostOfSales: operating expenses', {
-    fixedAssetsCategories: Object.keys(fixedAssetsByCategory), depreciationTotal,
-    salesExpenses, administrativeExpenses, operatingExpenses,
-  })
-  const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
-  const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
-  const machineryInvestment = computeCumulativeInvestment([opex.machines], years)
-  const managementBills = {}
-  years.forEach((year) => { managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0) })
+    depreciationTotal[year] = Object.values(fixedAssetsByCategory).reduce(
+      (sum, { rows }) => {
+        const row = rows.find((candidate) => candidate.year === year);
+        return sum + (row?.annualDepreciation || 0);
+      },
+      0,
+    );
+  });
+  const salesExpenses = computeSalesExpenses(
+    netSales,
+    opex.salesExpensePct,
+    years,
+  );
+  const administrativeExpenses = computeAdminExpenses(cbm);
+  const operatingExpenses = computeOperatingExpenses(
+    administrativeExpenses,
+    AdministrativeByYear,
+    depreciationTotal,
+    salesExpenses,
+    years,
+  );
+  logger.debug("buildCostOfSales: operating expenses", {
+    fixedAssetsCategories: Object.keys(fixedAssetsByCategory),
+    depreciationTotal,
+    salesExpenses,
+    administrativeExpenses,
+    operatingExpenses,
+  });
+  const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative;
+  const investment = computeCumulativeInvestment(
+    [opex.assets.buildings, opex.assets.transport, opex.assets.compute],
+    years,
+  );
+  const machineryInvestment = computeCumulativeInvestment(
+    [opex.machines],
+    years,
+  );
+  const managementBills = {};
+  years.forEach((year) => {
+    managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0);
+  });
 
-  let prev = 0
-  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
-    if (idx == 0) acc[year] = value * 0.35
-    else acc[year] = (value - prev) * 0.35
-    prev = Math.max(value, prev)
-    return acc
-  }, {}) 
-  
+  let prev = 0;
+  const civilWorks = Object.entries(machineryInvestment).reduce(
+    (acc, [year, value], idx) => {
+      if (idx == 0) acc[year] = value * 0.35;
+      else acc[year] = (value - prev) * 0.35;
+      prev = Math.max(value, prev);
+      return acc;
+    },
+    {},
+  );
+
   // RF-56 BUG FIX: the loan is originated once, at project year zero - it is
   // a single fixed amount, not resized off a growing cumulative investment
   // every year. investment/machineryInvestment/administrativeExpenses are read at
   // years[0] on purpose (Egresos!B215 is itself a year-zero figure).
   const financingAmount = computeFinancingAmount(
-    investment, salariesTotal, administrativeExpenses, machineryInvestment, civilWorks, years[0]
-  )
+    investment,
+    salariesTotal,
+    administrativeExpenses,
+    machineryInvestment,
+    civilWorks,
+    years[0],
+  );
 
   // RF-56 BUG FIX: one loan, amortized once over its own life in monthly
   // 12-month blocks - not a fresh full-life schedule re-loaded onto every
   // projection year. Rate is the leading rate at origination (year zero),
   // fixed for the life of the loan.
-  const { financialExpensesByYear: financialExpenses, creditPaymentByYear: creditPayment } =
-    computeAmortizationSchedule(
-      financingAmount, opex.financingPeriods, opex.nationalLeadingRate[years[0]], years
-    )
+  const {
+    financialExpensesByYear: financialExpenses,
+    creditPaymentByYear: creditPayment,
+  } = computeAmortizationSchedule(
+    financingAmount,
+    opex.financingPeriods,
+    opex.nationalLeadingRate[years[0]],
+    years,
+  );
 
-  logger.debug('buildCostOfSales: financing', {
-    investment, machineryInvestment, managementBills, salariesTotal, financingAmount, financialExpenses, creditPayment,
-  })
+  logger.debug("buildCostOfSales: financing", {
+    investment,
+    machineryInvestment,
+    managementBills,
+    salariesTotal,
+    financingAmount,
+    financialExpenses,
+    creditPayment,
+  });
 
-  const incomeBeforeTaxes = {}
+  const incomeBeforeTaxes = {};
   costOfSalesByYear.forEach((row, idx) => {
-    const operatingProfit = computeOperatingProfit(row.grossProfit, operatingExpenses[row.year])
+    const operatingProfit = computeOperatingProfit(
+      row.grossProfit,
+      operatingExpenses[row.year],
+    );
     // RF-56 "Financial Income" has no source field - base 0 here, only ever
     // set through an override, same as this static row for every other year.
     incomeBeforeTaxes[row.year] = computeIncomeBeforeTaxes(
-      operatingProfit, financialExpenses[row.year], creditPayment[row.year], 0
-    )
-  })
+      operatingProfit,
+      financialExpenses[row.year],
+      creditPayment[row.year],
+      0,
+    );
+  });
 
-  const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years)
+  const taxes = computeTaxes(incomeBeforeTaxes, opex.isr, opex.ptu, years);
 
   const incomeStatementByYear = costOfSalesByYear.map((row) => ({
     ...row,
@@ -169,7 +270,10 @@ export function buildCostOfSales(cbm) {
     depreciation: depreciationTotal[row.year],
     salesExpenses: salesExpenses[row.year],
     operatingExpenses: operatingExpenses[row.year],
-    operatingProfit: computeOperatingProfit(row.grossProfit, operatingExpenses[row.year]),
+    operatingProfit: computeOperatingProfit(
+      row.grossProfit,
+      operatingExpenses[row.year],
+    ),
     financialExpenses: financialExpenses[row.year],
     creditPayment: creditPayment[row.year],
     // RF-56 "Financial Income" ("Productos Financieros") has no source field
@@ -178,10 +282,16 @@ export function buildCostOfSales(cbm) {
     incomeBeforeTaxes: incomeBeforeTaxes[row.year],
     isr: taxes[row.year].isr,
     ptu: taxes[row.year].ptu,
-    netIncome: computeNetIncome(incomeBeforeTaxes[row.year], taxes[row.year].total),
-  }))
+    netIncome: computeNetIncome(
+      incomeBeforeTaxes[row.year],
+      taxes[row.year].total,
+    ),
+  }));
 
-  const result = { costOfSalesByYear: incomeStatementByYear, unclassifiedEmployees }
-  logger.debug('buildCostOfSales: final income statement', result)
-  return result
+  const result = {
+    costOfSalesByYear: incomeStatementByYear,
+    unclassifiedEmployees,
+  };
+  logger.debug("buildCostOfSales: final income statement", result);
+  return result;
 }

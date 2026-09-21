@@ -1,36 +1,48 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { Alert } from '@mui/material'
-import EditableTable from '@/components/global/EditableTable'
-import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
-import { buildCostOfSales } from './buildCostOfSales'
-import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
-import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
+import React from "react";
+import { useSelector } from "react-redux";
+import { Alert } from "@mui/material";
+import EditableTable from "@/components/global/EditableTable";
+import { cashFlowEditsSlice, outflowEditsSlice } from "@/store/costTable.store";
+import { buildCostOfSales } from "./buildCostOfSales";
+import {
+  buildOutflowRows,
+  computeCapexByYear,
+  outflowBaseValue,
+} from "./outflowCalculations";
+import {
+  ENTRADA_ROWS,
+  baseEntradaValue,
+  startingMoneyFromCbm,
+} from "./cashFlowCalculations";
 
-function CashTable({ project }) {
-  const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
-  const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
-  const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
-  const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows)
-  const openingCash = startingMoneyFromCbm(project.cbm)
-
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
+function CashTable({ project, result }) {
+  const overrides = useSelector(cashFlowEditsSlice.selectOverrides);
+  const customRows = useSelector(cashFlowEditsSlice.selectCustomRows);
+  const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides);
+  const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows);
+  const openingCash = startingMoneyFromCbm(project.cbm);
 
   const rowByYear = React.useMemo(() => {
-    if (result.error) return {}
-    return Object.fromEntries(result.costOfSalesByYear.map((row) => [row.year, row]))
-  }, [result])
+    if (result.error) return {};
+    return Object.fromEntries(
+      result.costOfSalesByYear.map((row) => [row.year, row]),
+    );
+  }, [result]);
 
   const years = React.useMemo(
     () => (result.error ? [] : result.costOfSalesByYear.map((row) => row.year)),
-    [result]
-  )
+    [result],
+  );
 
-  const capexByYear = React.useMemo(() => (
-    result.error ? {} : computeCapexByYear(project.cbm, years)
-  ), [project, result, years])
+  const capexByYear = React.useMemo(
+    () => (result.error ? {} : computeCapexByYear(project.cbm, years)),
+    [project, result, years],
+  );
 
-  const outflowRows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
+  const outflowRows = React.useMemo(
+    () => buildOutflowRows(project.cbm),
+    [project],
+  );
 
   // Saldo Inicial[year] = prior year's Flujo Neto (Entradas - Salidas), first
   // year seeded with the initial cash balance. Sequential (each year only
@@ -38,37 +50,56 @@ function CashTable({ project }) {
   // Ventas (Entradas) or, say, Other Expenses (Outflows) for 2025 both
   // ripple into Saldo Inicial 2026 through their respective effectiveTotal.
   const saldoInicialByYear = React.useMemo(() => {
-    const map = {}
+    const map = {};
     years.forEach((year, index) => {
       if (index === 0) {
-        map[year] = openingCash
-        return
+        map[year] = openingCash;
+        return;
       }
-      const prevYear = years[index - 1]
-      const prevEntradaValue = (rowKey) => (
-        rowKey === 'saldoInicial' ? map[prevYear] : baseEntradaValue(rowKey, prevYear, rowByYear)
-      )
+      const prevYear = years[index - 1];
+      const prevEntradaValue = (rowKey) =>
+        rowKey === "saldoInicial"
+          ? map[prevYear]
+          : baseEntradaValue(rowKey, prevYear, rowByYear);
       const prevTotalEntradas = cashFlowEditsSlice.effectiveTotal(
-        { overrides, customRows }, ENTRADA_ROWS, prevEntradaValue, prevYear
-      )
-      const prevOutflowValue = (rowKey) => outflowBaseValue(rowKey, prevYear, rowByYear, capexByYear)
+        { overrides, customRows },
+        ENTRADA_ROWS,
+        prevEntradaValue,
+        prevYear,
+      );
+      const prevOutflowValue = (rowKey) =>
+        outflowBaseValue(rowKey, prevYear, rowByYear, capexByYear);
       const prevTotalSalidas = outflowEditsSlice.effectiveTotal(
-        { overrides: outflowOverrides, customRows: outflowCustomRows }, outflowRows, prevOutflowValue, prevYear
-      )
-      map[year] = prevTotalEntradas - prevTotalSalidas
-    })
-    return map
-  }, [years, openingCash, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear, outflowRows])
+        { overrides: outflowOverrides, customRows: outflowCustomRows },
+        outflowRows,
+        prevOutflowValue,
+        prevYear,
+      );
+      map[year] = prevTotalEntradas - prevTotalSalidas;
+    });
+    return map;
+  }, [
+    years,
+    openingCash,
+    overrides,
+    customRows,
+    outflowOverrides,
+    outflowCustomRows,
+    rowByYear,
+    capexByYear,
+    outflowRows,
+  ]);
 
   if (result.error) {
-    return <Alert severity="warning">{result.error}</Alert>
+    return <Alert severity="warning">{result.error}</Alert>;
   }
 
-  const getValue = (rowKey, year) => (
-    rowKey === 'saldoInicial' ? (saldoInicialByYear[year] ?? 0) : baseEntradaValue(rowKey, year, rowByYear)
-  )
+  const getValue = (rowKey, year) =>
+    rowKey === "saldoInicial"
+      ? (saldoInicialByYear[year] ?? 0)
+      : baseEntradaValue(rowKey, year, rowByYear);
 
-  const columns = years.map((year) => ({ key: year, label: year }))
+  const columns = years.map((year) => ({ key: year, label: year }));
 
   return (
     <EditableTable
@@ -79,7 +110,7 @@ function CashTable({ project }) {
       getValue={getValue}
       totalLabel="Total Cash Inflows"
     />
-  )
+  );
 }
 
-export default CashTable
+export default CashTable;
