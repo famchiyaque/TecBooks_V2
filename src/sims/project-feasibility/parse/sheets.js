@@ -1,4 +1,4 @@
-import { MONTHS, SKIP_SERVICES_SUBCATEGORY } from '../constants.js'
+import { HORIZON_YEARS, MONTHS, SKIP_SERVICES_SUBCATEGORY } from '../constants.js'
 import {
   isBlank,
   normalizeLabel,
@@ -54,6 +54,11 @@ const ASSET_BLOCKS = [
   { match: 'edificios', key: 'buildings' },
   { match: 'equipo de computo', key: 'compute' },
 ]
+
+// Matches an Inversion category that's really machinery (see readInversion's
+// BUG FIX below) - "maquinaria" (Spanish) or "machinery" (English, post
+// save/reload round-trip label).
+const MACHINERY_CATEGORY_PATTERN = /^maquinaria|^machinery/
 
 // Any "Porcentaje depreciacion X" row becomes its own category rate - not
 // just the 4 fixed PREMISES_ROWS fields InputNovus happens to always have.
@@ -170,11 +175,17 @@ export function readCapacidad(rows, project) {
   for (const row of rows.slice(1)) {
     const label = normalizeLabel(row?.[0])
     if (label && !SKIP_LINE_LABELS.has(label) && LINE_LABELS[label]) {
-      // BUG FIX: Quality Yield/Shifts/Production Lines/etc. genuinely change
-      // year to year (Capacidad's own sheet has a year column per field,
-      // same header this yearMap already comes from) - was only ever reading
-      // column B (year zero), throwing away every later year.
-      project.capacity.line[LINE_LABELS[label]] = seriesFromRow(row, yearMap)
+      // BUG FIX: Capacidad's header row has TWO "2025" columns (column B for
+      // line params, column I for machine acquisition cost) - yearColumnMap
+      // keeps the LAST match per year (left-to-right overwrite), so
+      // yearMap[2025] pointed at the machine cost column, not column B.
+      // seriesFromRow(row, yearMap) was reading a machine's acquisition cost
+      // (e.g. 2,800,000) as if it were Quality Yield (0.8). Line params are
+      // a single scalar (label in column A, value in column B only, no real
+      // per-year series) - read column B directly, replicated flat across
+      // HORIZON_YEARS, never through the machine-section yearMap.
+      const value = toNumberOrUndefined(row?.[1])
+      project.capacity.line[LINE_LABELS[label]] = HORIZON_YEARS.map(() => value)
     }
 
     const code = toStringOrUndefined(row?.[3])
@@ -230,6 +241,7 @@ export function readBOM(rows, project) {
 export function readInversion(rows, project) {
   let currentKey = null
   let currentCategory = null
+  let isMachineryCategory = false
   let yearMap = {}
 
   for (const row of rows) {
@@ -237,8 +249,19 @@ export function readInversion(rows, project) {
     if (Object.keys(rowYearMap).length > 0) {
       currentCategory = toStringOrUndefined(row?.[0])
       yearMap = rowYearMap
-      if (currentCategory) project.assets.byCategory[currentCategory] ??= []
       const label = normalizeLabel(row?.[0])
+      // BUG FIX: some Inversion sheets ALSO have their own "Maquinaria y
+      // equipo" category, even though Capacidad's machine list
+      // (capacity.machines, see readCapacidad) already IS the app's one
+      // source of truth for machinery - Cash Outflows' "Machinery Purchase"
+      // row, the loan's machineryInvestment, and Balance Sheet's "Machinery
+      // and Equipment" category (computeFixedAssets.js) all read from
+      // capacity.machines already. Registering this Inversion category too
+      // double-counted the same machinery in all three. Skip adding it to
+      // byCategory entirely - still tracked structurally below so its rows
+      // are consumed (not misread as the next category), just discarded.
+      isMachineryCategory = MACHINERY_CATEGORY_PATTERN.test(label)
+      if (currentCategory && !isMachineryCategory) project.assets.byCategory[currentCategory] ??= []
       const block = ASSET_BLOCKS.find((item) => label.startsWith(item.match))
       currentKey = block?.key ?? null
       continue
@@ -250,9 +273,11 @@ export function readInversion(rows, project) {
       if (isBlank(row?.[1])) {
         currentKey = null
         currentCategory = null
+        isMachineryCategory = false
       }
       continue
     }
+    if (isMachineryCategory) continue
 
     const asset = { name, acquisitionByYear: seriesFromRow(row, yearMap) }
     project.assets.byCategory[currentCategory].push(asset)

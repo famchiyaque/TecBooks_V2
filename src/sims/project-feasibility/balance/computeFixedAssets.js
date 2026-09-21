@@ -98,6 +98,16 @@ function computeItemCumulativeByYear(asset, years) {
  */
 export function computeFixedAssetsByCategory(cbm, years) {
   const categories = { ...(cbm.assets?.byCategory ?? {}) }
+  // BUG FIX: some Inversion sheets have their own "Maquinaria y equipo"
+  // category too, even though capacity.machines (below) is already this
+  // app's one source of truth for machinery everywhere else (Cash
+  // Outflows' "Machinery Purchase", the loan's machineryInvestment). Drop
+  // it here so it isn't depreciated twice - readInversion now skips adding
+  // it in the first place for a fresh upload, but an already-saved project
+  // can still have it in byCategory from before that fix.
+  for (const category of Object.keys(categories)) {
+    if (/^maquinaria|^machinery/.test(normalize(category))) delete categories[category]
+  }
   if (cbm.capacity?.machines?.length) {
     categories[MACHINERY_CATEGORY] = cbm.capacity.machines
   }

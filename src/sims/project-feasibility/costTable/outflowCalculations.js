@@ -26,16 +26,29 @@ function knownAssetKeyForCategory(category) {
   return KNOWN_ASSET_CATEGORY_MATCH.find((item) => normalized.startsWith(item.match))?.key ?? null
 }
 
+// BUG FIX: readInversion now skips a machinery-named Inversion category at
+// parse time (capacity.machines - the fixed "Machinery Purchase" row below -
+// is already the one source of truth for machinery), but a project saved to
+// D1 before that fix still has it sitting in assets.byCategory on reload.
+// Filtered here too so an already-saved project stops double-counting
+// without needing a re-upload.
+function isMachineryCategory(category) {
+  return /^maquinaria|^machinery/.test(normalizeCategoryName(category))
+}
+
 /**
  * BUG FIX: capex used to only ever look at Buildings/Transport/Compute/
  * Machinery - any category the project's Inversion sheet named something
  * else (e.g. "Animales") was silently never counted as a cash outflow.
  * These are whatever's left in assets.byCategory after removing the 3
- * known ones - each gets its own dynamic Cash Outflows row.
+ * known ones (and machinery, see isMachineryCategory) - each gets its own
+ * dynamic Cash Outflows row.
  */
 export function getExtraAssetCategories(cbm) {
   const categories = cbm.assets?.byCategory ?? {}
-  return Object.keys(categories).filter((category) => !knownAssetKeyForCategory(category))
+  return Object.keys(categories).filter((category) => (
+    !knownAssetKeyForCategory(category) && !isMachineryCategory(category)
+  ))
 }
 
 /**
@@ -123,7 +136,11 @@ export function outflowBaseValue(rowKey, year, rowByYear, capexByYear) {
     case 'engineeringSalaries': return row?.engineeringSalaries ?? 0
     case 'indirectMaterials': return row?.indirectMaterials ?? 0
     case 'administrativeSalary': return row?.administrativeSalary ?? 0
-    case 'administrativeGeneral': return row?.administrativeExpenses
+    // BUG FIX: administrativeExpenses = administrativeSalary + netSales*adminPct
+    // (see buildCostOfSales.js) - returning the full total here double-counted
+    // the salary, since "Administrative Salaries" is already its own row above.
+    // This is the remainder only (the netSales*adminPct part).
+    case 'administrativeGeneral': return (row?.administrativeExpenses ?? 0) - (row?.administrativeSalary ?? 0)
     case 'salesExpenses': return row?.salesExpenses ?? 0
     case 'machineryPurchase': return capex.machinery
     case 'buildingPurchase': return capex.buildings
