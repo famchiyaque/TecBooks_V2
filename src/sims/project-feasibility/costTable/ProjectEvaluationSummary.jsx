@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { Alert, Box, Chip, Grid, TextField, Typography } from '@mui/material'
+import { Alert, Box, Chip, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
 import { computeTrema, computeNPV, computeIRR, decideProject } from '@/utils/dashboard/financialEvaluation'
 import { buildCostOfSales } from './buildCostOfSales'
@@ -17,27 +17,24 @@ function formatPct(value) {
   return `${(Number(value) * 100).toFixed(2)}%`
 }
 
-function EditableStat({ label, value, onChange, helperText }) {
+// Stores the rate as a decimal fraction (0.10 = 10%) but lets the user edit
+// in whole-percent terms (10 = 10%) with a % suffix - no decimal confusion.
+function PercentField({ label, value, onChange, helperText }) {
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        height: '100%',
-        bgcolor: 'rgba(7, 58, 90, 0.04)',
-        border: '1px solid rgba(7, 58, 90, 0.1)',
+    <TextField
+      label={label}
+      type="number"
+      size="small"
+      fullWidth
+      value={Number.isFinite(value) ? Number((value * 100).toFixed(2)) : 0}
+      onChange={(event) => onChange(Number(event.target.value) / 100 || 0)}
+      helperText={helperText}
+      slotProps={{
+        input: {
+          endAdornment: <InputAdornment position="end">%</InputAdornment>,
+        },
       }}
-    >
-      <Typography variant="caption" sx={{ opacity: 0.7 }}>{label}</Typography>
-      <TextField
-        type="number"
-        size="small"
-        fullWidth
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value) || 0)}
-        helperText={helperText}
-      />
-    </Box>
+    />
   )
 }
 
@@ -145,20 +142,44 @@ function ProjectEvaluationSummary({ project }) {
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3}>
-          <EditableStat
-            label="Best Market Interest Rate"
-            value={marketRate}
-            onChange={setMarketRate}
-            helperText="From Premisas - edit as a decimal (e.g. 0.10 = 10%)"
-          />
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              height: '100%',
+              bgcolor: 'rgba(7, 58, 90, 0.04)',
+              border: '1px solid rgba(7, 58, 90, 0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <PercentField
+              label="Best Market Interest Rate"
+              value={marketRate}
+              onChange={setMarketRate}
+            />
+          </Box>
         </Grid>
         <Grid item xs={6} sm={3}>
-          <EditableStat
-            label="Inflation"
-            value={inflation}
-            onChange={setInflation}
-            helperText="From Premisas - edit as a decimal (e.g. 0.10 = 10%)"
-          />
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              height: '100%',
+              bgcolor: 'rgba(7, 58, 90, 0.04)',
+              border: '1px solid rgba(7, 58, 90, 0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <PercentField
+              label="Inflation"
+              value={inflation}
+              onChange={setInflation}
+            />
+          </Box>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Stat label="TREMA" value={formatPct(trema)} highlight />
@@ -182,14 +203,12 @@ function ProjectEvaluationSummary({ project }) {
         <Alert severity="warning" sx={{ mt: 2 }}>{decision.reason}</Alert>
       )}
 
-      <Box sx={{ mt: 3 }}>
-        <TextField
+      <Box sx={{ mt: 3, maxWidth: 240 }}>
+        <PercentField
           label="Risk Premium"
-          type="number"
-          size="small"
           value={riskPremium}
-          onChange={(event) => setRiskPremium(Number(event.target.value) || 0)}
-          helperText="No source field in InputNovus - enter as a decimal (e.g. 0.10 = 10%)"
+          onChange={setRiskPremium}
+          helperText="No source field in InputNovus - enter as a percentage (e.g. 10 = 10%)"
         />
       </Box>
     </Box>
