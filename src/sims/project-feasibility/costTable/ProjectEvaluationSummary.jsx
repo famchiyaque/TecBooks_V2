@@ -17,6 +17,30 @@ function formatPct(value) {
   return `${(Number(value) * 100).toFixed(2)}%`
 }
 
+function EditableStat({ label, value, onChange, helperText }) {
+  return (
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        height: '100%',
+        bgcolor: 'rgba(7, 58, 90, 0.04)',
+        border: '1px solid rgba(7, 58, 90, 0.1)',
+      }}
+    >
+      <Typography variant="caption" sx={{ opacity: 0.7 }}>{label}</Typography>
+      <TextField
+        type="number"
+        size="small"
+        fullWidth
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value) || 0)}
+        helperText={helperText}
+      />
+    </Box>
+  )
+}
+
 function Stat({ label, value, highlight }) {
   return (
     <Box
@@ -56,6 +80,8 @@ function Stat({ label, value, highlight }) {
  */
 function ProjectEvaluationSummary({ project }) {
   const [riskPremium, setRiskPremium] = React.useState(0.1)
+  const [marketRate, setMarketRate] = React.useState(0)
+  const [inflation, setInflation] = React.useState(0)
 
   const entradaOverrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const entradaCustomRows = useSelector(cashFlowEditsSlice.selectCustomRows)
@@ -78,6 +104,14 @@ function ProjectEvaluationSummary({ project }) {
   const outflowRows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
   const opex = React.useMemo(() => cbmToOperatingExpenseInputs(project.cbm, years), [project, years])
 
+  const loadedMarketRate = opex.nationalLeadingRate[years[0]] || 0
+  const loadedInflation = opex.nationalInflation[years[0]] || 0
+
+  React.useEffect(() => {
+    setMarketRate(loadedMarketRate)
+    setInflation(loadedInflation)
+  }, [loadedMarketRate, loadedInflation])
+
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>
   }
@@ -98,8 +132,6 @@ function ProjectEvaluationSummary({ project }) {
     return totalEntradas - totalSalidas
   })
 
-  const marketRate = opex.nationalLeadingRate[years[0]] || 0
-  const inflation = opex.nationalInflation[years[0]] || 0
   const trema = computeTrema(marketRate, inflation, riskPremium)
   const npv = computeNPV(netCashFlowByYear, trema)
   const irr = computeIRR(netCashFlowByYear)
@@ -113,10 +145,20 @@ function ProjectEvaluationSummary({ project }) {
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3}>
-          <Stat label="Best Market Interest Rate" value={formatPct(marketRate)} />
+          <EditableStat
+            label="Best Market Interest Rate"
+            value={marketRate}
+            onChange={setMarketRate}
+            helperText="From Premisas - edit as a decimal (e.g. 0.10 = 10%)"
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Inflation" value={formatPct(inflation)} />
+          <EditableStat
+            label="Inflation"
+            value={inflation}
+            onChange={setInflation}
+            helperText="From Premisas - edit as a decimal (e.g. 0.10 = 10%)"
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
           <Stat label="TREMA" value={formatPct(trema)} highlight />
