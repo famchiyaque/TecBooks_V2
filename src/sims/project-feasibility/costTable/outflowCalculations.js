@@ -77,6 +77,12 @@ export function computeCapexByYear(cbm, years) {
  * isn't Buildings/Transport/Compute/Machinery - a function of the project
  * now, not a static list, since which extra categories exist (if any)
  * varies per project.
+ *
+ * Machinery is NOT one of its own fixed rows here: the Capacidad sheet's
+ * machines block only re-lists the same assets Inversion already captures
+ * under its "Maquinaria y equipo" category, so a computed "Machinery
+ * Purchase" row double-counted it (machinery came out of both capex.machinery
+ * and the extra category row). Machinery shows once, via the extra row.
  */
 export function buildOutflowRows(cbm) {
   const extraRows = getExtraAssetCategories(cbm).map((category) => ({
@@ -93,7 +99,6 @@ export function buildOutflowRows(cbm) {
     { key: 'administrativeSalary', label: 'Administrative Salaries' },
     { key: 'administrativeGeneral', label: 'General Administrative Expenses' },
     { key: 'salesExpenses', label: 'Sales Expenses' },
-    { key: 'machineryPurchase', label: 'Machinery Purchase' },
     { key: 'buildingPurchase', label: 'Building Construction/Purchase' },
     { key: 'civilWorks', label: 'Civil Works (Machinery Installation)' },
     { key: 'computerEquipment', label: 'Computer Equipment Purchase' },
@@ -125,7 +130,6 @@ export function outflowBaseValue(rowKey, year, rowByYear, capexByYear) {
     case 'administrativeSalary': return row?.administrativeSalary ?? 0
     case 'administrativeGeneral': return row?.administrativeExpenses
     case 'salesExpenses': return row?.salesExpenses ?? 0
-    case 'machineryPurchase': return capex.machinery
     case 'buildingPurchase': return capex.buildings
     case 'civilWorks': return row?.civilWorks
     case 'computerEquipment': return capex.compute
