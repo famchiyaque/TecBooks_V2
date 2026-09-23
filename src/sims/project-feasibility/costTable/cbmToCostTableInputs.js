@@ -140,13 +140,27 @@ export function mapAssetsToYears(assetList, years) {
   }))
 }
 
+// BUG FIX: machinery $ used to come from capacity.machines (Capacidad) -
+// that sheet's machine list is for production planning (operator counts,
+// cycle time), not investment. Machinery acquisition cost lives on
+// Inversion's own category (whatever it's labeled - "Maquinaria y equipo",
+// "Machinery", etc.), same as Buildings/Transport/Compute - find it there
+// instead of Capacidad, so Investment/Cash Outflows/Balance Sheet all
+// reflect the real Inversion sheet, not the unrelated Capacidad numbers.
+const MACHINERY_CATEGORY_PATTERN = /^maquinaria|^machinery/
+function machineryAssetsFromInversion(cbm) {
+  const byCategory = cbm.assets?.byCategory ?? {}
+  const key = Object.keys(byCategory).find((category) => (
+    MACHINERY_CATEGORY_PATTERN.test(String(category ?? '').toLowerCase().trim())
+  ))
+  return key ? byCategory[key] : []
+}
+
 /**
- * RF-55/RF-56: assets (buildings/transport/compute), machinery
- * (capacity.machines - Inversion has no "maquinaria" block, machine
- * acquisition cost lives in Capacidad instead) and the Premisas rates
- * depreciation/admin/sales-expense/financing need, all re-keyed from
- * HORIZON_YEARS-indexed arrays to {year: value} maps matching
- * cbmToCostTableInputs' own output shape.
+ * RF-55/RF-56: assets (buildings/transport/compute/maquinaria, all from
+ * Inversion) and the Premisas rates depreciation/admin/sales-expense/
+ * financing need, all re-keyed from HORIZON_YEARS-indexed arrays to
+ * {year: value} maps matching cbmToCostTableInputs' own output shape.
  */
 export function cbmToOperatingExpenseInputs(cbm, years) {
   return {
@@ -155,7 +169,7 @@ export function cbmToOperatingExpenseInputs(cbm, years) {
       transport: mapAssetsToYears(cbm.assets?.transport, years),
       compute: mapAssetsToYears(cbm.assets?.compute, years),
     },
-    machines: mapAssetsToYears(cbm.capacity?.machines, years),
+    machines: mapAssetsToYears(machineryAssetsFromInversion(cbm), years),
     adminPct: yearMapFromSeries(cbm.premises?.adminPct, years),
     salesExpensePct: yearMapFromSeries(cbm.premises?.salesExpensePct, years),
     depreciationBuildings: yearMapFromSeries(cbm.premises?.depreciationBuildings, years),

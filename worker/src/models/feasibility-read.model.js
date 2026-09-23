@@ -144,6 +144,15 @@ export async function getProductionLine(database, lineId) {
     .first();
 }
 
+export async function listCapacityLineYearly(database, productionLineId) {
+  if (!productionLineId) return [];
+  const { results } = await database
+    .prepare('SELECT * FROM production_line_capacity_yearly WHERE production_line_id = ? ORDER BY year')
+    .bind(productionLineId)
+    .all();
+  return results ?? [];
+}
+
 export async function getBom(database, bomId) {
   if (!bomId) return null;
   return database

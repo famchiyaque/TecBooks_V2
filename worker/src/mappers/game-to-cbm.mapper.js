@@ -114,6 +114,7 @@ export function mapGameRowsToCbm({
   assetCosts,
   capacity,
   productionLine,
+  capacityLineYearly,
   bom,
   bomParts,
   services,
@@ -325,15 +326,23 @@ export function mapGameRowsToCbm({
       yearZeroTotal,
     },
     capacity: {
+      // BUG FIX: these used to be flat scalars (capacity's own columns have
+      // no year dimension) - a save/reload round-trip collapsed real
+      // per-year Capacidad variation (Quality Yield, Shifts, etc.) to one
+      // repeated value. production_line_capacity_yearly (see migration 0013)
+      // now holds the real per-year rows - read those, falling back to the
+      // old flat scalar/column for a project saved before this existed.
       line: {
-        qualityYield: asNumber(capacity?.quality_yield),
-        secondsPerUnit: asNumber(capacity?.seconds_x_unit ?? productionLine?.seconds_per_process),
-        hoursShift: asNumber(capacity?.hours_shift),
-        shifts: asNumber(capacity?.shifts),
-        productionLines: 1,
-        weekWorkingDays: asNumber(capacity?.week_working_days),
-        monthsWorkingWeeks: 4,
-        yearWorkingMonths: asNumber(capacity?.year_working_months),
+        qualityYield: seriesFromYearly(years, capacityLineYearly, 'quality_yield', capacity?.quality_yield),
+        secondsPerUnit: seriesFromYearly(
+          years, capacityLineYearly, 'seconds_x_unit', capacity?.seconds_x_unit ?? productionLine?.seconds_per_process
+        ),
+        hoursShift: seriesFromYearly(years, capacityLineYearly, 'hours_shift', capacity?.hours_shift),
+        shifts: seriesFromYearly(years, capacityLineYearly, 'shifts', capacity?.shifts),
+        productionLines: seriesFromYearly(years, capacityLineYearly, 'production_lines_count', 1),
+        weekWorkingDays: seriesFromYearly(years, capacityLineYearly, 'week_working_days', capacity?.week_working_days),
+        monthsWorkingWeeks: seriesFromYearly(years, capacityLineYearly, 'months_working_weeks', 4),
+        yearWorkingMonths: seriesFromYearly(years, capacityLineYearly, 'year_working_months', capacity?.year_working_months),
       },
       machines,
     },

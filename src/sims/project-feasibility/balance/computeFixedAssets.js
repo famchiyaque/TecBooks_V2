@@ -5,10 +5,6 @@ import { Logger } from '../utils/logger.js'
 
 const logger = new Logger('ComputeFixedAssets')
 
-// This exact label is our own (English UI, see FixedAssetsTable) - matched by
-// identity, not pattern, so translating it never breaks its rate lookup.
-const MACHINERY_CATEGORY = 'Machinery and Equipment'
-
 // Maps a category label back to its Premisas depreciation rate field, for
 // the 3 categories InputNovus happens to always have. Matches BOTH the raw
 // Spanish Excel label (a fresh parse, straight from readInversion) and the
@@ -25,6 +21,8 @@ const KNOWN_RATE_FIELD_BY_MATCH = [
   { match: 'buildings', field: 'depreciationBuildings' },
   { match: 'equipo de computo', field: 'depreciationCompute' },
   { match: 'computer equipment', field: 'depreciationCompute' },
+  { match: 'maquinaria', field: 'depreciationMachinery' },
+  { match: 'machinery', field: 'depreciationMachinery' },
 ]
 
 function normalize(text) {
@@ -32,7 +30,6 @@ function normalize(text) {
 }
 
 function rateFieldForCategory(category) {
-  if (category === MACHINERY_CATEGORY) return 'depreciationMachinery'
   const normalized = normalize(category)
   return KNOWN_RATE_FIELD_BY_MATCH.find((item) => normalized.startsWith(item.match))?.field ?? null
 }
@@ -89,18 +86,20 @@ function computeItemCumulativeByYear(asset, years) {
 /**
  * Balance Sheet > Fixed Assets: gross value, accumulated depreciation and
  * net value for every asset category the Excel actually has - dynamic, not
- * limited to Buildings/Transport/Compute (see readInversion's structural
- * category detection) - plus Machinery and Equipment (Capacidad, not
- * Inversion). Depreciation is computed per INDIVIDUAL ITEM (each with its
- * own rate, see rateSeriesForItem) and summed up to the category total -
- * not the category's cumulative gross value depreciated at one shared rate,
- * since two items in the same category can depreciate differently.
+ * limited to Buildings/Transport/Compute/Machinery (see readInversion's
+ * structural category detection - machinery is just whatever category
+ * Inversion labeled it, same as any other; BUG FIX: this used to ALSO
+ * inject capacity.machines under a fixed "Machinery and Equipment" label,
+ * double-depreciating machinery whenever Inversion had its own machinery
+ * category too - Capacidad's machine list is for production planning
+ * (operator counts), not investment). Depreciation is computed per
+ * INDIVIDUAL ITEM (each with its own rate, see rateSeriesForItem) and
+ * summed up to the category total - not the category's cumulative gross
+ * value depreciated at one shared rate, since two items in the same
+ * category can depreciate differently.
  */
 export function computeFixedAssetsByCategory(cbm, years) {
-  const categories = { ...(cbm.assets?.byCategory ?? {}) }
-  if (cbm.capacity?.machines?.length) {
-    categories[MACHINERY_CATEGORY] = cbm.capacity.machines
-  }
+  const categories = cbm.assets?.byCategory ?? {}
 
   const result = {}
   for (const [category, rawAssets] of Object.entries(categories)) {

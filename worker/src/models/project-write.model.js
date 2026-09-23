@@ -340,6 +340,39 @@ export async function insertBomGraph(database, teamId, bom, capacity) {
       capacity.qualityYield
     )
     .run();
+
+  // Real per-year Capacidad inputs (migration 0013) - the scalar `capacity`
+  // row above only has the flat fallback (firstFinite), see
+  // cbm-to-game.mapper.js's `yearly`.
+  const yearly = (capacity.yearly ?? []).filter((row) => typeof row.year === 'number');
+  if (yearly.length) {
+    await runBatch(
+      database,
+      yearly.map((row) =>
+        database
+          .prepare(
+            `INSERT INTO production_line_capacity_yearly (
+              production_line_id, year, quality_yield, seconds_x_unit, hours_shift, shifts,
+              production_lines_count, week_working_days, months_working_weeks, year_working_months,
+              annual_capacity
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            line.id,
+            row.year,
+            row.qualityYield,
+            row.secondsPerUnit,
+            row.hoursShift,
+            row.shifts,
+            row.productionLines,
+            row.weekWorkingDays,
+            row.monthsWorkingWeeks,
+            row.yearWorkingMonths,
+            row.annualCapacity ?? 0
+          )
+      )
+    );
+  }
 }
 
 function isValidYearlyRow(row) {
@@ -437,6 +470,7 @@ export async function deleteGameGraph(database, gameId) {
 
     await database.prepare('DELETE FROM capacity WHERE game_team_id = ?').bind(teamId).run();
     if (lineId) {
+      await database.prepare('DELETE FROM production_line_capacity_yearly WHERE production_line_id = ?').bind(lineId).run();
       await database.prepare('DELETE FROM production_lines WHERE id = ?').bind(lineId).run();
     }
     if (bomId) {

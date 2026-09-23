@@ -176,18 +176,40 @@ export function readCOs(rows, project) {
   project.demand.yearZeroTotal = yearlyTotals[0]?.total
 }
 
-// Capacidad now has TWO separate 11-year blocks on the same rows (line
-// params B:L, machines further right) - each block gets its own fixed
-// column range instead of a shared yearColumnMap, so neither block's own
-// "2025" header cell can collide with the other's (see the machine-cost
-// collision this replaced: git blame this line for that BUG FIX's history).
+// Line params (Quality Yield etc.) are a single scalar per row (label in
+// column A, values start at column B) - see LINE_LABELS above.
 const LINE_YEAR_START_COL = 1  // B
-const MACHINE_CODE_COL = 13    // N
-const MACHINE_DESCRIPTION_COL = 14 // O
-const MACHINE_PROCESS_SECONDS_COL = 15 // P
-const MACHINE_OPERATORS_COL = 16 // Q
-const MACHINE_CYCLE_TIME_COL = 17 // R
-const MACHINE_YEAR_START_COL = 18 // S
+
+// BUG FIX: the machine block's columns used to be hardcoded (code at a
+// fixed index, etc.) - broke the moment the sheet got edited (columns
+// added/reordered/moved to make room for the line-params block). Find the
+// machine header row by its own label instead, wherever it actually sits,
+// and read every other machine column relative to what THAT row's cells
+// say they are - the block can move or gain/lose columns and this still
+// finds it.
+const MACHINE_HEADER_PATTERN = /^linea\s*\/?\s*maquina/
+const MACHINE_COLUMN_LABELS = {
+  descripcion: 'description',
+  'tiempo en segundos de cada proceso': 'processSeconds',
+  'operadores necesarios': 'operators',
+  'tiempo de ciclo': 'cycleTime',
+}
+
+/** Locates the machine table's header row and each column's real index, by label - not a fixed offset. */
+function findMachineHeader(rows) {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex] ?? []
+    const codeCol = row.findIndex((cell) => MACHINE_HEADER_PATTERN.test(normalizeLabel(cell)))
+    if (codeCol === -1) continue
+    const columns = { code: codeCol }
+    row.forEach((cell, index) => {
+      const field = MACHINE_COLUMN_LABELS[normalizeLabel(cell)]
+      if (field) columns[field] = index
+    })
+    return { rowIndex, columns, yearMap: yearColumnMap(row) }
+  }
+  return null
+}
 
 export function readCapacidad(rows, project) {
   for (const row of rows.slice(1)) {
@@ -197,18 +219,22 @@ export function readCapacidad(rows, project) {
         (_, index) => toNumberOrUndefined(row?.[LINE_YEAR_START_COL + index])
       )
     }
+  }
 
-    const code = toStringOrUndefined(row?.[MACHINE_CODE_COL])
+  const machineHeader = findMachineHeader(rows)
+  if (!machineHeader) return
+  const { rowIndex, columns, yearMap } = machineHeader
+
+  for (const row of rows.slice(rowIndex + 1)) {
+    const code = toStringOrUndefined(row?.[columns.code])
     if (!code || normalizeLabel(code).startsWith('agregar')) continue
     project.capacity.machines.push({
       code,
-      description: toStringOrUndefined(row[MACHINE_DESCRIPTION_COL]),
-      processSeconds: toNumberOrUndefined(row[MACHINE_PROCESS_SECONDS_COL]),
-      operators: toNumberOrUndefined(row[MACHINE_OPERATORS_COL]),
-      cycleTime: toNumberOrUndefined(row[MACHINE_CYCLE_TIME_COL]),
-      acquisitionByYear: HORIZON_YEARS.map(
-        (_, index) => toNumberOrUndefined(row?.[MACHINE_YEAR_START_COL + index])
-      ),
+      description: toStringOrUndefined(row[columns.description]),
+      processSeconds: toNumberOrUndefined(row[columns.processSeconds]),
+      operators: toNumberOrUndefined(row[columns.operators]),
+      cycleTime: toNumberOrUndefined(row[columns.cycleTime]),
+      acquisitionByYear: seriesFromRow(row, yearMap),
     })
   }
 }

@@ -23,6 +23,22 @@ function sumSeries(series) {
   return series.reduce((total, value) => total + (asNumber(value, 0) ?? 0), 0);
 }
 
+/**
+ * Same formula as applyDerivedBase.js's capacityForIndex (Capacidad sheet's
+ * own "Anual Capacity" row) - duplicated here since the worker doesn't
+ * share a module boundary with src/sims. Quality Yield is not a factor (a
+ * separate metric, see readCapacidad/projectQualityYield on the client).
+ * production_line_capacity_yearly.annual_capacity is NOT NULL, so this
+ * always needs a number - falls back to 0 when an input is missing.
+ */
+function computeAnnualCapacity({ secondsPerUnit, hoursShift, shifts, productionLines, weekWorkingDays, monthsWorkingWeeks, yearWorkingMonths }) {
+  const unitsPerHour = secondsPerUnit && secondsPerUnit > 0 ? 3600 / secondsPerUnit : null;
+  const factors = [unitsPerHour, hoursShift, shifts, productionLines, weekWorkingDays, monthsWorkingWeeks, yearWorkingMonths];
+  return factors.every((n) => typeof n === 'number' && Number.isFinite(n))
+    ? factors.reduce((acc, n) => acc * n, 1)
+    : 0;
+}
+
 function classifyEmployeeCategory(name, type) {
   const upperName = String(name ?? '').toUpperCase();
   if (upperName.startsWith('MOD ')) return 'direct';
@@ -253,6 +269,26 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       productionLineCount: firstFinite(line.productionLines),
       weekWorkingDays: firstFinite(line.weekWorkingDays),
       yearWorkingMonths: firstFinite(line.yearWorkingMonths),
+      // production_line_capacity_yearly (migration 0013): the real per-year
+      // Capacidad inputs, so CapacityLineTable-less edits still round-trip
+      // through the DB instead of collapsing to the flat scalars above.
+      yearly: years.map((year, index) => {
+        const yearInputs = {
+          secondsPerUnit: asNumber(line.secondsPerUnit?.[index]),
+          hoursShift: asNumber(line.hoursShift?.[index]),
+          shifts: asNumber(line.shifts?.[index]),
+          productionLines: asNumber(line.productionLines?.[index]),
+          weekWorkingDays: asNumber(line.weekWorkingDays?.[index]),
+          monthsWorkingWeeks: asNumber(line.monthsWorkingWeeks?.[index]),
+          yearWorkingMonths: asNumber(line.yearWorkingMonths?.[index]),
+        };
+        return {
+          year,
+          qualityYield: asNumber(line.qualityYield?.[index]),
+          ...yearInputs,
+          annualCapacity: computeAnnualCapacity(yearInputs),
+        };
+      }),
     },
   };
 }
