@@ -3,20 +3,6 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import useCashFlow from "@/hooks/sims/project/useFlow.js";
 
-const tempFlow = {
-  2025: -18257128.24,
-  2026: -44015447.96,
-  2027: -33841189.55,
-  2028: -19828651.55,
-  2029: -1749965.85,
-  2030: 26060244.96,
-  2031: 58027648.86,
-  2032: 94637345.57,
-  2033: 136658735.14,
-  2034: 182108183.39,
-  2035: 233071642.93,
-};
-
 // Calcula la línea de tendencia (regresión lineal simple) sobre los valores
 function calcTrendline(values) {
   const n = values.length;
@@ -38,7 +24,8 @@ function NetFlowGraph({ project }) {
   const { categories, values, trend } = useMemo(() => {
     const flow = netFlow || {};
     const years = Object.keys(flow).sort((a, b) => a - b);
-    const vals = years.map((y) => flow[y]);
+    if (years.length === 0) return { categories: [], values: [], trend: [] };
+    const vals = years.map((y) => flow[y] / 1e6);
     return {
       categories: years,
       values: vals,
@@ -60,14 +47,12 @@ function NetFlowGraph({ project }) {
       crosshair: true,
     },
     yAxis: {
-      title: { text: "Net Flow" },
+      title: { text: "Net Flow (millones de pesos)" },
       labels: {
         formatter: function () {
-          return this.value.toLocaleString("es-MX", {
-            style: "currency",
-            currency: "MXN",
-            minimumFractionDigits: 0,
-          });
+          return `${this.value.toLocaleString("es-MX", {
+            maximumFractionDigits: 0,
+          })} M`;
         },
       },
       plotLines: [
@@ -81,6 +66,7 @@ function NetFlowGraph({ project }) {
     tooltip: {
       shared: true,
       valuePrefix: "$",
+      valueSuffix: " M",
       valueDecimals: 2,
     },
     legend: {
@@ -92,7 +78,7 @@ function NetFlowGraph({ project }) {
         type: "column",
         data: values,
         color: "#1f6f8b",
-        negativeColor: "#1f6f8b", // mismo color para negativos, como en la imagen
+        negativeColor: "#c0392b",
         borderRadius: 2,
       },
       {

@@ -1,10 +1,10 @@
-import computeFlow from "@/sims/project-feasibility/flow/computeFlow.js";
+import { computeCashBalanceByYear } from "@/sims/project-feasibility/costTable/cashFlowCalculations.js";
 
 function useFlow(project) {
-  project = project.cbm;
-  const flow = computeFlow(project);
+  const cbm = project.cbm;
+  const { endingBalanceByYear } = computeCashBalanceByYear(cbm);
 
-  return flow;
+  return { netFlow: endingBalanceByYear };
 }
 
 export default useFlow;
