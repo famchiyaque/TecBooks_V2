@@ -176,37 +176,39 @@ export function readCOs(rows, project) {
   project.demand.yearZeroTotal = yearlyTotals[0]?.total
 }
 
-export function readCapacidad(rows, project) {
-  const header = rows[0] ?? []
-  const yearMap = yearColumnMap(header)
+// Capacidad now has TWO separate 11-year blocks on the same rows (line
+// params B:L, machines further right) - each block gets its own fixed
+// column range instead of a shared yearColumnMap, so neither block's own
+// "2025" header cell can collide with the other's (see the machine-cost
+// collision this replaced: git blame this line for that BUG FIX's history).
+const LINE_YEAR_START_COL = 1  // B
+const MACHINE_CODE_COL = 13    // N
+const MACHINE_DESCRIPTION_COL = 14 // O
+const MACHINE_PROCESS_SECONDS_COL = 15 // P
+const MACHINE_OPERATORS_COL = 16 // Q
+const MACHINE_CYCLE_TIME_COL = 17 // R
+const MACHINE_YEAR_START_COL = 18 // S
 
+export function readCapacidad(rows, project) {
   for (const row of rows.slice(1)) {
     const label = normalizeLabel(row?.[0])
     if (label && !SKIP_LINE_LABELS.has(label) && LINE_LABELS[label]) {
-      // BUG FIX: Capacidad's header row has TWO "2025" columns (column B for
-      // line params, column I for machine acquisition cost) - yearColumnMap
-      // keeps the LAST match per year (left-to-right overwrite), so
-      // yearMap[2025] pointed at the machine cost column, not column B.
-      // seriesFromRow(row, yearMap) was reading a machine's acquisition cost
-      // (e.g. 2,800,000) as if it were Quality Yield (0.8), which tanked MP
-      // (workOrders = CO / qualityYield - a huge denominator made MP tiny).
-      // Line params are a single scalar (label in column A, value in
-      // column B only, no real per-year series) - read column B directly,
-      // replicated flat across HORIZON_YEARS, never through the
-      // machine-section yearMap.
-      const value = toNumberOrUndefined(row?.[1])
-      project.capacity.line[LINE_LABELS[label]] = HORIZON_YEARS.map(() => value)
+      project.capacity.line[LINE_LABELS[label]] = HORIZON_YEARS.map(
+        (_, index) => toNumberOrUndefined(row?.[LINE_YEAR_START_COL + index])
+      )
     }
 
-    const code = toStringOrUndefined(row?.[3])
+    const code = toStringOrUndefined(row?.[MACHINE_CODE_COL])
     if (!code || normalizeLabel(code).startsWith('agregar')) continue
     project.capacity.machines.push({
       code,
-      description: toStringOrUndefined(row[4]),
-      processSeconds: toNumberOrUndefined(row[5]),
-      operators: toNumberOrUndefined(row[6]),
-      cycleTime: toNumberOrUndefined(row[7]),
-      acquisitionByYear: seriesFromRow(row, yearMap),
+      description: toStringOrUndefined(row[MACHINE_DESCRIPTION_COL]),
+      processSeconds: toNumberOrUndefined(row[MACHINE_PROCESS_SECONDS_COL]),
+      operators: toNumberOrUndefined(row[MACHINE_OPERATORS_COL]),
+      cycleTime: toNumberOrUndefined(row[MACHINE_CYCLE_TIME_COL]),
+      acquisitionByYear: HORIZON_YEARS.map(
+        (_, index) => toNumberOrUndefined(row?.[MACHINE_YEAR_START_COL + index])
+      ),
     })
   }
 }
