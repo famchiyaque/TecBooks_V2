@@ -348,10 +348,16 @@ export function computeOperatingExpenses(
   years,
 ) {
   const operatingExpensesByYear = {};
-  
+
   for (const year of years) {
+    // BUG FIX: "(a + b || 0)" applies the fallback AFTER adding - if either
+    // side is undefined/NaN for a given year, the whole sum silently
+    // collapsed to 0, dropping administrative salary (and administrativeByYear)
+    // together instead of just defaulting the missing one. Each term now
+    // falls back to 0 on its own before adding.
     operatingExpensesByYear[year] =
-      (administrativeByYear[year] + administrativeSalary[year] || 0) +
+      (administrativeByYear[year] || 0) +
+      (administrativeSalary[year] || 0) +
       (depreciationTotalByYear[year] || 0)
       // (salesExpensesByYear[year] || 0);
   }

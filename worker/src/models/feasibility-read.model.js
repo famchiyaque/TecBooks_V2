@@ -166,16 +166,23 @@ export async function listBomParts(database, bomId) {
   return results ?? [];
 }
 
-export async function getYearZeroDemand(database, gameId) {
+// BUG FIX: used to be `ORDER BY year DESC LIMIT 1` - only worked because the
+// table used to hold year zero + PAST history years (is_projection = 0,
+// strictly before year zero), so year zero was always the latest one. Now
+// that COs' "Año Cero | Total" block also saves real FUTURE years the same
+// way (see insertDemand), the latest row is a future year, not year zero -
+// picking by year is ambiguous either direction (MIN grabs history, MAX
+// grabs the furthest future year). `startYear` (the game's own horizon
+// start, set once at upload from cbm.timeline.years[0]) is the one
+// unambiguous anchor for which row IS year zero.
+export async function getYearZeroDemand(database, gameId, startYear) {
   return database
     .prepare(
       `SELECT year, total
        FROM purchase_order_yearly_total
-       WHERE game_id = ? AND is_projection = 0
-       ORDER BY year DESC
-       LIMIT 1`
+       WHERE game_id = ? AND is_projection = 0 AND year = ?`
     )
-    .bind(gameId)
+    .bind(gameId, startYear)
     .first();
 }
 

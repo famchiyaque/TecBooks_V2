@@ -204,12 +204,23 @@ export function mapGameRowsToCbm({
       yearZeroOrders[index] = yearZeroTotal * shares[index];
     }
   }
-  const history = (demandYearlyTotals ?? [])
-    .filter((row) => !row.is_projection && row.year !== yearZeroYear)
-    .map((row) => ({
-      year: row.year,
-      total: asNumber(row.total, 0),
-    }));
+  // BUG FIX: purchase_order_yearly_total now holds year zero + PAST history
+  // years (Histórico columns) AND real FUTURE years (Año Cero | Total block,
+  // see insertDemand/readCOs) - all is_projection = 0. Split by position
+  // relative to year zero, not just "not year zero": years before it are
+  // history (averaged into the projection base), year zero and after are
+  // yearlyTotals (real, override the projected value outright - see
+  // cbmToCostTableInputs.js).
+  const nonProjectionRows = (demandYearlyTotals ?? []).filter((row) => !row.is_projection);
+  const history = nonProjectionRows
+    .filter((row) => row.year < yearZeroYear)
+    .map((row) => ({ year: row.year, total: asNumber(row.total, 0) }));
+  const yearlyTotals = [
+    ...(yearZeroYear !== undefined ? [{ year: yearZeroYear, total: yearZeroTotal }] : []),
+    ...nonProjectionRows
+      .filter((row) => row.year > yearZeroYear)
+      .map((row) => ({ year: row.year, total: asNumber(row.total, 0) })),
+  ].sort((a, b) => a.year - b.year);
 
   return {
     metadata: {
@@ -309,6 +320,7 @@ export function mapGameRowsToCbm({
       monthShares: shares,
       yearZeroOrders,
       history,
+      yearlyTotals,
       yearZeroYear,
       yearZeroTotal,
     },

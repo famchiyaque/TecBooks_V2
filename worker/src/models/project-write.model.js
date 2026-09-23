@@ -342,19 +342,36 @@ export async function insertBomGraph(database, teamId, bom, capacity) {
     .run();
 }
 
+function isValidYearlyRow(row) {
+  return typeof row?.year === 'number' && typeof row?.total === 'number'
+    && Number.isFinite(row.year) && Number.isFinite(row.total)
+}
+
 export async function insertDemand(database, gameId, demand) {
   const yearlyRows = []
-  if (demand.yearZeroYear !== null && demand.yearZeroTotal !== null) {
-    yearlyRows.push({
-      year: demand.yearZeroYear,
-      total: demand.yearZeroTotal,
-    })
-  }
-  for (const row of demand.history ?? []) {
-    if (row?.year === demand.yearZeroYear) continue
-    if (typeof row?.year !== 'number' || typeof row?.total !== 'number') continue
-    if (!Number.isFinite(row.year) || !Number.isFinite(row.total)) continue
+  const seenYears = new Set()
+
+  // COs' "Año Cero | Total" block (year zero + real future years, see
+  // readCOs) - takes priority over the legacy scalar yearZeroYear/Total
+  // fields below, which it already includes as its first entry.
+  for (const row of demand.yearlyTotals ?? []) {
+    if (!isValidYearlyRow(row) || seenYears.has(row.year)) continue
     yearlyRows.push({ year: row.year, total: row.total })
+    seenYears.add(row.year)
+  }
+  if (
+    demand.yearZeroYear !== null && demand.yearZeroYear !== undefined
+    && demand.yearZeroTotal !== null && demand.yearZeroTotal !== undefined
+    && !seenYears.has(demand.yearZeroYear)
+  ) {
+    yearlyRows.push({ year: demand.yearZeroYear, total: demand.yearZeroTotal })
+    seenYears.add(demand.yearZeroYear)
+  }
+  // Histórico (past years, before year zero) - not part of yearlyTotals.
+  for (const row of demand.history ?? []) {
+    if (!isValidYearlyRow(row) || seenYears.has(row.year)) continue
+    yearlyRows.push({ year: row.year, total: row.total })
+    seenYears.add(row.year)
   }
 
   if (yearlyRows.length) {

@@ -236,6 +236,9 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       monthShares: cbm?.demand?.monthShares ?? [],
       yearZeroOrders: cbm?.demand?.yearZeroOrders ?? [],
       history: cbm?.demand?.history ?? [],
+      // COs' "Año Cero | Total" block (see readCOs) - year zero + any real
+      // future-year CO totals the Excel gives directly, not just a guess.
+      yearlyTotals: cbm?.demand?.yearlyTotals ?? [],
     },
     capacity: {
       // BUG FIX: line.* are now HORIZON_YEARS-indexed arrays (see readCapacidad),

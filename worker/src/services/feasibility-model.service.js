@@ -63,7 +63,7 @@ export async function getFeasibilityModel(database, { gameId, userId }) {
     bom,
     bomParts,
     services: await getExpenses(database, gameId),
-    yearZeroDemand: await getYearZeroDemand(database, gameId),
+    yearZeroDemand: await getYearZeroDemand(database, gameId, Number(game.start_date)),
     monthShares: await listMonthShares(database, gameId),
     demandYearlyTotals: await listDemandYearlyTotals(database, gameId),
   });

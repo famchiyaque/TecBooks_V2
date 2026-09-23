@@ -47,6 +47,11 @@ export function createProjectClass({ fileName } = {}) {
       monthShares: Array.from({ length: 12 }, () => undefined),
       yearZeroOrders: Array.from({ length: 12 }, () => 0),
       history: [],
+      // "Año Cero | Total" block (COs sheet, columns H/I) - one row per
+      // year the project actually gives (not just year zero). First entry
+      // is year zero; every entry after is a real captured/given CO total
+      // for that future year, straight from the Excel - see readCOs.
+      yearlyTotals: [],
       yearZeroYear: undefined,
       yearZeroTotal: undefined,
     },
