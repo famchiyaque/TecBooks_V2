@@ -39,16 +39,28 @@ function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
 }
 
 /**
- * REVERTED: tried inflating materialCostPerUnit by nationalInflation like
- * the sale price - the reference Estado de Resultados proves that's wrong.
- * Real MP grows only through CO volume (already real/per-year via
- * yearlyTotals), NOT through cost-per-unit inflation - inflating it on top
- * double-counted growth and MP diverged further from the reference every
- * year (matched exactly at year 0, +6.25% by year 2, +12.5% by year 3).
- * materialCostPerUnit is a flat scalar (derivedBase.bomMaterialCost, no
- * source for a yearly rate) - kept flat, same as before this was ever
- * touched.
+ * MP material cost per unit grows by national inflation every year, mirroring
+ * the Template Financiero IN3001B and the sales-price treatment above -
+ * until this, materialCostPerUnit was a flat scalar for every year even
+ * though CO volume was already real/per-year.
  */
+function projectMaterialCost(yearZeroYear, yearZeroCost, inflationByIndex) {
+  const materialCostPerUnit = {}
+  let previous = yearZeroCost
+
+  HORIZON_YEARS.forEach((year, index) => {
+    if (year < yearZeroYear) return
+    if (year === yearZeroYear) {
+      materialCostPerUnit[year] = yearZeroCost
+      return
+    }
+    const rate = inflationByIndex[index] ?? 0
+    previous = previous * (1 + rate)
+    materialCostPerUnit[year] = previous
+  })
+
+  return materialCostPerUnit
+}
 
 /**
  * Maps a saved project's canonical business model (cbm, from parseNovusProject)
@@ -99,6 +111,11 @@ export function cbmToCostTableInputs(cbm) {
       cbm.bom?.salePrice,
       cbm.premises?.nationalInflation ?? []
     )
+    materialCostPerUnit = projectMaterialCost(
+      yearZeroYear,
+      cbm.derivedBase?.bomMaterialCost,
+      cbm.premises?.nationalInflation ?? []
+    )
   }
 
   const indirectProductPercentage = {}
@@ -111,7 +128,7 @@ export function cbmToCostTableInputs(cbm) {
     production: {
       purchaseOrders,
       qualityYield,
-      // Flat scalar (derivedBase.bomMaterialCost) - see REVERTED note above.
+      // {year: cost} map, grown by national inflation - see projectMaterialCost.
       materialCostPerUnit,
       // {year: price} map, grown by national inflation - see projectSalesPrice.
       salesPricePerUnit,

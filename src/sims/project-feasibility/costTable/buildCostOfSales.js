@@ -1,7 +1,7 @@
 import {
   areCostsNumeric, sumSalariesByCategory, sumSalariesByCategoryPerYear, computeNetSales,
   computeRawMaterialCost, computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
-  computeSalesExpenses, computeAdministrativeExpenses,
+  computeAdministrativeExpenses,
   computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
   computeFinancingAmount, computeAmortizationSchedule, computeIncomeBeforeTaxes,
   computeTaxes, computeNetIncome,
@@ -86,12 +86,15 @@ export function buildCostOfSales(cbm) {
       return sum + (row?.annualDepreciation || 0)
     }, 0)
   })
-  const salesExpenses = computeSalesExpenses(netSales, opex.salesExpensePct, years)
+  // Sales Expenses are a manual input (Operating Expenses / Cash Outflows
+  // tables) - no longer derived from Premisas "Porcentaje de gasto de venta".
   const administrativeExpenses = computeAdminExpenses(cbm)
-  const operatingExpenses = computeOperatingExpenses(administrativeExpenses, AdministrativeByYear, depreciationTotal, salesExpenses, years)
+  const operatingExpenses = computeOperatingExpenses(
+    administrativeExpenses, AdministrativeByYear, depreciationTotal, {}, years
+  )
   logger.debug('buildCostOfSales: operating expenses', {
     fixedAssetsCategories: Object.keys(fixedAssetsByCategory), depreciationTotal,
-    salesExpenses, administrativeExpenses, operatingExpenses,
+    administrativeExpenses, operatingExpenses,
   })
   const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
   const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
@@ -161,7 +164,8 @@ export function buildCostOfSales(cbm) {
     // separate fixed fields - see BUG FIX above); OperatingExpensesTable now
     // shows one "Depreciation" row instead of one per hardcoded category.
     depreciation: depreciationTotal[row.year],
-    salesExpenses: salesExpenses[row.year],
+    // Manual only - see Operating Expenses table (salesExpenses: 0 default).
+    salesExpenses: 0,
     operatingExpenses: operatingExpenses[row.year],
     operatingProfit: computeOperatingProfit(row.grossProfit, operatingExpenses[row.year]),
     financialExpenses: financialExpenses[row.year],
