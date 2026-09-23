@@ -7,7 +7,15 @@ import { operatingExpenseEditsSlice } from '@/store/costTable.store'
 // something else was silently never depreciated. Now one combined row,
 // covering however many categories the project actually has (see
 // buildCostOfSales.js's BUG FIX, reusing computeFixedAssetsByCategory).
+// BUG FIX: administrative salary (row.administrativeSalary, real per-year
+// employee cost) was never in this list, so both this table's own Total AND
+// ProfitSummaryTable's "Total Operating Expenses"/"Operating Profit" (which
+// recompute live from these exact rows via effectiveTotal, not from
+// buildCostOfSales.js's precomputed operatingExpenses field) silently
+// dropped it. Same split Cash Outflows already has (Administrative
+// Salaries + General Administrative Expenses) - mirrored here.
 export const OPERATING_EXPENSE_ROWS = [
+  { key: 'administrativeSalary', label: 'Administrative Salaries' },
   { key: 'administrativeExpenses', label: 'Administrative Expenses' },
   { key: 'depreciation', label: 'Depreciation' },
   { key: 'salesExpenses', label: 'Sales Expenses' },

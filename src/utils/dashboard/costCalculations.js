@@ -19,9 +19,10 @@ function isFiniteNumber(value) {
 
 /**
  * RF-00-01: every registered cost value must be numeric.
- * production.salesPricePerUnit may be a flat scalar (standalone Cost Table
- * upload page) or a {year: price} map (CBM path, price grown by inflation
- * per year) - both shapes get flattened to their numeric values here.
+ * production.salesPricePerUnit and production.materialCostPerUnit may each
+ * be a flat scalar (standalone Cost Table upload page) or a {year: value}
+ * map (CBM path, grown by inflation per year) - both shapes get flattened
+ * to their numeric values here.
  */
 export function areCostsNumeric(employees, production) {
   const employeesOk = employees.every(
@@ -34,10 +35,16 @@ export function areCostsNumeric(employees, production) {
       ? Object.values(production.salesPricePerUnit)
       : [production.salesPricePerUnit];
 
+  const materialCostValues =
+    typeof production.materialCostPerUnit === "object" &&
+    production.materialCostPerUnit !== null
+      ? Object.values(production.materialCostPerUnit)
+      : [production.materialCostPerUnit];
+
   const productionOk = [
     ...Object.values(production.purchaseOrders || {}),
     ...Object.values(production.qualityYield || {}),
-    production.materialCostPerUnit,
+    ...materialCostValues,
     ...salesPriceValues,
   ].every(isFiniteNumber);
 
@@ -125,17 +132,24 @@ export function computeNetSales(production) {
  * MP (raw material cost) per year.
  * WO = CO / Quality yield (work orders needed to fulfill purchase orders at the given quality yield -
  * a low yield means MORE work orders are needed to net the same good units, matching Capacidad!E17: '=E16/E3')
+ * BUG FIX: materialCostPerUnit may be a flat scalar (standalone Cost Table
+ * upload page) or a {year: cost} map (CBM path, grown by inflation - see
+ * cbmToCostTableInputs' projectMaterialCost) - was always treated as a flat
+ * scalar, so with quality yield also flat, MP/unit never changed year to
+ * year no matter how CO moved.
  */
 export function computeRawMaterialCost(production) {
   const { purchaseOrders, qualityYield, materialCostPerUnit } =
     production ?? {};
+  const isCostMap = typeof materialCostPerUnit === "object" && materialCostPerUnit !== null;
   const rawMaterialByYear = {};
 
   for (const year of Object.keys(purchaseOrders ?? {})) {
+    const costForYear = isCostMap ? (materialCostPerUnit[year] ?? 0) : (materialCostPerUnit ?? 0);
     const workOrders = (qualityYield[year] || 0) === 0
       ? 0
       : (purchaseOrders[year] || 0) / qualityYield[year];
-    rawMaterialByYear[year] = workOrders * (materialCostPerUnit || 0);
+    rawMaterialByYear[year] = workOrders * costForYear;
   }
 
   return rawMaterialByYear;

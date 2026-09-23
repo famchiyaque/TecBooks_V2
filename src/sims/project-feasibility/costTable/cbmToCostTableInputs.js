@@ -39,6 +39,33 @@ function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
 }
 
 /**
+ * BUG FIX: Raw Materials cost/unit (Unit Costs, Cost of Sales' MP) never
+ * changed year to year - materialCostPerUnit (BOM "Costo de Materia Prima")
+ * was a single flat scalar, and per-unit MP = materialCostPerUnit /
+ * qualityYield cancels purchaseOrders out of the formula entirely, so with
+ * qualityYield also flat, the result was mathematically guaranteed constant.
+ * Grows by national inflation, same compounding as the sale price - BOM
+ * costs inflate too, not just revenue.
+ */
+function projectMaterialCost(yearZeroYear, yearZeroCost, inflationByIndex) {
+  const materialCostPerUnit = {}
+  let previous = yearZeroCost
+
+  HORIZON_YEARS.forEach((year, index) => {
+    if (year < yearZeroYear) return
+    if (year === yearZeroYear) {
+      materialCostPerUnit[year] = yearZeroCost
+      return
+    }
+    const rate = inflationByIndex[index] ?? 0
+    previous = previous * (1 + rate)
+    materialCostPerUnit[year] = previous
+  })
+
+  return materialCostPerUnit
+}
+
+/**
  * Maps a saved project's canonical business model (cbm, from parseNovusProject)
  * into the { employees, production, premises } shape costCalculations.js
  * expects - same functions the standalone Cost Table upload page uses, just
@@ -61,6 +88,7 @@ export function cbmToCostTableInputs(cbm) {
   let purchaseOrders = {}
   let qualityYield = {}
   let salesPricePerUnit = {}
+  let materialCostPerUnit = cbm.derivedBase?.bomMaterialCost ?? 0
   if (yearZeroYear !== undefined) {
     purchaseOrders = projectPurchaseOrders({
       yearZeroYear,
@@ -86,6 +114,11 @@ export function cbmToCostTableInputs(cbm) {
       cbm.bom?.salePrice,
       cbm.premises?.nationalInflation ?? []
     )
+    materialCostPerUnit = projectMaterialCost(
+      yearZeroYear,
+      cbm.derivedBase?.bomMaterialCost,
+      cbm.premises?.nationalInflation ?? []
+    )
   }
 
   const indirectProductPercentage = {}
@@ -98,7 +131,8 @@ export function cbmToCostTableInputs(cbm) {
     production: {
       purchaseOrders,
       qualityYield,
-      materialCostPerUnit: cbm.derivedBase?.bomMaterialCost,
+      // {year: cost} map, grown by national inflation - see projectMaterialCost.
+      materialCostPerUnit,
       // {year: price} map, grown by national inflation - see projectSalesPrice.
       salesPricePerUnit,
     },
