@@ -6,8 +6,10 @@ import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
 import { buildCostOfSales } from './buildCostOfSales'
 import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
 import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 function CashTable({ project }) {
+  useTableRowsSync(project.gameId, cashFlowEditsSlice, 'cashFlowEdits')
   const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
   const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)

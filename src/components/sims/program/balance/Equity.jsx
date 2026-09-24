@@ -2,6 +2,7 @@ import React from "react";
 import EditableTable from "@/components/global/EditableTable";
 import { equitySlice } from "@/store/balance.store";
 import useEffectiveBalanceTotals from "@/sims/project-feasibility/balance/useEffectiveBalanceTotals.js";
+import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
 
 const EQUITY_ROWS = [
   { key: "legacy", label: "Legacy" },
@@ -18,6 +19,7 @@ const EQUITY_ROWS = [
  * moves Shareholder's Equity, not just its own table's total.
  */
 function Equity({ project }) {
+  useTableRowsSync(project.gameId, equitySlice, "equity");
   const cbm = project.cbm;
   const years = cbm.timeline.years;
   const totalsByYear = useEffectiveBalanceTotals(cbm);

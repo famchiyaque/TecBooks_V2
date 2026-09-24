@@ -92,7 +92,7 @@ function Balance({ project }) {
   return (
     <div className="flex flex-col mt-3 p-3">
       <CollapsibleSection title="CurrentActives" defaultExpanded>
-        <CurrentActives currentActives={balance.actives.currentActives} />
+        <CurrentActives currentActives={balance.actives.currentActives} gameId={project.gameId} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Fixed Assets" defaultExpanded>
@@ -103,12 +103,12 @@ function Balance({ project }) {
       </CollapsibleSection>
 
       <CollapsibleSection title="Defered Actives">
-        <DeferedActives deferedActives={balance.actives?.deferedActives} />
+        <DeferedActives deferedActives={balance.actives?.deferedActives} gameId={project.gameId} />
       </CollapsibleSection>
 
       <TotalActives project={project} actives={balance.actives} />
 
-      <Passive passives={balance.passives} />
+      <Passive passives={balance.passives} gameId={project.gameId} />
 
       <CollapsibleSection title="Shareholder's equity">
         <Equity project={project} />

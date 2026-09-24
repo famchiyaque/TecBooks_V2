@@ -24,7 +24,7 @@ function ProjectCostSummary({ project }) {
           unrecognized category weren't counted in this table: {result.unclassifiedEmployees.join(', ')}
         </Alert>
       )}
-      <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
+      <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
     </>
   )
 }

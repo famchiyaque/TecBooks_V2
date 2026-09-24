@@ -2,6 +2,7 @@ import React from "react";
 import EditableTable from "@/components/global/EditableTable";
 import { currentActivesSlice } from "@/store/balance.store";
 import flipObject from "@/utils/flipObject.js";
+import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
 
 export const COST_ROWS = [
   { key: "cashAndBank", label: "Cash and Bank Accounts" },
@@ -14,7 +15,8 @@ export const COST_ROWS = [
 // mounts (same store as Cost Table/Opex/Taxes/etc.), so its overrides/custom
 // rows are readable from anywhere else in the tab, e.g. Shareholder's Equity
 // recomputing Total Assets live off this table's effective total.
-function CurrentActives({ currentActives }) {
+function CurrentActives({ currentActives, gameId }) {
+  useTableRowsSync(gameId, currentActivesSlice, "currentActives");
   delete currentActives["total"];
   currentActives = flipObject(currentActives);
 

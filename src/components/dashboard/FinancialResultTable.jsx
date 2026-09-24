@@ -1,6 +1,7 @@
 import React from 'react'
 import EditableTable from '@/components/global/EditableTable'
 import { financialResultEditsSlice } from '@/store/costTable.store'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 export const FINANCIAL_RESULT_ROWS = [
   { key: 'financialExpenses', label: 'Financial Expenses' },
@@ -10,7 +11,8 @@ export const FINANCIAL_RESULT_ROWS = [
   { key: 'financialIncome', label: 'Financial Income' },
 ]
 
-function FinancialResultTable({ costOfSalesByYear }) {
+function FinancialResultTable({ costOfSalesByYear, gameId }) {
+  useTableRowsSync(gameId, financialResultEditsSlice, 'financialResultEdits')
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
 
