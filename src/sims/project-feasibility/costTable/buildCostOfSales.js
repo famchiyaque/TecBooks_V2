@@ -1,9 +1,8 @@
 import {
-  areCostsNumeric, sumSalariesByCategory, sumSalariesByCategoryPerYear, computeNetSales,
+  areCostsNumeric, sumSalariesByCategoryPerYear, computeNetSales,
   computeRawMaterialCost, computeIndirectMaterialCosts, buildCostOfSalesTable, findUnclassifiedEmployees,
-  computeAdministrativeExpenses,
-  computeOperatingExpenses, computeOperatingProfit, computeCumulativeInvestment,
-  computeFinancingAmount, computeAmortizationSchedule, computeIncomeBeforeTaxes,
+  computeOperatingExpenses, computeOperatingProfit,
+  computeIncomeBeforeTaxes,
   computeTaxes, computeNetIncome,
 } from '@/utils/dashboard/costCalculations'
 import { cbmToCostTableInputs, cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
@@ -11,8 +10,7 @@ import { computeFixedAssetsByCategory } from '../balance/computeFixedAssets.js'
 import { Logger } from '../utils/logger.js'
 import {computeAdminExpenses} from "@/utils/dashboard/computeAdminExpenses.js"
 
-import computeInvestment from "@/sims/project-feasibility/income/computeInvestment.js"
-import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest.js"
+import computeFinancing from "@/sims/project-feasibility/income/computeFinancing.js"
 
 const logger = new Logger('BuildCostOfSales')
 
@@ -44,11 +42,6 @@ export function buildCostOfSales(cbm) {
     return { error: 'This project has no year-zero record.' }
   }
 
-  // Flat, year-zero totals - only for financingAmount below (the loan is
-  // sized once, at origination, off year-zero costs - see RF-56 BUG FIX
-  // further down). Everything the Cost Table/Operating Expenses actually
-  // display uses the per-year, inflation-grown version instead.
-  const { MOD, MOIndirecta, Ingenieria, Administrative } = sumSalariesByCategory(employees)
   // BUG FIX: cbmToCostTableInputs()'s `premises` only carries
   // indirectProductPercentage - nationalInflation lives on cbm.premises
   // directly (the raw, index-based array getInflation expects), not on that
@@ -96,43 +89,26 @@ export function buildCostOfSales(cbm) {
     fixedAssetsCategories: Object.keys(fixedAssetsByCategory), depreciationTotal,
     administrativeExpenses, operatingExpenses,
   })
-  const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative
-  const investment = computeCumulativeInvestment([opex.assets.buildings, opex.assets.transport, opex.assets.compute], years)
-  const machineryInvestment = computeCumulativeInvestment([opex.machines], years)
   const managementBills = {}
   years.forEach((year) => { managementBills[year] = (netSales[year] || 0) * (opex.adminPct[year] || 0) })
 
-  let prev = 0
-  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
-    if (idx == 0) acc[year] = value * 0.35
-    else acc[year] = (value - prev) * 0.35
-    prev = Math.max(value, prev)
-    return acc
-  }, {}) 
-  
-  // RF-56 BUG FIX: the loan is originated once, at project year zero - it is
-  // a single fixed amount, not resized off a growing cumulative investment
-  // every year. investment/machineryInvestment/administrativeExpenses are read at
-  // years[0] on purpose (Egresos!B215 is itself a year-zero figure).
-  const financingAmount = computeFinancingAmount(
-    investment, salariesTotal, administrativeExpenses, machineryInvestment, civilWorks, years[0]
-  )
-
-  // RF-56 BUG FIX: one loan, amortized once over its own life in monthly
-  // 12-month blocks - not a fresh full-life schedule re-loaded onto every
-  // projection year. Rate is the leading rate at origination (year zero),
-  // fixed for the life of the loan.
-  const { financialExpensesByYear: financialExpenses, creditPaymentByYear: creditPayment } =
-    computeAmortizationSchedule(
-      financingAmount, opex.financingPeriods, opex.nationalLeadingRate[years[0]], years
-    )
+  // RF-56: one loan originated at project year zero, amortized once over its
+  // own life in monthly 12-month blocks - rate is the leading rate at
+  // origination (year zero), fixed for the life of the loan. Shared with the
+  // Balance tab so both sides derive the same figures (see computeFinancing).
+  const {
+    financingAmount,
+    financialExpensesByYear: financialExpenses,
+    creditPaymentByYear: creditPayment,
+    civilWorks,
+  } = computeFinancing(cbm, years)
 
   logger.debug('buildCostOfSales: financing', {
-    investment, machineryInvestment, managementBills, salariesTotal, financingAmount, financialExpenses, creditPayment,
+    managementBills, financingAmount, financialExpenses, creditPayment,
   })
 
   const incomeBeforeTaxes = {}
-  costOfSalesByYear.forEach((row, idx) => {
+  costOfSalesByYear.forEach((row) => {
     const operatingProfit = computeOperatingProfit(row.grossProfit, operatingExpenses[row.year])
     // RF-56 "Financial Income" has no source field - base 0 here, only ever
     // set through an override, same as this static row for every other year.
