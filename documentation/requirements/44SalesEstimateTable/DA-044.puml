@@ -1,0 +1,41 @@
+@startuml RF44_Estimacion_Ventas
+
+title RF44 - Crear tabla de estimación de ventas
+
+|#LightBlue|Usuario|
+|#LightGreen|Sistema|
+
+|Usuario|
+start
+:Abre el módulo de Ventas;
+:Pide crear la tabla de estimación;
+
+|Sistema|
+:Revisa qué datos ya están cargados;
+
+if (¿Están listas las premisas, las órdenes y la capacidad?) then (sí)
+
+  fork
+    :Toma las órdenes de compra de cada año;
+  fork again
+    :Toma el precio unitario de cada año;
+  end fork
+
+  :Multiplica órdenes por precio;
+  :Guarda la tabla de ventas;
+  :Muestra la tabla en pantalla;
+
+  |Usuario|
+  :Revisa la estimación de ventas;
+  stop
+
+else (no)
+  :Avisa qué información falta;
+
+  |Usuario|
+  :Va al módulo que falta;
+  stop
+endif
+
+@enduml
+

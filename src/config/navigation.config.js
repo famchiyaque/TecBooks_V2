@@ -105,6 +105,14 @@ export const navigationConfig = [
         path: '/sims/forecasting',
         type: 'link',
         description: 'Forecast sales with multiple models'
+      },
+      {
+        id: 'project-feasibility',
+        label: 'Project Feasibility Simulation',
+        icon: 'TrendingUp',
+        path: '/sims/project-feasibility',
+        type: 'link',
+        description: 'Evaluate whether a project is financially and operationally viable'
       }
     ]
   },
