@@ -1,17 +1,20 @@
-import React from 'react'
-import { Alert, Box, Grid, TextField, Typography } from '@mui/material'
-import { buildCostOfSales } from './buildCostOfSales'
-import { cbmToCostTableInputs } from './cbmToCostTableInputs'
-import BreakEvenChart from './BreakEvenChart'
+import React from "react";
+import { Alert, Box, Grid, TextField, Typography } from "@mui/material";
+import { buildCostOfSales } from "./buildCostOfSales";
+import { cbmToCostTableInputs } from "./cbmToCostTableInputs";
+import BreakEvenChart from "./BreakEvenChart";
 
 function formatCurrency(value) {
-  const num = Number(value) || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const num = Number(value) || 0;
+  return `$${num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function formatUnits(value) {
-  const num = Number(value) || 0
-  return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const num = Number(value) || 0;
+  return num.toLocaleString("es-MX", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function Stat({ label, value, highlight }) {
@@ -20,16 +23,20 @@ function Stat({ label, value, highlight }) {
       sx={{
         p: 2,
         borderRadius: 2,
-        height: '100%',
-        bgcolor: highlight ? '#fff4d6' : 'rgba(7, 58, 90, 0.04)',
-        border: '1px solid',
-        borderColor: highlight ? '#f0c419' : 'rgba(7, 58, 90, 0.1)',
+        height: "100%",
+        bgcolor: highlight ? "#fff4d6" : "rgba(7, 58, 90, 0.04)",
+        border: "1px solid",
+        borderColor: highlight ? "#f0c419" : "rgba(7, 58, 90, 0.1)",
       }}
     >
-      <Typography variant="caption" sx={{ opacity: 0.7 }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 700, color: '#073a5a' }}>{value}</Typography>
+      <Typography variant="caption" sx={{ opacity: 0.7 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontWeight: 700, color: "#073a5a" }}>
+        {value}
+      </Typography>
     </Box>
-  )
+  );
 }
 
 /**
@@ -49,45 +56,62 @@ function Stat({ label, value, highlight }) {
  * (matches the template's own Capacidad!E17 divisor, row 59).
  */
 function BreakEvenSummary({ project }) {
-  const [desiredProfit, setDesiredProfit] = React.useState(0)
+  const [desiredProfit, setDesiredProfit] = React.useState(0);
 
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
+  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project]);
   const { production } = React.useMemo(
-    () => (project.cbm ? cbmToCostTableInputs(project.cbm) : { production: {} }),
-    [project]
-  )
+    () =>
+      project.cbm ? cbmToCostTableInputs(project.cbm) : { production: {} },
+    [project],
+  );
 
   if (result.error) {
-    return <Alert severity="warning">{result.error}</Alert>
+    return <Alert severity="warning">{result.error}</Alert>;
   }
 
-  const row = result.costOfSalesByYear[0]
-  const annualCapacity = project.cbm.derivedBase?.annualCapacity || 0
-  const salePrice = production.salesPricePerUnit?.[row.year] || 0
+  const row = result.costOfSalesByYear[0];
+  const annualCapacity =
+    Object.values(production.purchaseOrders)[0] /
+      Object.values(production.qualityYield)[0] || 0;
 
-  const fixedCosts = row.administrativeExpenses + row.indirectManufacturing
-    + row.engineeringSalaries + row.creditPayment
-  const variableCostPerUnit = (production.materialCostPerUnit || 0)
-    + (annualCapacity > 0 ? row.directLabour / annualCapacity : 0)
-  const contributionMargin = salePrice - variableCostPerUnit
+  const costPerUnit = Object.values(production.materialCostPerUnit)[0];
+  const salePrice = production.salesPricePerUnit?.[row.year] || 0;
+
+  const salaries =
+    row.engineeringSalaries +
+    row.administrativeSalary +
+    row.indirectManufacturing;
+
+  const creditPayment = row.creditPayment + row.financialExpenses;
+
+  const fixedCosts = row.administrativeExpenses + salaries + creditPayment;
+
+  const variableCostPerUnit =
+    (costPerUnit || 0) +
+    (annualCapacity > 0 ? row.directLabour / annualCapacity : 0);
+  const contributionMargin = salePrice - variableCostPerUnit;
 
   if (contributionMargin <= 0) {
     return (
       <Alert severity="warning">
-        Sale price ({formatCurrency(salePrice)}) must be higher than the variable cost
-        per unit ({formatCurrency(variableCostPerUnit)}) to compute a break-even point.
+        Sale price ({formatCurrency(salePrice)}) must be higher than the
+        variable cost per unit ({formatCurrency(variableCostPerUnit)}) to
+        compute a break-even point.
       </Alert>
-    )
+    );
   }
 
-  const breakEvenUnits = fixedCosts / contributionMargin
-  const breakEvenRevenue = breakEvenUnits * salePrice
-  const unitsForProfit = (fixedCosts + desiredProfit) / contributionMargin
-  const revenueForProfit = unitsForProfit * salePrice
+  const breakEvenUnits = fixedCosts / contributionMargin;
+  const breakEvenRevenue = breakEvenUnits * salePrice;
+  const unitsForProfit = (fixedCosts + desiredProfit) / contributionMargin;
+  const revenueForProfit = unitsForProfit * salePrice;
 
   return (
     <Box>
-      <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 2 }}>
+      <Typography
+        variant="caption"
+        sx={{ opacity: 0.7, display: "block", mb: 2 }}
+      >
         Based on {row.year}, this project's first year
       </Typography>
 
@@ -96,22 +120,41 @@ function BreakEvenSummary({ project }) {
           <Stat label="Annual Fixed Costs" value={formatCurrency(fixedCosts)} />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Variable Cost / Unit" value={formatCurrency(variableCostPerUnit)} />
+          <Stat
+            label="Variable Cost / Unit"
+            value={formatCurrency(variableCostPerUnit)}
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
           <Stat label="Sale Price" value={formatCurrency(salePrice)} />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Break-even Units" value={formatUnits(breakEvenUnits)} highlight />
+          <Stat
+            label="Break-even Units"
+            value={formatUnits(breakEvenUnits)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Break-even Revenue" value={formatCurrency(breakEvenRevenue)} highlight />
+          <Stat
+            label="Break-even Revenue"
+            value={formatCurrency(breakEvenRevenue)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Units for Desired Profit" value={formatUnits(unitsForProfit)} highlight />
+          <Stat
+            label="Units for Desired Profit"
+            value={formatUnits(unitsForProfit)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Revenue for Desired Profit" value={formatCurrency(revenueForProfit)} highlight />
+          <Stat
+            label="Revenue for Desired Profit"
+            value={formatCurrency(revenueForProfit)}
+            highlight
+          />
         </Grid>
       </Grid>
 
@@ -121,7 +164,9 @@ function BreakEvenSummary({ project }) {
           type="number"
           size="small"
           value={desiredProfit}
-          onChange={(event) => setDesiredProfit(Number(event.target.value) || 0)}
+          onChange={(event) =>
+            setDesiredProfit(Number(event.target.value) || 0)
+          }
         />
       </Box>
 
@@ -132,7 +177,7 @@ function BreakEvenSummary({ project }) {
         breakEvenUnits={breakEvenUnits}
       />
     </Box>
-  )
+  );
 }
 
-export default BreakEvenSummary
+export default BreakEvenSummary;
