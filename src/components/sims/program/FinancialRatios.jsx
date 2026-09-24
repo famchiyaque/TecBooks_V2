@@ -12,6 +12,14 @@ function formatPercent(value) {
   return `${(value * 100).toLocaleString("es-MX", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
+// BUG FIX: Debt to Assets / Equity to Assets showed as % (×100) - the
+// reference Template Financiero's own "Razones" sheet shows these as plain
+// decimals (-20.63, 1.94), not percentages. Matches that instead.
+function formatDecimal(value) {
+  if (!Number.isFinite(value)) return "—";
+  return value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function safeDivide(numerator, denominator) {
   return denominator ? numerator / denominator : NaN;
 }
@@ -48,14 +56,14 @@ const RATIO_DEFINITIONS = [
     key: "debtToAssets",
     label: "Debt to Assets",
     tooltip: "Indice de endeudamiento = Pasivo total / Activo total",
-    format: formatPercent,
+    format: formatDecimal,
     compute: (t) => safeDivide(t.totalPassives, t.totalActives),
   },
   {
     key: "equityToAssets",
     label: "Equity to Assets",
     tooltip: "Indice de endeudamiento = Capital contable / Activo total",
-    format: formatPercent,
+    format: formatDecimal,
     compute: (t) => safeDivide(t.totalActives - t.totalPassives, t.totalActives),
   },
   {
@@ -76,7 +84,7 @@ const RATIO_DEFINITIONS = [
     key: "returnOnAssets",
     label: "Return on Assets (ROA)",
     tooltip: "Rendimiento sobre la inversion = Utilidad Neta / Activo total",
-    format: formatPercent,
+    format: formatDecimal,
     compute: (t) => safeDivide(t.netIncome, t.totalActives),
   },
 ];

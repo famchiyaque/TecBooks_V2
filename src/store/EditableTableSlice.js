@@ -27,7 +27,15 @@ export class EditableTableSlice {
           state.overrides[`${rowKey}:${columnKey}`] = value
         },
         addCustomRow: (state, action) => {
-          state.customRows.push({ id: nanoid(), label: action.payload?.label ?? 'New row', values: {} })
+          state.customRows.push({
+            id: nanoid(),
+            label: action.payload?.label ?? 'New row',
+            // Lets a caller seed a default row with real values (e.g.
+            // Current Passives' "Documentos por pagar" placeholder) instead
+            // of always starting blank - every existing caller that doesn't
+            // pass `values` keeps getting an empty row, unchanged.
+            values: action.payload?.values ?? {},
+          })
         },
         removeCustomRow: (state, action) => {
           state.customRows = state.customRows.filter((row) => row.id !== action.payload)
@@ -79,12 +87,19 @@ export class EditableTableSlice {
    * reflecting the value at the moment it was computed.
    */
   effectiveTotal({ overrides, customRows }, rows, getValue, columnKey) {
+    // Normalize the column key - editable tables render year columns as
+    // strings (Object.keys on an object keyed by numbers), but some callers
+    // (useEffectiveBalanceTotals feeding the Ratios/Equity tables) pass the
+    // numeric year. Custom-row lookups index row.values[columnKey] directly,
+    // so a key-type mismatch silently dropped custom-row amounts from those
+    // totals even though the owning table's own Total row showed them.
+    const column = String(columnKey)
     const fixedTotal = rows.reduce((sum, row) => {
-      const key = `${row.key}:${columnKey}`
+      const key = `${row.key}:${column}`
       const base = getValue(row.key, columnKey)
       return sum + (key in overrides ? overrides[key] : base)
     }, 0)
-    const customTotal = customRows.reduce((sum, row) => sum + (row.values[columnKey] || 0), 0)
+    const customTotal = customRows.reduce((sum, row) => sum + (row.values[column] || 0), 0)
     return fixedTotal + customTotal
   }
 }
