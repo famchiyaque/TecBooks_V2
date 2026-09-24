@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/react";
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
@@ -7,5 +8,7 @@ console.log("main.jsx file")
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-    <App />
+    <ClerkProvider afterSignOutUrl="/">
+      <App />
+    </ClerkProvider>
 )

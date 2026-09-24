@@ -1,0 +1,138 @@
+@startuml RF76_Login
+title Iniciar sesión (RF76) -- React + Cloudflare Worker (Hono) + D1 + Clerk
+
+actor Usuario
+participant "React\nLanding (cards)" as FE
+participant "Worker\nroute /api/auth/login" as Route
+participant "Middleware\nlogger / error-handler" as MW
+participant "Controller\nauth.controller" as Ctrl
+participant "UseCase\nloginUseCase" as UC
+participant "Service\nauth.service" as Svc
+participant "Model\nusers.model" as Model
+database "D1\nusers" as DB
+participant "Clerk\nSDK/API" as Clerk
+participant "React\nSimulator View" as Sim
+
+Usuario -> FE: Presiona card "Project Feasibility Simulation"
+activate FE
+FE -> FE: ¿Hay sesión activa?\n(token/cookie httpOnly guardado)
+
+alt sesión activa
+  FE -> Sim: redirige directo a vista del simulador
+  deactivate FE
+  activate Sim
+  Sim --> Usuario: Muestra "Project Feasibility Simulation"
+  deactivate Sim
+
+else sin sesión activa
+  FE -> FE: redirige a /login
+  deactivate FE
+
+Usuario -> FE: Ingresa correo y contraseña
+Usuario -> FE: Presiona "Iniciar sesión"
+
+FE -> FE: ¿Campos completos?
+alt campos incompletos
+  FE --> Usuario: "Rellena todos los campos"
+else campos completos
+  FE -> FE: ¿Formato de correo válido?
+  alt formato inválido
+    FE --> Usuario: "El formato del correo no es válido"
+  else formato válido
+
+    FE -> Route: POST /api/auth/login\n{ email, password }
+    activate Route
+    Route -> MW: siguiente en la cadena
+    activate MW
+    MW -> MW: log request
+    MW -> Ctrl: next()
+    activate Ctrl
+    deactivate MW
+    Ctrl -> UC: loginUseCase(env, { email, password })
+    activate UC
+    Ctrl -> Ctrl: valida body con zod
+
+    UC -> Svc: login(db, email, password)
+    activate Svc
+
+    Svc -> Model: findUserByEmail(db, email)
+    activate Model
+    Model -> DB: SELECT * FROM users WHERE email = ?
+    DB --> Model: fila | null
+    deactivate Model
+    Model --> Svc: usuario | null
+
+    alt usuario no existe
+      Svc --> UC: error 401 form_identifier_not_found
+      deactivate Svc
+      UC --> Ctrl: propaga error
+      deactivate UC
+      Ctrl --> MW: propaga error
+      deactivate Ctrl
+      activate MW
+      MW -> Route: errorHandler(err)
+      deactivate MW
+      Route --> FE: 401 { error: "form_identifier_not_found" }
+      deactivate Route
+      FE --> Usuario: "Favor de registrarte o contacta al administrador"
+
+    else usuario existe
+      Svc -> Svc: revisa status (banned / deactivated / locked)
+
+      alt cuenta banned o deactivated
+        Svc --> UC: error 403 user_banned
+        deactivate Svc
+        UC --> Ctrl: propaga error
+        deactivate UC
+        Ctrl --> Route: propaga error
+        deactivate Ctrl
+        Route --> FE: 403 { error: "user_banned" }
+        deactivate Route
+        FE --> Usuario: "Cuenta desactivada, contacta al administrador"
+
+
+      else cuenta activa
+        Svc -> Svc: compareHash(password, usuario.hashed_password)
+
+        alt password incorrecto
+          Svc --> UC: error 401 form_password_incorrect
+          deactivate Svc
+          UC --> Ctrl: propaga error
+          deactivate UC
+          Ctrl --> Route: propaga error
+          deactivate Ctrl
+          Route --> FE: 401 { error: "form_password_incorrect" }
+          deactivate Route
+          FE --> Usuario: "Contraseña incorrecta"
+
+        else password correcto
+          Svc -> Svc: arma safeUser\n(id, email, first_name, last_name, role_id, school_id --\nsin hashed_password ni otros campos sensibles)
+
+          Svc -> Clerk: crea sesión(safeUser)
+          activate Clerk
+          Clerk --> Svc: { token }
+          deactivate Clerk
+
+          Svc --> UC: { safeUser, token }
+          deactivate Svc
+          UC --> Ctrl: { safeUser, token }
+          deactivate UC
+          Ctrl --> Route: 200 { safeUser, token }
+          deactivate Ctrl
+          Route --> FE: 200 + Set-Cookie (httpOnly) / body { token }
+          deactivate Route
+
+          FE -> FE: guarda sesión (cookie httpOnly o memoria)
+          FE -> Sim: redirige a vista del simulador
+          activate Sim
+          Sim --> Usuario: Muestra "Project Feasibility Simulation"
+          deactivate Sim
+        end
+      end
+    end
+  end
+end
+end
+
+
+@enduml

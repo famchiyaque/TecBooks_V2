@@ -1,0 +1,135 @@
+@startuml RF 50 Create Cost Table - Sequence Diagram (Redux + Hook, frontend-only)
+title Sequence Diagram - RF 50 Create Cost Table\n(Redux store + custom hook, calculations run on the frontend)
+
+skinparam sequenceArrowThickness 1
+skinparam roundcorner 8
+skinparam maxmessagesize 170
+skinparam sequence {
+  ActorBorderColor #073a5a
+  LifeLineBorderColor #073a5a
+  ParticipantBorderColor #073a5a
+  ParticipantBackgroundColor #e4f1fe
+  ParticipantFontColor #073a5a
+  ActorBackgroundColor #eec60a
+  NoteBackgroundColor #fff8dc
+  NoteBorderColor #eec60a
+}
+
+actor User
+
+participant "AuthContext\n(useAuth)" as Auth
+participant "CostTablePage\n(React component)" as UI
+participant "costTable.store\n(Redux slice)" as Store
+participant "useCostTable()\n(custom hook)" as Hook
+participant "costCalculations.js\n(pure functions)" as Calc
+
+User -> UI : Navigate to /modules/cost-table
+activate UI
+
+UI -> Auth : isAuthenticated?
+activate Auth
+Auth --> UI : isAuthenticated
+deactivate Auth
+
+alt RF-00-00: user is NOT authenticated
+  UI --> User : redirect to /login\n(state: { from: "/modules/cost-table" })
+  deactivate UI
+else user is authenticated
+
+  User -> UI : Upload InputNovus.xlsx template\nand click "Confirm"
+
+  UI -> UI : XLSX.read(file) -> excelData\n(Premisas / COs / Capacidad / BOM / Empleados_2 sheets)
+
+  UI -> Store : dispatch(setEmployees(...))\ndispatch(setProduction(...))\ndispatch(setPremises(...))
+  activate Store
+  Store --> UI : state updated
+  deactivate Store
+
+  UI -> Hook : useCostTable()
+  activate Hook
+
+  Hook -> Store : useSelector(selectEmployees, selectProduction, selectPremises)
+  activate Store
+  Store --> Hook : { employees, production, premises }
+  deactivate Store
+
+alt RF-00-01: cost values are NOT numeric
+  Hook --> UI : { isValid: false,\nerror: "Tipos de datos incorrectos" }
+  UI --> User : Show error message\n"Tipos de datos incorrectos"
+  deactivate Hook
+  deactivate UI
+else costs are numeric values
+
+  alt RF-00-05: year zero record does NOT exist
+    Hook --> UI : { isValid: false, status: "staging" }
+    UI --> User : Staging UI lists the project\n(file name + "Remove" button),\nunlocks the "Confirm" button
+    deactivate Hook
+    deactivate UI
+  else year zero record exists
+
+    alt RF-00-04: there are NO registered employees
+      Hook --> UI : { isValid: false, status: "no-employees" }
+      UI --> User : Display the staging screen\nfor the program
+      deactivate Hook
+      deactivate UI
+    else there are registered employees
+
+      alt RF-00-02: some employees have no registered quantity
+        Hook --> UI : { isValid: false,\nerror: "Empleados registrados no tienen\nsu cantidad de empleados registrada" }
+        UI --> User : Show error message\n"Registered employees do not have\ntheir employee count recorded"
+        deactivate Hook
+        deactivate UI
+      else all employees have a registered quantity
+
+        alt RF-00-06: missing quantity, purchase orders,\nquality yield or POs after year zero
+          Hook --> UI : { isValid: false,\nerror: "Proyecto invalido, intenta otro archivo" }
+          UI --> User : Reject the project and show\n"Proyecto invalido, intenta otro archivo"
+          deactivate Hook
+          deactivate UI
+        else all required data present (quantity, purchase\norders, quality yield, POs after year zero)
+
+          Hook -> Calc : sumSalariesByCategory(employees)
+          activate Calc
+          Calc -> Calc : MOD (direct), MOIndirecta (indirect),\nIngenieria (engineering), Administracion\n(administrative) = sum(quantity * Salario\nIntegrado * 12) grouped by category
+          Calc --> Hook : { MOD, MOIndirecta,\nIngenieria, Administracion }
+          deactivate Calc
+
+          Hook -> Calc : computeRawMaterialCost(production)
+          activate Calc
+          Calc -> Calc : MP = workOrders * materialCostPerUnit\n(WO = CO * Quality yield; unit cost from\nBOM "Costo de Materia Prima")
+          Calc --> Hook : MP
+          deactivate Calc
+
+          Hook -> Calc : computeNetSales(production)
+          activate Calc
+          Calc -> Calc : netSales = purchaseOrders *\nsalesPricePerUnit (BOM "Costo de venta")
+          Calc --> Hook : netSales
+          deactivate Calc
+
+          Hook -> Calc : computeIndirectMaterialCosts(premises, netSales)
+          activate Calc
+          Calc -> Calc : indirectMaterials =\nnetSales * indirectProductPercentage\n(Premisas "% costo indirecto del producto")
+          Calc --> Hook : indirectMaterials
+          deactivate Calc
+
+          Hook -> Calc : buildCostOfSalesTable(years, MP, MOD, MOIndirecta,\nIngenieria, Administracion, indirectMaterials)
+          activate Calc
+          Calc -> Calc : totalCostOfSales = MP + MOD + MOIndirecta +\nIngenieria + Administracion + indirectMaterials
+          Calc --> Hook : costOfSalesByYear\n{ rawMaterial, directLabour,\nindirectManufacturing, engineeringSalaries,\nadministrativeExpenses, indirectMaterials,\ntotalCostOfSales }
+          deactivate Calc
+
+          Hook --> UI : { isValid: true, costOfSalesByYear }
+          deactivate Hook
+
+          UI -> UI : render "Estado" cost table\n(Ventas Netas, COSTOS: MP, MOD, MO indirecta,\nIngenieria, Administracion, Materiales indirectos,\nTotal de Costos)
+
+          UI --> User : View the created cost table
+          deactivate UI
+        end
+      end
+    end
+  end
+end
+end
+
+@enduml
