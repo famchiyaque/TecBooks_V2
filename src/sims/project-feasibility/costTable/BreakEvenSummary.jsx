@@ -56,7 +56,7 @@ function Stat({ label, value, highlight }) {
  * (matches the template's own Capacidad!E17 divisor, row 59).
  */
 function BreakEvenSummary({ project }) {
-  const [desiredProfit, setDesiredProfit] = React.useState(0);
+  const [desiredProfit, setDesiredProfit] = React.useState(500000);
 
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project]);
   const { production } = React.useMemo(
