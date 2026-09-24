@@ -27,7 +27,15 @@ export class EditableTableSlice {
           state.overrides[`${rowKey}:${columnKey}`] = value
         },
         addCustomRow: (state, action) => {
-          state.customRows.push({ id: nanoid(), label: action.payload?.label ?? 'New row', values: {} })
+          state.customRows.push({
+            id: nanoid(),
+            label: action.payload?.label ?? 'New row',
+            // Lets a caller seed a default row with real values (e.g.
+            // Current Passives' "Documentos por pagar" placeholder) instead
+            // of always starting blank - every existing caller that doesn't
+            // pass `values` keeps getting an empty row, unchanged.
+            values: action.payload?.values ?? {},
+          })
         },
         removeCustomRow: (state, action) => {
           state.customRows = state.customRows.filter((row) => row.id !== action.payload)
