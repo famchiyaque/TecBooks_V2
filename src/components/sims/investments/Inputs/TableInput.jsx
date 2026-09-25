@@ -27,11 +27,20 @@ function TableInput({ func, flows, name }) {
                             {flows.map((value, index) => (
                             <td key={index} className="input-cell">
                                 <input
-                                type="text"
-                                value={`$${value}`}
-                                onChange={(e) => callbackSecurity(e, index)}
-                                className="input-field"
-                                style={{ width: '99%', padding: '0.15rem 0 0.15rem 4px' }}
+                                    type="text"
+                                    value={`$${value}`}
+                                    onChange={(e) => callbackSecurity(e, index)}
+                                    className='input-field'
+                                    // className={`${index == 0 ? 'input-field border-none text-gray-500' : 'input-field'}`}
+                                    style={{ 
+                                        width: '99%', 
+                                        padding: '0.15rem 0 0.15rem 4px',
+                                        border: index == 0 ? '1px solid dark-gray' : undefined,
+                                        color: index == 0 ? 'dark-gray' : undefined,
+                                        outline: index == 0 ? 'none' : undefined,
+                                    }}
+                                    readOnly={index == 0}
+                                    // style={index == 0 ? 'w-[99%] py-[0.15rem] pb-[4px]' : 'w-[99%] py-[0.15rem] pb-[4px]'}
                                 />
                             </td>
                             ))}

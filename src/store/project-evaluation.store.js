@@ -59,8 +59,6 @@ export const getCashflows = (state) => {
 export const getResults = (state) => {
     const sp = state.projEval
 
-    console.log("In get results in store")
-
     const cashflows = getCashflows(state)
 
     const breakEven = getBreakEven(
@@ -68,20 +66,17 @@ export const getResults = (state) => {
         sp.inflows, 
         sp.outflows,
     )
-    console.log("breakEven: ", breakEven)
 
     const roi = getROI(
         sp.inflows,
         sp.outflows,
     )
-    console.log("roi: ", roi)
 
     const npv = getNPV(
         sp.lifetime,
         cashflows,
         sp.discountRate
     )
-    console.log("npv: ", npv)
 
     const irr = getIRR(
         sp.lifetime,

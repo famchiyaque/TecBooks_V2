@@ -6,7 +6,7 @@ export function getBreakEven(lifetime, inflows, outflows) {
         if (accumulated >= 0) {
             const monthlyRate = inflows[i]/12 - outflows[i]/12
             const monthsIn = Math.abs(accumulated/monthlyRate)*0.1
-            return (i + monthsIn).toFixed(1)
+            return parseFloat((i - 1 + monthsIn).toFixed(1))
         }
         prev += inflows[i] - outflows[i]
     }
@@ -15,11 +15,9 @@ export function getBreakEven(lifetime, inflows, outflows) {
 
 export function getROI(inflows, outflows) {
     const benefits = inflows.reduce((prev, curr) => prev + curr, 0)
-    // const costs = outflows.reduce((prev, curr) => prev + curr, 0) + initialInv
     const costs = outflows.reduce((prev, curr) => prev + curr, 0)
     const roi = ((benefits - costs) / costs) * 100
-    const result = parseFloat(roi.toFixed(1))
-    return result
+    return parseFloat(roi.toFixed(1))
 }
 
 export function getNPV(lifetime, cashflows, discountRate) {
@@ -27,7 +25,7 @@ export function getNPV(lifetime, cashflows, discountRate) {
     for (let i = 0; i < lifetime; i++) {
         npv += (cashflows[i])/(1 + (discountRate/100)) ** (i+1)
     }
-    return npv.toFixed(2)
+    return parseFloat(npv.toFixed(2))
 } 
 
 export function getIRR(lifetime, inflows, outflows, precomputedNPV) {
@@ -78,7 +76,7 @@ export function getIRR(lifetime, inflows, outflows, precomputedNPV) {
         irr = highRate;
     }
 
-    return irr.toFixed(1);
+    return parseFloat(irr.toFixed(1));
 }
 
 

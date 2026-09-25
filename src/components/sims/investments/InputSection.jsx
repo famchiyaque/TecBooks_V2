@@ -178,11 +178,11 @@ function InputSection() {
           <div className="overflow-x-auto min-w-0 flex flex-col mt-2">
             <div className='min-w-max'>
 
-              <div className='flex'>
+              <div className='flex pl-[1rem]'>
                 {Array.from({ length: lifetime }, (_, i) => {
                   const year = new Date().getFullYear() - 1 + i;
                   return (
-                    <div key={i} className="italic text-gray-500 text-sm w-[5.6rem] flex-shrink-0">
+                    <div key={i} className="italic text-gray-500 text-sm w-[6.1rem] flex-shrink-0">
                       {i == 0 ? `${year} (yr 0)` : year}
                     </div>
                   );
