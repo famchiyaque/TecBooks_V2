@@ -23,8 +23,7 @@ function Graph() {
 
     // Calculate cash flow per year (bar dataset)
     const cashflows = inflows.map((inflow, index) => {
-      if (index === 0) return inflow - outflows[index] - initialInvestment
-      else return inflow - outflows[index]
+      return inflow - outflows[index]
     })
 
     // Calculate cumulative cash flow (line dataset) - You can adjust this if you need a different metric
