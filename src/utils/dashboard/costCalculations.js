@@ -58,7 +58,7 @@ export function areCostsNumeric(employees, production) {
  */
 export function sumSalariesByCategory(employees) {
   const totals = { MOD: 0, MOIndirecta: 0, Ingenieria: 0, Administrative: 0 };
-  
+
   for (const emp of employees) {
     const key = CATEGORY_TO_KEY[emp.category];
     if (!key) continue;
@@ -141,14 +141,18 @@ export function computeNetSales(production) {
 export function computeRawMaterialCost(production) {
   const { purchaseOrders, qualityYield, materialCostPerUnit } =
     production ?? {};
-  const isCostMap = typeof materialCostPerUnit === "object" && materialCostPerUnit !== null;
+  const isCostMap =
+    typeof materialCostPerUnit === "object" && materialCostPerUnit !== null;
   const rawMaterialByYear = {};
 
   for (const year of Object.keys(purchaseOrders ?? {})) {
-    const costForYear = isCostMap ? (materialCostPerUnit[year] ?? 0) : (materialCostPerUnit ?? 0);
-    const workOrders = (qualityYield[year] || 0) === 0
-      ? 0
-      : (purchaseOrders[year] || 0) / qualityYield[year];
+    const costForYear = isCostMap
+      ? (materialCostPerUnit[year] ?? 0)
+      : (materialCostPerUnit ?? 0);
+    const workOrders =
+      (qualityYield[year] || 0) === 0
+        ? 0
+        : (purchaseOrders[year] || 0) / qualityYield[year];
     rawMaterialByYear[year] = workOrders * costForYear;
   }
 
@@ -267,7 +271,11 @@ export function buildCostOfSalesTable(
     const engineeringSalaries = Ingenieria[year] || 0;
     const indirectMaterialsForYear = indirectMaterials[year] || 0;
     const totalCostOfSales =
-      rawMaterial + directLabour + indirectManufacturing + engineeringSalaries + indirectMaterialsForYear;
+      rawMaterial +
+      directLabour +
+      indirectManufacturing +
+      engineeringSalaries +
+      indirectMaterialsForYear;
     const netSalesForYear = netSales?.[year] || 0;
 
     return {
@@ -372,8 +380,8 @@ export function computeOperatingExpenses(
     operatingExpensesByYear[year] =
       (administrativeByYear[year] || 0) +
       (administrativeSalary[year] || 0) +
-      (depreciationTotalByYear[year] || 0)
-      // (salesExpensesByYear[year] || 0);
+      (depreciationTotalByYear[year] || 0);
+    // (salesExpensesByYear[year] || 0);
   }
 
   return operatingExpensesByYear;
@@ -422,11 +430,11 @@ export function computeFinancingAmount(
   civilWorks,
   year,
 ) {
-  const assets = machineryInvestmentByYear[year] + investmentByYear[year]
-  const workForce = administrativeExpenses[year] + salariesTotal
+  const assets = machineryInvestmentByYear[year] + investmentByYear[year];
+  const workForce = administrativeExpenses[year] + salariesTotal;
 
-  const totalAmount = assets + workForce + civilWorks[year]
-  
+  const totalAmount = assets + workForce + civilWorks[year];
+
   return totalAmount;
 }
 
@@ -444,7 +452,12 @@ export function computeFinancingAmount(
  * corresponding month block (loan already paid off, or the loan outlives the
  * projection horizon) reports 0 for both.
  */
-export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {  
+export function computeAmortizationSchedule(
+  allAmount,
+  periods,
+  annualRate,
+  years,
+) {
   const financialExpensesByYear = {};
   const creditPaymentByYear = {};
   for (const year of years) {
