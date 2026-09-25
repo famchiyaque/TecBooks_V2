@@ -67,15 +67,12 @@ export const getResults = (state) => {
         sp.lifetime, 
         sp.inflows, 
         sp.outflows,
-        cashflows,
-        sp.initialInvestment
     )
     console.log("breakEven: ", breakEven)
 
     const roi = getROI(
         sp.inflows,
         sp.outflows,
-        sp.initialInvestment
     )
     console.log("roi: ", roi)
 
@@ -90,7 +87,6 @@ export const getResults = (state) => {
         sp.lifetime,
         sp.inflows,
         sp.outflows,
-        sp.initialInvestment,
         npv
     )
 
