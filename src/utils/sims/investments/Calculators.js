@@ -34,9 +34,10 @@ export function getROI(inflows, outflows, initialInv) {
 }
 
 export function getNPV(lifetime, cashflows, discountRate) {
+    console.log("[NPV]: ", cashflows)
     let npv = 0
     for (let i = 0; i < lifetime; i++) {
-        npv += (cashflows[i])/(1 + (discountRate/100)) ** i
+        npv += (cashflows[i])/(1 + (discountRate/100)) ** (i+1)
     }
     return npv.toFixed(2)
 } 

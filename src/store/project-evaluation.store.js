@@ -6,18 +6,18 @@ const projEvalSlice = createSlice({
     initialState: {
         // define initial states
         project: 'production line',
-        lifetime: 5,
-        initialInvestment: 4000,
-        discountRate: 8.0,
-        inflows: [500, 2000, 6000, 15000, 30000],
-        outflows: [3000, 4500, 5000, 7200, 12000],
+        lifetime: 6,
+        initialInvestment: 100000,
+        discountRate: 10.0,
+        inflows: [0, 45000, 50000, 55000, 60000, 65000],
+        outflows: [100000, 10000, 12000, 15000, 18000, 20000],
         order: 0,
         currProjectIndex: null
     },
     reducers: {
         setProject: (state, action) => { state.project = action.payload },
         setLifetime: (state, action) => { state.lifetime = action.payload },
-        setInitialInvestment: (state, action) => { state.initialInvestment = action.payload },
+        setInitialInvestment: (state, action) => { state.initialInvestment = action.payload; state.outflows[0] = action.payload; },
         setDiscountRate: (state, action) => { state.discountRate = action.payload },
         setInflows: (state, action) => { state.inflows = action.payload },
         setOutflows: (state, action) => { state.outflows = action.payload },
@@ -52,8 +52,7 @@ export const getCashflows = (state) => {
     const sp = state.projEval
 
     return sp.inflows.map((inflow, index) => {
-        if (index == 0) return inflow - sp.outflows[index] - sp.initialInvestment
-        else return inflow - sp.outflows[index]
+        return inflow - sp.outflows[index]
     })
 }
 
