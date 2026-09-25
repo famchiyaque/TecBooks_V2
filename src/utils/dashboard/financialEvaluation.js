@@ -13,7 +13,10 @@ export function computeTrema(marketRate, inflation, riskPremium) {
  * treats the project's first year.
  */
 export function computeNPV(cashFlows, rate) {
-  return cashFlows.reduce((sum, cashFlow, t) => sum + cashFlow / (1 + rate) ** t, 0);
+  return cashFlows.reduce(
+    (sum, cashFlow, t) => sum + cashFlow / (1 + rate) ** t,
+    0,
+  );
 }
 
 /**
@@ -23,11 +26,15 @@ export function computeNPV(cashFlows, rate) {
  * years is exactly the shape Newton-Raphson can diverge on). Returns null
  * if NPV doesn't change sign across the range - no real root to find.
  */
-export function computeIRR(cashFlows, { low = -0.99, high = 10, tolerance = 1e-6, maxIterations = 200 } = {}) {
+export function computeIRR(
+  cashFlows,
+  { low = -0.99, high = 10, tolerance = 1e-6, maxIterations = 200 } = {},
+) {
   let lowerBound = low;
   let upperBound = high;
   let npvAtLower = computeNPV(cashFlows, lowerBound);
   let npvAtUpper = computeNPV(cashFlows, upperBound);
+
   if (npvAtLower * npvAtUpper > 0) return null;
 
   let mid = lowerBound;
@@ -52,7 +59,10 @@ export function computeIRR(cashFlows, { low = -0.99, high = 10, tolerance = 1e-6
  */
 export function decideProject(npv, irr, trema) {
   if (irr === null) {
-    return { accepted: false, reason: "IRR couldn't be computed for this cash flow (no sign change)." };
+    return {
+      accepted: false,
+      reason: "IRR couldn't be computed for this cash flow (no sign change).",
+    };
   }
   return { accepted: npv > 0 && irr > trema, reason: null };
 }
