@@ -44,7 +44,8 @@ function computeFinancing(cbm, years) {
   const { employees } = cbmToCostTableInputs(cbm);
   const opex = cbmToOperatingExpenseInputs(cbm, years);
 
-  const { MOD, MOIndirecta, Ingenieria, Administrative } = sumSalariesByCategory(employees);
+  const { MOD, MOIndirecta, Ingenieria, Administrative } =
+    sumSalariesByCategory(employees);
   const salariesTotal = MOD + MOIndirecta + Ingenieria + Administrative;
 
   const administrativeExpenses = computeAdminExpenses(cbm);
@@ -52,31 +53,43 @@ function computeFinancing(cbm, years) {
     [opex.assets.buildings, opex.assets.transport, opex.assets.compute],
     years,
   );
-  const machineryInvestment = computeCumulativeInvestment([opex.machines], years);
 
-  let prev = 0;
-  const civilWorks = Object.entries(machineryInvestment).reduce((acc, [year, value], idx) => {
-    if (idx == 0) acc[year] = value * 0.35;
-    else acc[year] = (value - prev) * 0.35;
-    prev = Math.max(value, prev);
+  // DO NOT REMOVE!
+  const machineAdquisition = cbm.capacity.machines.reduce((acc, curr) => {
+    acc += curr.acquisitionByYear[0];
+    return acc;
+  }, 0);
+  const machineryPurchase = years.reduce((acc, year, idx) => {
+    if (idx == 0) acc[year] = machineAdquisition;
+    else acc[year] = 0;
     return acc;
   }, {});
+
+  const civilWorks = Object.entries(machineryPurchase).reduce(
+    (acc, [year, value], idx) => {
+      if (idx == 0) acc[year] = value * 0.35;
+      else acc[year] = value * 0.35;
+      return acc;
+    },
+    {},
+  );
 
   const financingAmount = computeFinancingAmount(
     investment,
     salariesTotal,
     administrativeExpenses,
-    machineryInvestment,
+    machineryPurchase,
     civilWorks,
     years[0],
   );
 
-  const { financialExpensesByYear, creditPaymentByYear } = computeAmortizationSchedule(
-    financingAmount,
-    opex.financingPeriods,
-    opex.nationalLeadingRate[years[0]],
-    years,
-  );
+  const { financialExpensesByYear, creditPaymentByYear } =
+    computeAmortizationSchedule(
+      financingAmount,
+      opex.financingPeriods,
+      opex.nationalLeadingRate[years[0]],
+      years,
+    );
 
   let paid = 0;
   const pendingPrincipalByYear = {};
@@ -91,6 +104,7 @@ function computeFinancing(cbm, years) {
     financialExpensesByYear,
     creditPaymentByYear,
     pendingPrincipalByYear,
+    machineryPurchase,
     civilWorks,
   };
   logger.debug("computeFinancing", result);
