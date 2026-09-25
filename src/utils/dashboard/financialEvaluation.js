@@ -14,7 +14,7 @@ export function computeTrema(marketRate, inflation, riskPremium) {
  */
 export function computeNPV(cashFlows, rate) {
   return cashFlows.reduce(
-    (sum, cashFlow, t) => sum + cashFlow / (1 + rate) ** t,
+    (sum, cashFlow, t) => sum + cashFlow / (1 + rate) ** (t + 1),
     0,
   );
 }

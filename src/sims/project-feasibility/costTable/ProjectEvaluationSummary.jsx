@@ -150,7 +150,6 @@ function ProjectEvaluationSummary({ project }) {
   const trema = computeTrema(marketRate, inflation, riskPremium);
   const npv = computeNPV(netCashFlowByYear, trema);
   const irr = computeIRR(netCashFlowByYear);
-  console.log({ trema, irr, npv });
   const decision = decideProject(npv, irr, trema);
 
   return (
