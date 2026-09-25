@@ -95,14 +95,14 @@ export const getResults = (state) => {
 
 export const referenceProjectHistory = (historyIndex) => (dispatch) => {
     const storedProjHistory = JSON.parse(sessionStorage.getItem("projEvalHistory"));
-    const proj = storedProjHistory?.[historyIndex]?.projectInfo;
+    const proj = storedProjHistory?.find((entry) => entry.index === historyIndex)?.projectInfo;
   
     if (!proj) return;
   
     dispatch(setCurrProjectIndex(historyIndex));
     dispatch(setProject(proj.project));
     dispatch(setLifetime(proj.lifetime));
-    dispatch(setInitialInvestment(proj.initialInvestement));
+    dispatch(setInitialInvestment(proj.initialInvestment));
     dispatch(setDiscountRate(proj.discountRate));
     dispatch(setInflows(proj.inflows));
     dispatch(setOutflows(proj.outflows));

@@ -72,7 +72,7 @@ function Graph() {
       data: data,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             position: 'top',
@@ -96,7 +96,7 @@ function Graph() {
   }, [lifetime, project, inflows, outflows, order])
 
   return (
-    <div style={{ width: "90%", margin: "0 auto", minHeight: '60vh' }}>
+    <div style={{ width: "90%", height: "100%", margin: "0 auto" }}>
       <canvas ref={canvasRef} ></canvas>
     </div>
   )

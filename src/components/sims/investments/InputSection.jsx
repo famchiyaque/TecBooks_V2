@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
-// import Inflows from './Inputs/Inflows'
-// import Outflows from './Inputs/Outflows'
 import BasicInput from './Inputs/BasicInput'
 import TableInput from './Inputs/TableInput'
-// import axios from 'axios'
 import { getProjectInfo, setDiscountRate, setInflows, setInitialInvestment, setLifetime, setOutflows, setProject } from '@/store/project-evaluation.store'
 import { useDispatch, useSelector } from 'react-redux'
 import IconButton from '@mui/material/IconButton'
@@ -127,7 +124,7 @@ function InputSection() {
 
         <div className='w-[98%] pl-[2%] flex justify-start items-start gap-[0.6rem] text-sm'>
             {basicInputs.map((input, idx) => (
-              <div className='flex flex-col items-start' style={{ flexBasis: `${input.size}%` }}>
+              <div className='flex flex-col items-start' style={{ flexBasis: `${input.size}%` }} key={idx}>
                 <p>{input.name}</p>
                 <BasicInput func={input.func} value={input.value} name={input.name} />
               </div>
