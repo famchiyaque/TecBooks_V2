@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
-// import Inflows from './Inputs/Inflows'
-// import Outflows from './Inputs/Outflows'
 import BasicInput from './Inputs/BasicInput'
 import TableInput from './Inputs/TableInput'
-// import axios from 'axios'
 import { getProjectInfo, setDiscountRate, setInflows, setInitialInvestment, setLifetime, setOutflows, setProject } from '@/store/project-evaluation.store'
 import { useDispatch, useSelector } from 'react-redux'
 import IconButton from '@mui/material/IconButton'
@@ -84,7 +81,6 @@ function InputSection() {
     try {
       const data = JSON.stringify({ inflows, outflows });
       await navigator.clipboard.writeText(data);
-      console.log("Flows copied to clipboard:", data);
     } catch (err) {
       console.error("Failed to copy flows:", err);
     }
@@ -123,47 +119,18 @@ function InputSection() {
     dispatch(setOutflows(newOutflows));
   }
 
-    // const api_key = 'b86afe5666msh410c2ed2d3d8a1fp150b79jsnfcad51eb0f9d'
-    const [monthInflation, setMonthInflation] = useState(0.06)
-    const [yearInflation, setYearInflation] = useState(4.54)
-    const [cetes, setCetes] = useState(11)
-
-    // useEffect(() => {
-    //     const fetchInflationData = async () => {
-    //       const country = 'mexico'
-    //       const api_url = `https://api.api-ninjas.com/v1/inflation?country=${country}`
-    
-    //       try {
-    //         const response = await axios.get(api_url, {
-    //           headers: {
-    //             'X-RapidAPI-Key': api_key,
-    //             'X-RapidAPI-Host': 'city-by-api-ninjas.p.rapidapi.com'
-    //           }
-    //         })
-    //         console.log(response.data)
-    //         const data = response.data
-    //         setMonthInflation(data.monthly_rate_pct)
-    //         setYearInflation(data.yearly_rate_pct)
-    //       } catch (error) {
-    //         console.error('Error fetching inflation data:', error)
-    //       }
-    //     }
-    
-    //     // fetchInflationData()
-    //   }, [])
-
   return (
-    <div className='w-[100%] flex flex-col justify-start items-start all-inputs-container'>
+    <div className='w-[100%] p-[0.5rem] flex flex-col justify-start items-start all-inputs-container'>
 
         <div className='w-[98%] pl-[2%] flex justify-start items-start gap-[0.6rem] text-sm'>
             {basicInputs.map((input, idx) => (
-              <div className='flex flex-col items-start' style={{ flexBasis: `${input.size}%` }}>
+              <div className='flex flex-col items-start' style={{ flexBasis: `${input.size}%` }} key={idx}>
                 <p>{input.name}</p>
                 <BasicInput func={input.func} value={input.value} name={input.name} />
               </div>
             ))}
 
-            <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
+            {/* <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
               <p>Inflation</p>
               <div style={{ width: '100%' }}>
                 <p style={{ width: '100%', borderBottom: 'solid rgb(50, 50, 80) 1px' }}>
@@ -173,14 +140,14 @@ function InputSection() {
                     {monthInflation}</span>    
                 </p>
               </div>
-            </div>
+            </div> */}
 
-            <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
+            {/* <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
               <p>Cetes</p>
               <div style={{ width: '100%', borderBottom: 'solid rgb(50, 50, 80) 1px' }}>
                 {cetes}%
               </div>
-            </div>
+            </div> */}
                 
         </div>
 
@@ -208,12 +175,12 @@ function InputSection() {
           <div className="overflow-x-auto min-w-0 flex flex-col mt-2">
             <div className='min-w-max'>
 
-              <div className='flex'>
+              <div className='flex pl-[1rem]'>
                 {Array.from({ length: lifetime }, (_, i) => {
-                  const year = new Date().getFullYear() + i;
+                  const year = new Date().getFullYear() - 1 + i;
                   return (
-                    <div key={i} className="italic text-gray-500 text-sm w-[5.6rem] flex-shrink-0">
-                      {year}
+                    <div key={i} className="italic text-gray-500 text-sm w-[6.1rem] flex-shrink-0">
+                      {i == 0 ? `${year} (yr 0)` : year}
                     </div>
                   );
                 })}
