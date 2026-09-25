@@ -13,6 +13,10 @@ import {
   TableRow,
   Tabs,
   Typography,
+  FormControl, 
+  Select, 
+  MenuItem,
+  InputLabel,
 } from "@mui/material";
 import Construction from "@mui/icons-material/Construction";
 import Outflows from "@/components/sims/program/Outflows";
@@ -150,6 +154,7 @@ function ProjectDashboard() {
     programId,
     projectId,
   );
+  const [currency, setCurrency] = useState("MXN");
 
   // Shared by Cost Table + Operating Expenses + Financial Result + Taxes +
   // Profit Summary + Balance Sheet (Current/Defered Actives, Passives,
@@ -211,6 +216,21 @@ function ProjectDashboard() {
           {projectDisplayName(project)}
         </Typography>
         <TourButton tour={projectDashboardTour} />
+        <FormControl size="small" sx={{ minWidth: 160, ml: "auto" }}>
+          <InputLabel id="currency-label">Currency</InputLabel>
+
+          <Select
+            labelId="currency-label"
+            id="filter"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            label="Currency"
+          >
+            <MenuItem value="MXN">MXN</MenuItem>
+            <MenuItem value="EUR">EUR</MenuItem>
+            <MenuItem value="USD">USD</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       <Tabs
@@ -234,6 +254,7 @@ function ProjectDashboard() {
               programId={programId}
               projectId={projectId}
               project={project}
+              currency={currency}
             />
           </Provider>
         </Box>
@@ -242,10 +263,12 @@ function ProjectDashboard() {
   );
 }
 
-function TabContent({ activeTab, programId, projectId, project }) {
+function TabContent({ activeTab, programId, projectId, project, currency }) {
   const placeholder = PLACEHOLDER_TABS[activeTab.id];
   const { data: cbm, isPending, isError } = useFeasibilityModel(
     LIVE_TAB_IDS.has(activeTab.id) ? project.gameId : undefined,
+    "MXN",
+    currency,
   );
   const projectWithCbm = { ...project, cbm };
 
