@@ -22,9 +22,9 @@ function ProfitSummary({ project }) {
 
   return (
     <>
-      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} />
-      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} />
-      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} />
+      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
+      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
+      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
     </>
   )
 }

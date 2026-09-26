@@ -1,6 +1,7 @@
 import React from 'react'
 import EditableTable from '@/components/global/EditableTable'
 import { costTableEditsSlice } from '@/store/costTable.store'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 export const COST_ROWS = [
   { key: 'rawMaterial', label: 'Raw Material Cost (MP)' },
@@ -10,7 +11,8 @@ export const COST_ROWS = [
   { key: 'indirectMaterials', label: 'Indirect Material Costs' },
 ]
 
-function CostOfSalesTable({ costOfSalesByYear }) {
+function CostOfSalesTable({ costOfSalesByYear, gameId }) {
+  useTableRowsSync(gameId, costTableEditsSlice, 'costTableEdits')
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
 

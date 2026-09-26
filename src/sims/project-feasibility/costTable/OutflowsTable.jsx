@@ -4,6 +4,7 @@ import EditableTable from '@/components/global/EditableTable'
 import { outflowEditsSlice } from '@/store/costTable.store'
 import { buildCostOfSales } from './buildCostOfSales'
 import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 /**
  * Cash Outflows "Salidas" (RF-63, Flujo sheet rows 12-32) - every fixed
@@ -14,6 +15,7 @@ import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflo
  * here, same double-click override pattern.
  */
 function OutflowsTable({ project }) {
+  useTableRowsSync(project.gameId, outflowEditsSlice, 'outflowEdits')
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   const years = React.useMemo(

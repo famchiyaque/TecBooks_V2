@@ -1,6 +1,7 @@
 import React from 'react'
 import EditableTable from '@/components/global/EditableTable'
 import { operatingExpenseEditsSlice } from '@/store/costTable.store'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 // Depreciation used to be 4 fixed rows (Buildings/Transport/Machinery/
 // Computer Equipment) - any asset category the project's Excel named
@@ -21,7 +22,8 @@ export const OPERATING_EXPENSE_ROWS = [
   { key: 'salesExpenses', label: 'Sales Expenses' },
 ]
 
-function OperatingExpensesTable({ costOfSalesByYear }) {
+function OperatingExpensesTable({ costOfSalesByYear, gameId }) {
+  useTableRowsSync(gameId, operatingExpenseEditsSlice, 'operatingExpenseEdits')
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
 

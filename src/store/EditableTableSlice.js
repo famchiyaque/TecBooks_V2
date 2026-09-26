@@ -51,6 +51,18 @@ export class EditableTableSlice {
           if (row) row.values[columnKey] = value
         },
         reset: () => ({ overrides: {}, customRows: [] }),
+        // Replaces customRows wholesale with what the server has for this
+        // table (row_table, one row per gameId+tableKey+rowId+year) - used
+        // once per mount by useTableRowsSync to load a project's saved
+        // custom rows. rowId -> id, values keyed by String(year) already
+        // (see effectiveTotal's own column normalization).
+        hydrate: (state, action) => {
+          state.customRows = (action.payload ?? []).map((row) => ({
+            id: row.rowId,
+            label: row.label,
+            values: row.values ?? {},
+          }))
+        },
       },
     })
 

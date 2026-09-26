@@ -54,9 +54,13 @@ function computeFinancing(cbm, years) {
     years,
   );
 
-  // DO NOT REMOVE!
-  const machineAdquisition = cbm.capacity.machines.reduce((acc, curr) => {
-    acc += curr.acquisitionByYear[0];
+  // Machinery $ must come from the same Inversion-first/Capacidad-fallback
+  // resolution the rest of the pipeline uses (opex.machines), not
+  // cbm.capacity.machines directly - otherwise a project with machinery in
+  // BOTH sheets double-counts it (this fixed row from Capacidad, plus a
+  // second dynamic Cash Outflows row from Inversion's own category).
+  const machineAdquisition = opex.machines.reduce((acc, curr) => {
+    acc += curr.acquisitionByYear[years[0]] || 0;
     return acc;
   }, 0);
   const machineryPurchase = years.reduce((acc, year, idx) => {
