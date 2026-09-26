@@ -18,6 +18,8 @@ const KNOWN_ASSET_CATEGORY_MATCH = [
   { match: "buildings", key: "buildings" },
   { match: "equipo de computo", key: "compute" },
   { match: "computer equipment", key: "compute" },
+  { match: "maquinaria", key: "machinery" },
+  { match: "machinery", key: "machinery" },
 ];
 
 function normalizeCategoryName(text) {
@@ -30,7 +32,7 @@ function normalizeCategoryName(text) {
 function knownAssetKeyForCategory(category) {
   const normalized = normalizeCategoryName(category);
   return (
-    KNOWN_ASSET_CATEGORY_MATCH.find((item) => normalized.startsWith(item.match))
+    KNOWN_ASSET_CATEGORY_MATCH.find((item) => normalized.includes(item.match))
       ?.key ?? null
   );
 }
@@ -91,16 +93,16 @@ export function computeCapexByYear(cbm, years) {
 }
 
 /**
- * Fixed rows (unchanged), plus one dynamic row per Inversion category that
- * isn't Buildings/Transport/Compute/Machinery - a function of the project
- * now, not a static list, since which extra categories exist (if any)
- * varies per project.
+ * Fixed rows plus one dynamic row per Inversion category that isn't one of
+ * the known ones (Buildings/Transport/Compute/Machinery) - a function of
+ * the project now, not a static list, since which extra categories exist
+ * (if any) varies per project.
  *
- * Machinery is NOT one of its own fixed rows here: the Capacidad sheet's
- * machines block only re-lists the same assets Inversion already captures
- * under its "Maquinaria y equipo" category, so a computed "Machinery
- * Purchase" row double-counted it (machinery came out of both capex.machinery
- * and the extra category row). Machinery shows once, via the extra row.
+ * Machinery has its own fixed row ("machineryPurchase") whose value comes
+ * from computeFinancing (cbm.capacity.machines, one-time at year zero).
+ * Maquinaria/Machinery patterns are in KNOWN_ASSET_CATEGORY_MATCH so that
+ * a project whose Inversion sheet also has a "Maquinaria y equipo" category
+ * does NOT spawn a second dynamic row that double-counts the same purchase.
  */
 export function buildOutflowRows(cbm) {
   const extraRows = getExtraAssetCategories(cbm).map((category) => ({

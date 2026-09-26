@@ -157,20 +157,22 @@ export function mapAssetsToYears(assetList, years) {
   }))
 }
 
-// BUG FIX: machinery $ used to come from capacity.machines (Capacidad) -
-// that sheet's machine list is for production planning (operator counts,
-// cycle time), not investment. Machinery acquisition cost lives on
-// Inversion's own category (whatever it's labeled - "Maquinaria y equipo",
-// "Machinery", etc.), same as Buildings/Transport/Compute - find it there
-// instead of Capacidad, so Investment/Cash Outflows/Balance Sheet all
-// reflect the real Inversion sheet, not the unrelated Capacidad numbers.
-const MACHINERY_CATEGORY_PATTERN = /^maquinaria|^machinery/
+// BUG FIX: machinery $ used to come from capacity.machines (Capacidad)
+// unconditionally, double-counting whenever Inversion ALSO had its own
+// "Maquinaria y equipo" category. Prefer Inversion's category when the
+// project has one; fall back to Capacidad's machine list only when it
+// doesn't (some projects only ever put machinery in Capacidad, never in
+// Inversion) - never both, never neither. Same resolution as
+// computeFixedAssets.js's resolveMachineryAssets, kept separate (no shared
+// module boundary that both files already import from).
+const MACHINERY_CATEGORY_PATTERN = /maquinaria|machinery/
 function machineryAssetsFromInversion(cbm) {
   const byCategory = cbm.assets?.byCategory ?? {}
   const key = Object.keys(byCategory).find((category) => (
     MACHINERY_CATEGORY_PATTERN.test(String(category ?? '').toLowerCase().trim())
   ))
-  return key ? byCategory[key] : []
+  if (key) return byCategory[key]
+  return cbm.capacity?.machines ?? []
 }
 
 /**
