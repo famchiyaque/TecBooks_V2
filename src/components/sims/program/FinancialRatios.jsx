@@ -1,6 +1,8 @@
 import React from "react";
 import TableContainer from "@/components/global/TableContainer";
 import useEffectiveBalanceTotals from "@/sims/project-feasibility/balance/useEffectiveBalanceTotals.js";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
+import { current } from "@reduxjs/toolkit";
 
 function formatRatio(value) {
   if (!Number.isFinite(value)) return "—";
@@ -41,7 +43,7 @@ const RATIO_DEFINITIONS = [
     key: "workingCapital",
     label: "Working Capital",
     tooltip: "Capital de Trabajo = Activo Circulante - Pasivo Circulante",
-    format: (value) => `$${(value || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    format: (value, currency) => formatCurrency(value, currency),
     compute: (t) => t.currentActivesTotal - t.currentPassivesTotal,
   },
   {
@@ -81,10 +83,11 @@ const RATIO_DEFINITIONS = [
   },
 ];
 
-function FinancialRatios({ project }) {
+function FinancialRatios({ project, currency }) {
   const cbm = project.cbm;
   const years = cbm.timeline.years;
   const totalsByYear = useEffectiveBalanceTotals(cbm);
+  console.log("FINANCIAL RATIOS CURRENCY: ", currency);
 
   const columns = [
     { key: "concept", label: "Ratio" },
@@ -95,7 +98,7 @@ function FinancialRatios({ project }) {
     const row = { concept: definition.label, tooltip: definition.tooltip };
     years.forEach((year) => {
       const value = definition.compute(totalsByYear[year]);
-      row[String(year)] = definition.format(value);
+      row[String(year)] = definition.format(value, currency);
     });
     return row;
   });
@@ -106,6 +109,7 @@ function FinancialRatios({ project }) {
       subtitle="Liquidity, leverage, efficiency and profitability - computed from the live Balance Sheet and Income Statement."
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

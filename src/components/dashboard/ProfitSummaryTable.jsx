@@ -12,6 +12,7 @@ import {
 } from '@/utils/dashboard/costCalculations'
 import { COST_ROWS } from './CostOfSalesTable'
 import { OPERATING_EXPENSE_ROWS } from './OperatingExpensesTable'
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 
 // RF-57: no separate Taxes table - ISR/PTU are simple enough (2 rows) to
 // live directly in this table's "Total Taxes" breakdown, editable in place.
@@ -43,12 +44,6 @@ const ROWS = [
   { key: 'netIncome', label: 'Net Income', emphasize: true, formula: 'Income Before Taxes − Total Taxes' },
 ]
 
-// Full figure, rounded only to cents - matches EditableTable's formatter.
-function formatCurrency(value) {
-  const num = value || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
 function valueColorClass(value) {
   if (value === undefined || value === null) return 'text-slate-300'
   return value < 0 ? 'text-rose-600' : 'text-emerald-700'
@@ -61,7 +56,7 @@ function parseCellInput(raw) {
 }
 
 /** Double-click a breakdown line's value to edit it - same mechanic as EditableTable's cells. */
-function EditableBreakdownValue({ value, onCommit }) {
+function EditableBreakdownValue({ value, onCommit, currency }) {
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState('')
 
@@ -88,7 +83,7 @@ function EditableBreakdownValue({ value, onCommit }) {
       onDoubleClick={() => { setDraft(String(value ?? '')); setEditing(true) }}
       className={`tabular-nums cursor-text ${valueColorClass(value)}`}
     >
-      {formatCurrency(value)}
+      {formatCurrency(value, currency)}
     </span>
   )
 }
@@ -141,7 +136,7 @@ function EditableBreakdownLabel({ label, onCommit }) {
  * editable in place (double-click, add/delete row) instead of just
  * displaying values, since 2 rows don't justify a whole extra card.
  */
-function ProfitSummaryTable({ costOfSalesByYear }) {
+function ProfitSummaryTable({ costOfSalesByYear, currency }) {
   const dispatch = useDispatch()
   const [expandedRows, setExpandedRows] = React.useState(() => new Set())
 
@@ -283,7 +278,7 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
                     {rows.map((row) => (
                       <td key={row.year} className="whitespace-nowrap px-2 py-2 text-right">
                         <span className={`tabular-nums ${emphasize ? 'font-bold' : ''} ${valueColorClass(row[key])}`}>
-                          {formatCurrency(row[key])}
+                          {formatCurrency(row[key], currency)}
                         </span>
                       </td>
                     ))}
@@ -307,6 +302,7 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
                               onCommit={(value) => dispatch(line.custom
                                 ? slice.actions.setCustomRowValue({ id: line.id, columnKey: row.year, value })
                                 : slice.actions.setOverride({ rowKey: line.id, columnKey: row.year, value }))}
+                                currency={currency}
                             />
                           ) : (
                             <span className={`tabular-nums ${valueColorClass(line.valueForYear(row.year))}`}>

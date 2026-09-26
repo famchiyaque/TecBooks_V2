@@ -7,11 +7,7 @@ import { buildCostOfSales } from './buildCostOfSales'
 import { cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
 import { ENTRADA_ROWS, baseEntradaValue } from './cashFlowCalculations'
 import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
-
-function formatCurrency(value) {
-  const num = Number(value) || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 
 function formatPct(value) {
   return `${(Number(value) * 100).toFixed(2)}%`
@@ -54,7 +50,7 @@ function Stat({ label, value, highlight }) {
  * is built from) - reads both edits slices directly so it stays live
  * against overrides made in either table, same as Profit Summary does.
  */
-function ProjectEvaluationSummary({ project }) {
+function ProjectEvaluationSummary({ project, currency }) {
   const [riskPremium, setRiskPremium] = React.useState(0.1)
 
   const entradaOverrides = useSelector(cashFlowEditsSlice.selectOverrides)
@@ -124,7 +120,7 @@ function ProjectEvaluationSummary({ project }) {
           <Stat label="TIR" value={irr === null ? 'N/A' : formatPct(irr)} highlight />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="VNA (NPV)" value={formatCurrency(npv)} highlight />
+          <Stat label="VNA (NPV)" value={formatCurrency(npv, currency)} highlight />
         </Grid>
         <Grid item xs={6} sm={3} sx={{ display: 'flex', alignItems: 'center' }}>
           <Chip

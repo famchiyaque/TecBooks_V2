@@ -11,7 +11,7 @@ export const OPERATING_EXPENSE_ROWS = [
   { key: 'salesExpenses', label: 'Sales Expenses' },
 ]
 
-function OperatingExpensesTable({ costOfSalesByYear }) {
+function OperatingExpensesTable({ costOfSalesByYear, currency }) {
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
 
@@ -23,6 +23,7 @@ function OperatingExpensesTable({ costOfSalesByYear }) {
       rows={OPERATING_EXPENSE_ROWS}
       getValue={getValue}
       totalLabel="Total Operating Expenses"
+      currency={currency}
     />
   )
 }

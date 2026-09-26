@@ -13,7 +13,7 @@ import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCal
  * (Civil Works, Insurance, Other Expenses) - editable like every other row
  * here, same double-click override pattern.
  */
-function OutflowsTable({ project }) {
+function OutflowsTable({ project, currency }) {
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   const years = React.useMemo(
@@ -45,6 +45,7 @@ function OutflowsTable({ project }) {
       rows={OUTFLOW_ROWS}
       getValue={getValue}
       totalLabel="Total Cash Outflows"
+      currency={currency}
     />
   )
 }

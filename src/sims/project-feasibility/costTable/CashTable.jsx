@@ -16,7 +16,7 @@ const INITIAL_BALANCE = 1_000_000
  * activity diagram leaves as open inputs - double-click any cell to fill
  * those in, same override pattern as the other cost tables.
  */
-function CashTable({ project }) {
+function CashTable({ project, currency }) {
   const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
   const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
@@ -84,6 +84,7 @@ function CashTable({ project }) {
       rows={ENTRADA_ROWS}
       getValue={getValue}
       totalLabel="Total Cash Inflows"
+      currency={currency}
     />
   )
 }

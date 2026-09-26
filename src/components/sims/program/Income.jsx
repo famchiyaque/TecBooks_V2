@@ -7,7 +7,7 @@ import SalesTable from "./income/SalesTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 import { INFLOWS_TOOLTIPS } from "./income/inflowsTooltips";
 
-function Income({ project }) {
+function Income({ project, currency }) {
   const income = useIncome(project);
 
   const baseYear = useMemo(() => {
@@ -29,7 +29,7 @@ function Income({ project }) {
         tooltip={INFLOWS_TOOLTIPS.unitCosts.table}
         defaultExpanded
       >
-        <ProductionCostTable productionCosts={income.productionCosts} />
+        <ProductionCostTable productionCosts={income.productionCosts} currency={currency}/>
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -39,11 +39,12 @@ function Income({ project }) {
         <CompetitivePriceTable
           competitivaPrice={income.competitivaPrice}
           baseYear={baseYear}
+          currency={currency}
         />
       </CollapsibleSection>
 
       <CollapsibleSection title="Sales" tooltip={INFLOWS_TOOLTIPS.sales.table}>
-        <SalesTable sales={income.sales} baseYear={baseYear} />
+        <SalesTable sales={income.sales} baseYear={baseYear} currency={currency}/>
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -53,6 +54,7 @@ function Income({ project }) {
         <UtilityCostTable
           utilityCost={income.utilityCost}
           baseYear={baseYear}
+          currency={currency}
         />
       </CollapsibleSection>
     </div>

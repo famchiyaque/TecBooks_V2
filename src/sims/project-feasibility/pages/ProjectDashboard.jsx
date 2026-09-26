@@ -304,12 +304,14 @@ function TabContent({ activeTab, programId, projectId, project, currency }) {
     );
   }
 
-  if (activeTab.id === "inflows") return <Income project={projectWithCbm} />;
-  if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} />;
-  if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} />;
-  if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} />;
-  if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
-  if (activeTab.id === "ratios") return <FinancialRatios project={projectWithCbm} />;
+  console.log("TAB CONTENT CURRENCY: ", currency);
+
+  if (activeTab.id === "inflows") return <Income project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "balance") return <Balance project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "ratios") return <FinancialRatios project={projectWithCbm} currency={currency}/>;
 
   return (
     <MockStatement

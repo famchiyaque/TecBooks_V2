@@ -7,19 +7,16 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 const CELL_PAD = "px-2 py-2";
-
-function defaultFormat(value) {
-  const num = value || 0;
-  return `$${num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 export default function GrandTotalTable({
   title = "Grand Total",
   columns = [],
   sources = [],
-  formatValue = defaultFormat,
+  formatValue = formatCurrency,
+  currency,
 }) {
   const sourcesData = sources.map((source) => ({
     ...source,
@@ -79,7 +76,7 @@ export default function GrandTotalTable({
                   align="right"
                   className={`${CELL_PAD} whitespace-nowrap font-bold text-slate-900`}
                 >
-                  {formatValue(totalsByColumn[index])}
+                  {formatValue(totalsByColumn[index], currency)}
                 </TableCell>
               ))}
               <TableCell sx={{ width: 64 }} />

@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow, IconButton, TextField
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutline from '@mui/icons-material/DeleteOutline'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 
 // Same Tailwind look as components/global/TableContainer.jsx (the shared
 // card+table shell for financial data) - kept as its own component here
@@ -13,9 +14,8 @@ const CELL_PAD = 'px-2 py-2'
 
 // Full figure, rounded only to cents (2 decimals) - no K/M abbreviation,
 // that throws away real precision on values like 1996263.45414.
-function defaultFormat(value) {
-  const num = value || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function defaultFormat(value, currency) {
+  return formatCurrency(value, currency, 2);
 }
 
 function parseCellInput(raw) {
@@ -31,7 +31,7 @@ function valueColorClass(value) {
 }
 
 /** Double-click a value to edit it inline; Enter/blur commits, Escape cancels. */
-function EditableValueCell({ value, onCommit, formatValue }) {
+function EditableValueCell({ value, onCommit, formatValue, currency }) {
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState('')
 
@@ -71,7 +71,7 @@ function EditableValueCell({ value, onCommit, formatValue }) {
       onDoubleClick={startEditing}
       className={`${CELL_PAD} whitespace-nowrap cursor-text`}
     >
-      <span className={`tabular-nums ${valueColorClass(value)}`}>{formatValue(value)}</span>
+      <span className={`tabular-nums ${valueColorClass(value)}`}>{formatValue(value, currency)}</span>
     </TableCell>
   )
 }
@@ -138,7 +138,7 @@ function EditableLabelCell({ label, onCommit }) {
  *   already override-aware column total so they stay in sync with edits.
  */
 function EditableTable({
-  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat, summaryRows = [],
+  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat, summaryRows = [], currency,
 }) {
   const dispatch = useDispatch()
   const overrides = useSelector(slice.selectOverrides)
@@ -196,6 +196,7 @@ function EditableTable({
                     value={effectiveValue(row.key, columnKey, getValue(row.key, columnKey))}
                     onCommit={(value) => dispatch(slice.actions.setOverride({ rowKey: row.key, columnKey, value }))}
                     formatValue={formatValue}
+                    currency={currency}
                   />
                 ))}
                 <TableCell align="right" className={CELL_PAD}>
@@ -288,7 +289,7 @@ function EditableTable({
                   align="right"
                   className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}
                 >
-                  {formatValue(totalsByColumn[index])}
+                  {formatValue(totalsByColumn[index], currency)}
                 </TableCell>
               ))}
               <TableCell className="border-t border-slate-300" />
@@ -309,7 +310,7 @@ function EditableTable({
                   const value = compute(totalsByColumn[index], columnKey)
                   return (
                     <TableCell key={columnKey} align="right" className={`${CELL_PAD} whitespace-nowrap`}>
-                      <span className={`tabular-nums font-medium ${valueColorClass(value)}`}>{formatValue(value)}</span>
+                      <span className={`tabular-nums font-medium ${valueColorClass(value)}`}>{formatValue(value, currency)}</span>
                     </TableCell>
                   )
                 })}

@@ -42,7 +42,7 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  * ------------------------------------------------------------------------
  */
 
-function CellValue({ column, value }) {
+function CellValue({ column, value, currency }) {
   if (column.type === "currency") {
     const num = Number(value);
     const isEmpty = value === undefined || value === null || value === "";
@@ -58,7 +58,7 @@ function CellValue({ column, value }) {
               : "text-emerald-700")
         }
       >
-        {formatCurrency(value)}
+        {formatCurrency(value, currency)}
       </span>
     );
   }
@@ -95,6 +95,7 @@ export default function TableContainer({
   className = "",
   layout = "auto",
   scrollBody = false,
+  currency,
 }) {
   const groupColumn = columns.find((c) => c.group);
   const groupSpans = groupColumn
@@ -233,7 +234,7 @@ export default function TableContainer({
                                 <InfoTooltip title={row.tooltip} />
                               </span>
                             ) : (
-                              <CellValue column={col} value={row[col.key]} />
+                              <CellValue column={col} value={row[col.key]} currency={currency} />
                             )}
                           </td>
                         );

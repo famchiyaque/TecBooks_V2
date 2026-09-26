@@ -12,7 +12,7 @@ import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
  * @param {number} baseYear - The first year represented in the arrays.
  * @returns {JSX.Element} The rendered table.
  */
-function UtilityCostTable({ utilityCost, baseYear }) {
+function UtilityCostTable({ utilityCost, baseYear, currency }) {
   const margins = useMemo(
     () => Object.keys(utilityCost ?? {}).sort((a, b) => Number(a) - Number(b)),
     [utilityCost],
@@ -57,6 +57,7 @@ function UtilityCostTable({ utilityCost, baseYear }) {
       titleTooltip={INFLOWS_TOOLTIPS.utilityPrice.table}
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

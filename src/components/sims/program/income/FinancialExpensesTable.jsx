@@ -10,7 +10,7 @@ import TableContainer from "@/components/global/TableContainer";
  * @param {number} baseYear - The first year represented in the array.
  * @returns {JSX.Element} The rendered table.
  */
-function FinancialExpensesTable({ totalFinancialExpenses, baseYear }) {
+function FinancialExpensesTable({ totalFinancialExpenses, baseYear, currency }) {
   const years = useMemo(
     () => (totalFinancialExpenses ?? []).map((_, i) => baseYear + i),
     [totalFinancialExpenses, baseYear],
@@ -44,6 +44,7 @@ function FinancialExpensesTable({ totalFinancialExpenses, baseYear }) {
       title="Total Financial Expenses"
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

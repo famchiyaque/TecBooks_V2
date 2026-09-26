@@ -14,7 +14,7 @@ export const COST_ROWS = [
 // mounts (same store as Cost Table/Opex/Taxes/etc.), so its overrides/custom
 // rows are readable from anywhere else in the tab, e.g. Shareholder's Equity
 // recomputing Total Assets live off this table's effective total.
-function CurrentActives({ currentActives }) {
+function CurrentActives({ currentActives, currency }) {
   delete currentActives["total"];
   currentActives = flipObject(currentActives);
 
@@ -32,6 +32,7 @@ function CurrentActives({ currentActives }) {
       rows={COST_ROWS}
       getValue={getValue}
       totalLabel="Total Current Actives"
+      currency={currency}
     />
   );
 }

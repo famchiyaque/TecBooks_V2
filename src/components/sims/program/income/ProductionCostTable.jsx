@@ -11,7 +11,7 @@ import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
  * @param {Object} productionCosts - An object containing production cost data.
  * @returns {JSX.Element} The rendered table.
  */
-function ProductionCostTable({ productionCosts }) {
+function ProductionCostTable({ productionCosts, currency }) {
   const years = useMemo(
     () =>
       Object.keys(productionCosts?.total ?? {})
@@ -94,6 +94,7 @@ function ProductionCostTable({ productionCosts }) {
       titleTooltip={INFLOWS_TOOLTIPS.unitCosts.table}
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

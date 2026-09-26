@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import useCashFlow from "@/hooks/sims/project/useFlow.js";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 const tempFlow = {
   2025: -18257128.24,
@@ -32,7 +33,7 @@ function calcTrendline(values) {
   return xs.map((x) => intercept + slope * x);
 }
 
-function NetFlowGraph({ project }) {
+function NetFlowGraph({ project, currency }) {
   const { netFlow } = useCashFlow(project);
 
   const { categories, values, trend } = useMemo(() => {
@@ -63,11 +64,7 @@ function NetFlowGraph({ project }) {
       title: { text: "Net Flow" },
       labels: {
         formatter: function () {
-          return this.value.toLocaleString("es-MX", {
-            style: "currency",
-            currency: "MXN",
-            minimumFractionDigits: 0,
-          });
+          return formatCurrency(this.value, currency, 0);
         },
       },
       plotLines: [

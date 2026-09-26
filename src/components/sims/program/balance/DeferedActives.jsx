@@ -12,7 +12,7 @@ export const DEFERED_ACTIVES_ROWS = [];
 // No own store/Provider - relies on the shared editsStore ProjectDashboard
 // mounts, so this table's overrides/custom rows are readable from anywhere
 // else in the tab, e.g. Shareholder's Equity recomputing Total Assets live.
-function DeferedActives({ deferedActives }) {
+function DeferedActives({ deferedActives, currency }) {
   deferedActives = { ...deferedActives };
   delete deferedActives["total"];
   deferedActives = flipObject(deferedActives);
@@ -31,6 +31,7 @@ function DeferedActives({ deferedActives }) {
       rows={DEFERED_ACTIVES_ROWS}
       getValue={getValue}
       totalLabel="Total Defered Actives"
+      currency={currency}
     />
   );
 }

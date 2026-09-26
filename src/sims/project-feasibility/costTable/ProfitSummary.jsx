@@ -13,7 +13,8 @@ import { buildCostOfSales } from './buildCostOfSales'
  * directly inside ProfitSummaryTable's "Total Taxes" breakdown instead.
  * Same underlying calculation as ProjectCostSummary (shares buildCostOfSales).
  */
-function ProfitSummary({ project }) {
+function ProfitSummary({ project, currency }) {
+
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   if (result.error) {
@@ -22,9 +23,9 @@ function ProfitSummary({ project }) {
 
   return (
     <>
-      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} />
-      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} />
-      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} />
+      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} currency={currency} />
+      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} currency={currency} />
+      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} currency={currency} />
     </>
   )
 }

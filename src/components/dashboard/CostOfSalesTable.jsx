@@ -10,10 +10,10 @@ export const COST_ROWS = [
   { key: 'indirectMaterials', label: 'Indirect Material Costs' },
 ]
 
-function CostOfSalesTable({ costOfSalesByYear }) {
+function CostOfSalesTable({ costOfSalesByYear, currency }) {
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
-
+  console.log("CURRENCY IN TABLE: ", currency);
   return (
     <EditableTable
       title="Cost Table"
@@ -22,6 +22,7 @@ function CostOfSalesTable({ costOfSalesByYear }) {
       rows={COST_ROWS}
       getValue={getValue}
       totalLabel="Total Cost"
+      currency={currency}
     />
   )
 }

@@ -11,7 +11,7 @@ import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
  * @param {number} baseYear - The first year represented in the array.
  * @returns {JSX.Element} The rendered table.
  */
-function CompetitivePriceTable({ competitivaPrice, baseYear }) {
+function CompetitivePriceTable({ competitivaPrice, baseYear, currency }) {
   const years = useMemo(
     () => (competitivaPrice ?? []).map((_, i) => baseYear + i),
     [competitivaPrice, baseYear],
@@ -49,6 +49,7 @@ function CompetitivePriceTable({ competitivaPrice, baseYear }) {
       titleTooltip={INFLOWS_TOOLTIPS.unitPrice.table}
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

@@ -24,7 +24,7 @@ export const LONG_TERM_PASSIVES = [
 // (currentPassiveSlice / longTermPassiveSlice) - they used to share one
 // "passives" slice, which meant a custom row added to either table leaked
 // into both totals (they read the same underlying customRows array).
-function Passive({ passives }) {
+function Passive({ passives, currency }) {
   const columns = Object.keys(passives.currentPassives).map((year) => ({
     key: year,
     label: year,
@@ -44,6 +44,7 @@ function Passive({ passives }) {
         rows={CURRENT_PASSIVES}
         getValue={getCurrentPassiveValue}
         totalLabel="Total Current Passives"
+        currency={currency}
       />
       <EditableTable
         title="Long term passives"
@@ -52,6 +53,7 @@ function Passive({ passives }) {
         rows={LONG_TERM_PASSIVES}
         getValue={getLongTermPassivesValue}
         totalLabel="Total Long Term Passives"
+        currency={currency}
       />
       <GrandTotalTable
         title="Total Passives"
@@ -68,6 +70,7 @@ function Passive({ passives }) {
             getValue: getLongTermPassivesValue,
           },
         ]}
+        currency={currency}
       />
     </CollapsibleSection>
   );

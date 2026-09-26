@@ -3,11 +3,7 @@ import { Box, Typography } from '@mui/material'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-
-function formatCurrency(value) {
-  const num = Number(value) || 0
-  return `$${num.toLocaleString('es-MX', { maximumFractionDigits: 0 })}`
-}
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 
 /**
  * RF-62: "Punto de Equilibrio" chart (Estado R rows 64+, without exposing the

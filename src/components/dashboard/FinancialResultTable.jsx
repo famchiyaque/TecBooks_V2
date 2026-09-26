@@ -10,7 +10,7 @@ export const FINANCIAL_RESULT_ROWS = [
   { key: 'financialIncome', label: 'Financial Income' },
 ]
 
-function FinancialResultTable({ costOfSalesByYear }) {
+function FinancialResultTable({ costOfSalesByYear, currency }) {
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
 
@@ -22,6 +22,7 @@ function FinancialResultTable({ costOfSalesByYear }) {
       rows={FINANCIAL_RESULT_ROWS}
       getValue={getValue}
       totalLabel="Total"
+      currency={currency}
     />
   )
 }

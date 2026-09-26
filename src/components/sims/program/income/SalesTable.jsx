@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import TableContainer from "@/components/global/TableContainer";
 import { INFLOWS_TOOLTIPS } from "./inflowsTooltips";
 
-function SalesTable({ sales, baseYear }) {
+function SalesTable({ sales, baseYear, currency }) {
   const years = useMemo(
     () => (sales ?? []).map((_, i) => baseYear + i),
     [sales, baseYear],
@@ -41,6 +41,7 @@ function SalesTable({ sales, baseYear }) {
       titleTooltip={INFLOWS_TOOLTIPS.sales.table}
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }
