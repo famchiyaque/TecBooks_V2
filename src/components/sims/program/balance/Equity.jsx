@@ -22,7 +22,7 @@ function Equity({ project }) {
   useTableRowsSync(project.gameId, equitySlice, "equity");
   const cbm = project.cbm;
   const years = cbm.timeline.years;
-  const totalsByYear = useEffectiveBalanceTotals(cbm);
+  const totalsByYear = useEffectiveBalanceTotals(cbm, project.gameId);
 
   const periodUtility = {};
   years.forEach((year) => { periodUtility[year] = totalsByYear[year].netIncome; });

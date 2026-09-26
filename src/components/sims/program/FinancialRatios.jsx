@@ -92,7 +92,7 @@ const RATIO_DEFINITIONS = [
 function FinancialRatios({ project }) {
   const cbm = project.cbm;
   const years = cbm.timeline.years;
-  const totalsByYear = useEffectiveBalanceTotals(cbm);
+  const totalsByYear = useEffectiveBalanceTotals(cbm, project.gameId);
 
   const columns = [
     { key: "concept", label: "Ratio" },

@@ -31,7 +31,7 @@ const ACTIVES_TOTAL_ROWS = [
 function TotalActives({ project, actives }) {
   const cbm = project.cbm;
   const years = cbm.timeline.years;
-  const totalsByYear = useEffectiveBalanceTotals(cbm);
+  const totalsByYear = useEffectiveBalanceTotals(cbm, project.gameId);
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   const fixedNetValue = (year) =>
