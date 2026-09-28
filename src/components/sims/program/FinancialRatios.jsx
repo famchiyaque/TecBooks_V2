@@ -103,7 +103,14 @@ function FinancialRatios({ project }) {
     const row = { concept: definition.label, tooltip: definition.tooltip };
     years.forEach((year) => {
       const value = definition.compute(totalsByYear[year]);
-      row[String(year)] = definition.format(value);
+      const colorClass = !Number.isFinite(value)
+        ? "text-slate-300"
+        : value < 0
+          ? "text-rose-600"
+          : "text-slate-900";
+      row[String(year)] = (
+        <span className={`tabular-nums ${colorClass}`}>{definition.format(value)}</span>
+      );
     });
     return row;
   });

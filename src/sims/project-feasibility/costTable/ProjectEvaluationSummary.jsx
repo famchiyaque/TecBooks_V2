@@ -7,7 +7,6 @@ import {
   Grid,
   InputAdornment,
   TextField,
-  Typography,
 } from "@mui/material";
 import { cashFlowEditsSlice, outflowEditsSlice } from "@/store/costTable.store";
 import {
@@ -58,23 +57,14 @@ function PercentField({ label, value, onChange, helperText }) {
 
 function Stat({ label, value, highlight }) {
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        height: "100%",
-        bgcolor: highlight ? "#fff4d6" : "rgba(7, 58, 90, 0.04)",
-        border: "1px solid",
-        borderColor: highlight ? "#f0c419" : "rgba(7, 58, 90, 0.1)",
-      }}
+    <div
+      className={`h-full rounded-xl border p-3 ${
+        highlight ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50/60"
+      }`}
     >
-      <Typography variant="caption" sx={{ opacity: 0.7 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ fontWeight: 700, color: "#073a5a" }}>
-        {value}
-      </Typography>
-    </Box>
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[15px] font-semibold text-slate-900 tabular-nums">{value}</p>
+    </div>
   );
 }
 
@@ -154,54 +144,29 @@ function ProjectEvaluationSummary({ project }) {
 
   return (
     <Box>
-      <Typography
-        variant="caption"
-        sx={{ opacity: 0.7, display: "block", mb: 2 }}
-      >
-        Based on the project's full {years.length}-year cash flow ({years[0]}-
-        {years[years.length - 1]})
-      </Typography>
+      <p className="mb-3 text-sm text-slate-500">
+        TREMA, TIR and VNA based on the project's full {years.length}-year cash flow ({years[0]}-
+        {years[years.length - 1]}) - the accept/reject call below follows directly from them.
+      </p>
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3}>
-          <Box
-            sx={{
-              p: 2,
-              borderRadius: 2,
-              height: "100%",
-              bgcolor: "rgba(7, 58, 90, 0.04)",
-              border: "1px solid rgba(7, 58, 90, 0.1)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-            }}
-          >
+          <div className="flex h-full flex-col justify-center rounded-xl border border-slate-200 bg-slate-50/60 p-3">
             <PercentField
               label="Best Market Interest Rate"
               value={marketRate}
               onChange={setMarketRate}
             />
-          </Box>
+          </div>
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Box
-            sx={{
-              p: 2,
-              borderRadius: 2,
-              height: "100%",
-              bgcolor: "rgba(7, 58, 90, 0.04)",
-              border: "1px solid rgba(7, 58, 90, 0.1)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-            }}
-          >
+          <div className="flex h-full flex-col justify-center rounded-xl border border-slate-200 bg-slate-50/60 p-3">
             <PercentField
               label="Inflation"
               value={inflation}
               onChange={setInflation}
             />
-          </Box>
+          </div>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Stat label="TREMA" value={formatPct(trema)} highlight />
