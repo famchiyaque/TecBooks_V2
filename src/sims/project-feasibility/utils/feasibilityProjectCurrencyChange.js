@@ -2,6 +2,7 @@ const feasibilityProjectCurrencyChange = (
     data,
     rate,
 ) => {
+    console.log("DATA: ", data);
     const result = structuredClone(data);
 
     // BOM
@@ -22,6 +23,39 @@ const feasibilityProjectCurrencyChange = (
     result.services = data.services.map((service) => ({
         ...service,
         monthlyAmount: service.monthlyAmount * rate,
+    }));
+
+    // Assets
+    result.assets.byCategory = Object.fromEntries(
+        Object.entries(data.assets.byCategory).map(
+            ([category, assets]) => [
+                category,
+                assets.map((asset) => ({
+                    ...asset,
+                    acquisitionByYear: asset.acquisitionByYear.map(
+                        (value) => value * rate,
+                    ),
+                })),
+            ],
+        ),
+    );
+
+    // Legacy cost calculations still read these fixed category arrays.
+    for (const category of ["transport", "buildings", "compute"]) {
+        result.assets[category] = (data.assets[category] ?? []).map((asset) => ({
+            ...asset,
+            acquisitionByYear: asset.acquisitionByYear.map(
+                (value) => value * rate,
+            ),
+        }));
+    }
+
+    // Capacity - Machines
+    result.capacity.machines = data.capacity.machines.map((machine) => ({
+        ...machine,
+        acquisitionByYear: machine.acquisitionByYear.map(
+            (value) => value * rate,
+        ),
     }));
 
     return result;

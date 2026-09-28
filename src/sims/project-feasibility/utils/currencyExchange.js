@@ -1,8 +1,6 @@
-import workerApi from "@/utils/worker.util";
-
 const getToday = () => {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Madrid",
+    timeZone: "America/Mexico_City",
   }).format(new Date());
 };
 
