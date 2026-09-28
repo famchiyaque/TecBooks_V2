@@ -63,11 +63,16 @@ export default function useCostTable() {
     }
 
     const { MOD, MOIndirecta, Ingenieria } = sumSalariesByCategory(employees);
+    // This standalone Cost Table (no premises.nationalInflation to grow
+    // salaries with) keeps its original flat-total-every-year behavior -
+    // same number just repeated per year, unlike project-feasibility's
+    // buildCostOfSales.js which now grows these with sumSalariesByCategoryPerYear.
+    const toYearMap = (value) => Object.fromEntries(years.map((year) => [year, value]));
     const MP = computeRawMaterialCost(production);
     const netSales = computeNetSales(production);
     const indirectMaterials = computeIndirectMaterialCosts(premises, netSales);
     const costOfSalesByYear = buildCostOfSalesTable(years, {
-      MP, MOD, MOIndirecta, Ingenieria, indirectMaterials, netSales,
+      MP, MOD: toYearMap(MOD), MOIndirecta: toYearMap(MOIndirecta), Ingenieria: toYearMap(Ingenieria), indirectMaterials, netSales,
     });
     const unclassifiedEmployees = findUnclassifiedEmployees(employees);
 

@@ -13,6 +13,7 @@ import {
 import { COST_ROWS } from './CostOfSalesTable'
 import { OPERATING_EXPENSE_ROWS } from './OperatingExpensesTable'
 import formatCurrency from '@/utils/sims/program/formatCurrency.util'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 // RF-57: no separate Taxes table - ISR/PTU are simple enough (2 rows) to
 // live directly in this table's "Total Taxes" breakdown, editable in place.
@@ -136,7 +137,8 @@ function EditableBreakdownLabel({ label, onCommit }) {
  * editable in place (double-click, add/delete row) instead of just
  * displaying values, since 2 rows don't justify a whole extra card.
  */
-function ProfitSummaryTable({ costOfSalesByYear, currency }) {
+function ProfitSummaryTable({ costOfSalesByYear, gameId, currency }) {
+  useTableRowsSync(gameId, taxesEditsSlice, 'taxesEdits')
   const dispatch = useDispatch()
   const [expandedRows, setExpandedRows] = React.useState(() => new Set())
 
@@ -286,33 +288,8 @@ function ProfitSummaryTable({ costOfSalesByYear, currency }) {
 
                   {isExpanded && breakdown && breakdownLines(breakdown).map((line) => (
                     <tr key={`${key}-${line.id}`} className="group bg-sky-50/50">
-                      <td className="whitespace-nowrap py-1.5 pl-9 pr-2 text-slate-500">
-                        {slice && line.custom ? (
-                          <EditableBreakdownLabel
-                            label={line.label}
-                            onCommit={(value) => dispatch(slice.actions.setCustomRowLabel({ id: line.id, label: value }))}
-                          />
-                        ) : line.label}
-                      </td>
-                      {rows.map((row) => (
-                        <td key={row.year} className="whitespace-nowrap py-1.5 pr-2 text-right">
-                          {slice ? (
-                            <EditableBreakdownValue
-                              value={line.valueForYear(row.year)}
-                              onCommit={(value) => dispatch(line.custom
-                                ? slice.actions.setCustomRowValue({ id: line.id, columnKey: row.year, value })
-                                : slice.actions.setOverride({ rowKey: line.id, columnKey: row.year, value }))}
-                                currency={currency}
-                            />
-                          ) : (
-                            <span className={`tabular-nums ${valueColorClass(line.valueForYear(row.year))}`}>
-                              {formatCurrency(line.valueForYear(row.year))}
-                            </span>
-                          )}
-                        </td>
-                      ))}
                       {slice && (
-                        <td className="whitespace-nowrap py-1.5 pr-2 text-right">
+                        <td className="whitespace-nowrap py-1.5 pl-2 pr-0 text-right">
                           {line.custom ? (
                             <IconButton
                               size="small"
@@ -334,6 +311,31 @@ function ProfitSummaryTable({ costOfSalesByYear, currency }) {
                           )}
                         </td>
                       )}
+                      <td className="whitespace-nowrap py-1.5 pl-9 pr-2 text-slate-500">
+                        {slice && line.custom ? (
+                          <EditableBreakdownLabel
+                            label={line.label}
+                            onCommit={(value) => dispatch(slice.actions.setCustomRowLabel({ id: line.id, label: value }))}
+                          />
+                        ) : line.label}
+                      </td>
+                      {rows.map((row) => (
+                        <td key={row.year} className="whitespace-nowrap py-1.5 pr-2 text-right">
+                          {slice ? (
+                            <EditableBreakdownValue
+                              value={line.valueForYear(row.year)}
+                              onCommit={(value) => dispatch(line.custom
+                                ? slice.actions.setCustomRowValue({ id: line.id, columnKey: row.year, value })
+                                : slice.actions.setOverride({ rowKey: line.id, columnKey: row.year, value }))}
+                              currency={currency}
+                            />
+                          ) : (
+                            <span className={`tabular-nums ${valueColorClass(line.valueForYear(row.year))}`}>
+                              {formatCurrency(line.valueForYear(row.year), currency)}
+                            </span>
+                          )}
+                        </td>
+                      ))}
                     </tr>
                   ))}
 

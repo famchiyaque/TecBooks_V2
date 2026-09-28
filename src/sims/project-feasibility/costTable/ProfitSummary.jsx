@@ -23,9 +23,13 @@ function ProfitSummary({ project, currency }) {
 
   return (
     <>
-      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} currency={currency} />
-      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} currency={currency} />
-      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} currency={currency} />
+      <p className="mb-3 text-sm text-slate-500">
+        From Net Sales through Net Income: operating expenses, financial
+        result and taxes - each row editable like the Cost Table.
+      </p>
+      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
+      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
+      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
     </>
   )
 }

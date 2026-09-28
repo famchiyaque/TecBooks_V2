@@ -6,8 +6,11 @@ import {
   getProgramFileCountError,
   parseNovusProjectFile,
   validateProgram,
+  Logger,
 } from '@/sims/project-feasibility'
 import { isSessionInvalidError } from '@/utils/worker.util'
+
+const logger = new Logger('Staging')
 
 const StagingContext = createContext(null)
 
@@ -66,6 +69,12 @@ export function StagingProvider({ children }) {
         project,
         validation,
       })
+      logger.info('staged project CBM (client, before POST)', {
+        fileName: file.name,
+        warnings: validation.warnings,
+        derivedBase: project.derivedBase,
+        project,
+      })
     }
 
     setItems((prev) => [...prev, ...accepted])
@@ -102,6 +111,11 @@ export function StagingProvider({ children }) {
       setConfirmError(programCheck.errors.join('. '))
       return null
     }
+    logger.info('POST /api/programs payload (derivedBase stripped)', {
+      name: payload.name,
+      fileNames: payload.files.map((file) => file.name),
+      projects: payload.projects,
+    })
     setIsSubmitting(true)
     try {
       const createdProgram = await createProgramRequest(payload)

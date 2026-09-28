@@ -7,12 +7,14 @@ import {
   getOwnedGame,
   getProductionLine,
   getYearZeroDemand,
+  listCapacityLineYearly,
   listPremisesDeprecations,
   getPremisesPercentage,
   listAssetCostsYearly,
   listBomParts,
   listEmployeeCompensation,
   listMonthShares,
+  listDemandYearlyTotals,
   listPremisesDeprecationsYearly,
   listPremisesPercentageYearly,
   listPremisesYearly,
@@ -42,6 +44,7 @@ export async function getFeasibilityModel(database, { gameId, userId }) {
   );
   const capacity = teamId ? await getCapacityForTeam(database, teamId) : null;
   const productionLine = await getProductionLine(database, capacity?.production_lines);
+  const capacityLineYearly = await listCapacityLineYearly(database, productionLine?.id);
   const bom = await getBom(database, productionLine?.product_id);
   const bomParts = await listBomParts(database, bom?.id);
 
@@ -59,10 +62,12 @@ export async function getFeasibilityModel(database, { gameId, userId }) {
     assetCosts,
     capacity,
     productionLine,
+    capacityLineYearly,
     bom,
     bomParts,
     services: await getExpenses(database, gameId),
-    yearZeroDemand: await getYearZeroDemand(database, gameId),
+    yearZeroDemand: await getYearZeroDemand(database, gameId, Number(game.start_date)),
     monthShares: await listMonthShares(database, gameId),
+    demandYearlyTotals: await listDemandYearlyTotals(database, gameId),
   });
 }

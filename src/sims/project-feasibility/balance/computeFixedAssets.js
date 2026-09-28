@@ -5,10 +5,6 @@ import { Logger } from '../utils/logger.js'
 
 const logger = new Logger('ComputeFixedAssets')
 
-// This exact label is our own (English UI, see FixedAssetsTable) - matched by
-// identity, not pattern, so translating it never breaks its rate lookup.
-const MACHINERY_CATEGORY = 'Machinery and Equipment'
-
 // Maps a category label back to its Premisas depreciation rate field, for
 // the 3 categories InputNovus happens to always have. Matches BOTH the raw
 // Spanish Excel label (a fresh parse, straight from readInversion) and the
@@ -25,16 +21,37 @@ const KNOWN_RATE_FIELD_BY_MATCH = [
   { match: 'buildings', field: 'depreciationBuildings' },
   { match: 'equipo de computo', field: 'depreciationCompute' },
   { match: 'computer equipment', field: 'depreciationCompute' },
+  { match: 'maquinaria', field: 'depreciationMachinery' },
+  { match: 'machinery', field: 'depreciationMachinery' },
 ]
 
 function normalize(text) {
   return String(text ?? '').toLowerCase().replace(/[.]/g, '').trim()
 }
 
+const MACHINERY_CATEGORY_PATTERN = /maquinaria|machinery/
+const MACHINERY_FALLBACK_LABEL = 'Machinery and Equipment'
+
+/**
+ * BUG FIX: some projects list machinery in Inversion (its own "Maquinaria y
+ * equipo" category, preferred - avoids double-counting when Capacidad also
+ * lists the same machines), others don't have it in Inversion at all and
+ * ONLY have it in Capacidad (capacity.machines). Prefer Inversion's own
+ * category if it exists; fall back to Capacidad's machine list only when
+ * Inversion has none - never both (double-depreciation), never neither
+ * (this bug: machinery silently missing from Fixed Assets entirely).
+ */
+function resolveMachineryAssets(cbm) {
+  const byCategory = cbm.assets?.byCategory ?? {}
+  const inversionKey = Object.keys(byCategory).find((category) => MACHINERY_CATEGORY_PATTERN.test(normalize(category)))
+  if (inversionKey) return { label: inversionKey, assets: byCategory[inversionKey] }
+  if (cbm.capacity?.machines?.length) return { label: MACHINERY_FALLBACK_LABEL, assets: cbm.capacity.machines }
+  return null
+}
+
 function rateFieldForCategory(category) {
-  if (category === MACHINERY_CATEGORY) return 'depreciationMachinery'
   const normalized = normalize(category)
-  return KNOWN_RATE_FIELD_BY_MATCH.find((item) => normalized.startsWith(item.match))?.field ?? null
+  return KNOWN_RATE_FIELD_BY_MATCH.find((item) => normalized.includes(item.match))?.field ?? null
 }
 
 /**
@@ -89,18 +106,21 @@ function computeItemCumulativeByYear(asset, years) {
 /**
  * Balance Sheet > Fixed Assets: gross value, accumulated depreciation and
  * net value for every asset category the Excel actually has - dynamic, not
- * limited to Buildings/Transport/Compute (see readInversion's structural
- * category detection) - plus Machinery and Equipment (Capacidad, not
- * Inversion). Depreciation is computed per INDIVIDUAL ITEM (each with its
- * own rate, see rateSeriesForItem) and summed up to the category total -
- * not the category's cumulative gross value depreciated at one shared rate,
- * since two items in the same category can depreciate differently.
+ * limited to Buildings/Transport/Compute/Machinery (see readInversion's
+ * structural category detection). Machinery is special-cased via
+ * resolveMachineryAssets: Inversion's own category if the project has one,
+ * else Capacidad's machine list (capacity.machines) - never both (double-
+ * depreciation) and never neither (machinery silently missing from Fixed
+ * Assets, since not every project's Inversion sheet lists it). Depreciation
+ * is computed per INDIVIDUAL ITEM (each with its own rate, see
+ * rateSeriesForItem) and summed up to the category total - not the
+ * category's cumulative gross value depreciated at one shared rate, since
+ * two items in the same category can depreciate differently.
  */
 export function computeFixedAssetsByCategory(cbm, years) {
   const categories = { ...(cbm.assets?.byCategory ?? {}) }
-  if (cbm.capacity?.machines?.length) {
-    categories[MACHINERY_CATEGORY] = cbm.capacity.machines
-  }
+  const machinery = resolveMachineryAssets(cbm)
+  if (machinery) categories[machinery.label] = machinery.assets
 
   const result = {}
   for (const [category, rawAssets] of Object.entries(categories)) {

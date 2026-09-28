@@ -38,8 +38,13 @@ export default function computeInvestment(project) {
     (acc, curr) => acc + curr,
     0,
   );
+  // BUG FIX: computeAdminExpenses returns a MONTHLY total (services sum ×
+  // inflation, never ×12 - see computeProductionCosts.js's own comment on
+  // this) - every other consumer annualizes it locally (toCostPerWorkOrder
+  // does `* 12` explicitly), this one didn't, so Working Capital undercounted
+  // services by ~11/12 of a year.
   const employeeExpenses =
-    Object.values(adminExpenses)[0] +
+    Object.values(adminExpenses)[0] * 12 +
     Object.values(workforceExpenses).reduce((acc, curr) => acc + curr, 0);
 
   const investment = {

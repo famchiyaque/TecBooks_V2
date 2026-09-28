@@ -1,46 +1,24 @@
 import { HORIZON_YEARS } from '../constants.js'
+import { projectPurchaseOrders } from '../demand/projectPurchaseOrders.js'
 
-/**
- * RF-54-02: InputNovus only ever gives us one real data point - year-zero's
- * order total (COs sheet has no future-years column, unlike Template
- * Financiero's). To get a multi-year cost table without that data, project
- * forward the same way Expenses' AdminExpensesTable does: one base value
- * compounded by a per-year rate from Premisas, instead of reading a real
- * number per year. Quality yield has no comparable rate anywhere in
- * InputNovus, so it's held flat at the year-zero value - a documented
- * simplification, not a real read.
- */
-function projectPurchaseOrders(yearZeroYear, yearZeroTotal, inflationByIndex) {
-  const purchaseOrders = {}
-  let previous = yearZeroTotal
-
+// BUG FIX: Quality Yield genuinely changes year to year (Capacidad's own
+// sheet has a year column for it) - was reading a single year-zero value
+// and repeating it flat across the whole projection.
+function projectQualityYield(yearZeroYear, qualityYieldSeries) {
+  const qualityYield = {}
   HORIZON_YEARS.forEach((year, index) => {
     if (year < yearZeroYear) return
-    if (year === yearZeroYear) {
-      purchaseOrders[year] = yearZeroTotal
-      return
-    }
-    const rate = inflationByIndex[index] ?? 0
-    previous = previous * (1 + rate)
-    purchaseOrders[year] = previous
-  })
-
-  return purchaseOrders
-}
-
-function projectQualityYield(yearZeroYear, qualityYieldAtYearZero) {
-  const qualityYield = {}
-  HORIZON_YEARS.forEach((year) => {
-    if (year < yearZeroYear) return
-    qualityYield[year] = qualityYieldAtYearZero
+    qualityYield[year] = qualityYieldSeries?.[index]
   })
   return qualityYield
 }
 
 /**
  * RF-56-XX BUG FIX: the sale price is not flat across the projection - it
- * grows by national inflation every year, same compounding shape as
- * projectPurchaseOrders (Ingresos!C23 = B23 * (1 + Premisas!C12)).
+ * grows by national inflation every year (Ingresos!C23 = B23 * (1 + Premisas!C12)).
+ * Volume (purchase orders) uses demandGrowth, not this inflation series -
+ * see projectPurchaseOrders (demand module). Capacity (Capacidad sheet) is
+ * a separate, derived utilization check - it does not drive CO.
  */
 function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
   const salesPricePerUnit = {}
@@ -61,6 +39,30 @@ function projectSalesPrice(yearZeroYear, yearZeroPrice, inflationByIndex) {
 }
 
 /**
+ * MP material cost per unit grows by national inflation every year, mirroring
+ * the Template Financiero IN3001B and the sales-price treatment above -
+ * until this, materialCostPerUnit was a flat scalar for every year even
+ * though CO volume was already real/per-year.
+ */
+function projectMaterialCost(yearZeroYear, yearZeroCost, inflationByIndex) {
+  const materialCostPerUnit = {}
+  let previous = yearZeroCost
+
+  HORIZON_YEARS.forEach((year, index) => {
+    if (year < yearZeroYear) return
+    if (year === yearZeroYear) {
+      materialCostPerUnit[year] = yearZeroCost
+      return
+    }
+    const rate = inflationByIndex[index] ?? 0
+    previous = previous * (1 + rate)
+    materialCostPerUnit[year] = previous
+  })
+
+  return materialCostPerUnit
+}
+
+/**
  * Maps a saved project's canonical business model (cbm, from parseNovusProject)
  * into the { employees, production, premises } shape costCalculations.js
  * expects - same functions the standalone Cost Table upload page uses, just
@@ -70,6 +72,7 @@ export function cbmToCostTableInputs(cbm) {
   if (!cbm) {
     return { employees: [], production: {}, premises: {} }
   }
+
   const employees = (cbm.derivedBase?.employees ?? []).map((employee, index) => ({
     id: index,
     name: employee.name,
@@ -82,16 +85,35 @@ export function cbmToCostTableInputs(cbm) {
   let purchaseOrders = {}
   let qualityYield = {}
   let salesPricePerUnit = {}
+  let materialCostPerUnit = cbm.derivedBase?.bomMaterialCost ?? 0
   if (yearZeroYear !== undefined) {
-    purchaseOrders = projectPurchaseOrders(
+    purchaseOrders = projectPurchaseOrders({
       yearZeroYear,
-      cbm.demand?.yearZeroTotal,
-      cbm.premises?.nationalInflation ?? []
-    )
+      yearZeroTotal: cbm.demand?.yearZeroTotal,
+      yearZeroOrders: cbm.demand?.yearZeroOrders,
+      monthShares: cbm.demand?.monthShares,
+      history: cbm.demand?.history,
+      demandGrowth: cbm.premises?.demandGrowth,
+    })
+    // BUG FIX: COs' "Año Cero | Total" block gives a real total per year,
+    // not just year zero (see readCOs) - any year the Excel actually gives
+    // wins outright over the demandGrowth-projected guess above. Years the
+    // Excel doesn't cover keep the projection.
+    console.log('[DEBUG-CO] cbm.demand.yearlyTotals:', JSON.stringify(cbm.demand?.yearlyTotals))
+    console.log('[DEBUG-CO] purchaseOrders before overlay:', JSON.stringify(purchaseOrders))
+    for (const { year, total } of cbm.demand?.yearlyTotals ?? []) {
+      if (year !== undefined && total !== undefined) purchaseOrders[year] = total
+    }
+    console.log('[DEBUG-CO] purchaseOrders after overlay:', JSON.stringify(purchaseOrders))
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
     salesPricePerUnit = projectSalesPrice(
       yearZeroYear,
       cbm.bom?.salePrice,
+      cbm.premises?.nationalInflation ?? []
+    )
+    materialCostPerUnit = projectMaterialCost(
+      yearZeroYear,
+      cbm.derivedBase?.bomMaterialCost,
       cbm.premises?.nationalInflation ?? []
     )
   }
@@ -106,11 +128,13 @@ export function cbmToCostTableInputs(cbm) {
     production: {
       purchaseOrders,
       qualityYield,
-      materialCostPerUnit: cbm.derivedBase?.bomMaterialCost,
+      // {year: cost} map, grown by national inflation - see projectMaterialCost.
+      materialCostPerUnit,
       // {year: price} map, grown by national inflation - see projectSalesPrice.
       salesPricePerUnit,
     },
     premises: {
+      startingMoney: typeof cbm.premises?.startingMoney === 'number' ? cbm.premises.startingMoney : 0,
       indirectProductPercentage,
     },
   }
@@ -133,13 +157,29 @@ export function mapAssetsToYears(assetList, years) {
   }))
 }
 
+// BUG FIX: machinery $ used to come from capacity.machines (Capacidad)
+// unconditionally, double-counting whenever Inversion ALSO had its own
+// "Maquinaria y equipo" category. Prefer Inversion's category when the
+// project has one; fall back to Capacidad's machine list only when it
+// doesn't (some projects only ever put machinery in Capacidad, never in
+// Inversion) - never both, never neither. Same resolution as
+// computeFixedAssets.js's resolveMachineryAssets, kept separate (no shared
+// module boundary that both files already import from).
+const MACHINERY_CATEGORY_PATTERN = /maquinaria|machinery/
+function machineryAssetsFromInversion(cbm) {
+  const byCategory = cbm.assets?.byCategory ?? {}
+  const key = Object.keys(byCategory).find((category) => (
+    MACHINERY_CATEGORY_PATTERN.test(String(category ?? '').toLowerCase().trim())
+  ))
+  if (key) return byCategory[key]
+  return cbm.capacity?.machines ?? []
+}
+
 /**
- * RF-55/RF-56: assets (buildings/transport/compute), machinery
- * (capacity.machines - Inversion has no "maquinaria" block, machine
- * acquisition cost lives in Capacidad instead) and the Premisas rates
- * depreciation/admin/sales-expense/financing need, all re-keyed from
- * HORIZON_YEARS-indexed arrays to {year: value} maps matching
- * cbmToCostTableInputs' own output shape.
+ * RF-55/RF-56: assets (buildings/transport/compute/maquinaria, all from
+ * Inversion) and the Premisas rates depreciation/admin/sales-expense/
+ * financing need, all re-keyed from HORIZON_YEARS-indexed arrays to
+ * {year: value} maps matching cbmToCostTableInputs' own output shape.
  */
 export function cbmToOperatingExpenseInputs(cbm, years) {
   return {
@@ -148,7 +188,7 @@ export function cbmToOperatingExpenseInputs(cbm, years) {
       transport: mapAssetsToYears(cbm.assets?.transport, years),
       compute: mapAssetsToYears(cbm.assets?.compute, years),
     },
-    machines: mapAssetsToYears(cbm.capacity?.machines, years),
+    machines: mapAssetsToYears(machineryAssetsFromInversion(cbm), years),
     adminPct: yearMapFromSeries(cbm.premises?.adminPct, years),
     salesExpensePct: yearMapFromSeries(cbm.premises?.salesExpensePct, years),
     depreciationBuildings: yearMapFromSeries(cbm.premises?.depreciationBuildings, years),

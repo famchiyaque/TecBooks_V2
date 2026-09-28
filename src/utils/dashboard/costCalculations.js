@@ -19,9 +19,10 @@ function isFiniteNumber(value) {
 
 /**
  * RF-00-01: every registered cost value must be numeric.
- * production.salesPricePerUnit may be a flat scalar (standalone Cost Table
- * upload page) or a {year: price} map (CBM path, price grown by inflation
- * per year) - both shapes get flattened to their numeric values here.
+ * production.salesPricePerUnit and production.materialCostPerUnit may each
+ * be a flat scalar (standalone Cost Table upload page) or a {year: value}
+ * map (CBM path, grown by inflation per year) - both shapes get flattened
+ * to their numeric values here.
  */
 export function areCostsNumeric(employees, production) {
   const employeesOk = employees.every(
@@ -34,10 +35,16 @@ export function areCostsNumeric(employees, production) {
       ? Object.values(production.salesPricePerUnit)
       : [production.salesPricePerUnit];
 
+  const materialCostValues =
+    typeof production.materialCostPerUnit === "object" &&
+    production.materialCostPerUnit !== null
+      ? Object.values(production.materialCostPerUnit)
+      : [production.materialCostPerUnit];
+
   const productionOk = [
     ...Object.values(production.purchaseOrders || {}),
     ...Object.values(production.qualityYield || {}),
-    production.materialCostPerUnit,
+    ...materialCostValues,
     ...salesPriceValues,
   ].every(isFiniteNumber);
 
@@ -59,6 +66,31 @@ export function sumSalariesByCategory(employees) {
   }
 
   return totals;
+}
+
+/**
+ * Same 4 category totals as sumSalariesByCategory, but grown year over year
+ * by national inflation (getInflation) - MOD/MOIndirecta/Ingenieria/
+ * Administrative were previously a single flat total reused for every year
+ * of the projection (no raise, ever), unlike raw material/net sales which
+ * already grow with inflation. Year zero (idx 0) always equals the flat
+ * total, since getInflation(premises, 0) = (1 + rate[0])^0 = 1.
+ */
+export function sumSalariesByCategoryPerYear(employees, years, premises) {
+  const base = sumSalariesByCategory(employees);
+  const salariesByYear = {};
+
+  years.forEach((year, idx) => {
+    const inflation = getInflation(premises, idx);
+    salariesByYear[year] = {
+      MOD: base.MOD * inflation,
+      MOIndirecta: base.MOIndirecta * inflation,
+      Ingenieria: base.Ingenieria * inflation,
+      Administrative: base.Administrative * inflation,
+    };
+  });
+
+  return salariesByYear;
 }
 
 /**
@@ -89,6 +121,7 @@ export function computeNetSales(production) {
     const priceForYear = isPriceMap
       ? (salesPricePerUnit[year] ?? 0)
       : (salesPricePerUnit ?? 0);
+
     netSalesByYear[year] = orders * priceForYear;
   }
 
@@ -99,17 +132,28 @@ export function computeNetSales(production) {
  * MP (raw material cost) per year.
  * WO = CO / Quality yield (work orders needed to fulfill purchase orders at the given quality yield -
  * a low yield means MORE work orders are needed to net the same good units, matching Capacidad!E17: '=E16/E3')
+ * BUG FIX: materialCostPerUnit may be a flat scalar (standalone Cost Table
+ * upload page) or a {year: cost} map (CBM path, grown by inflation - see
+ * cbmToCostTableInputs' projectMaterialCost) - was always treated as a flat
+ * scalar, so with quality yield also flat, MP/unit never changed year to
+ * year no matter how CO moved.
  */
 export function computeRawMaterialCost(production) {
   const { purchaseOrders, qualityYield, materialCostPerUnit } =
     production ?? {};
+  const isCostMap =
+    typeof materialCostPerUnit === "object" && materialCostPerUnit !== null;
   const rawMaterialByYear = {};
 
   for (const year of Object.keys(purchaseOrders ?? {})) {
-    const workOrders = (qualityYield[year] || 0) === 0
-      ? 0
-      : (purchaseOrders[year] || 0) / qualityYield[year];
-    rawMaterialByYear[year] = workOrders * (materialCostPerUnit || 0);
+    const costForYear = isCostMap
+      ? (materialCostPerUnit[year] ?? 0)
+      : (materialCostPerUnit ?? 0);
+    const workOrders =
+      (qualityYield[year] || 0) === 0
+        ? 0
+        : (purchaseOrders[year] || 0) / qualityYield[year];
+    rawMaterialByYear[year] = workOrders * costForYear;
   }
 
   return rawMaterialByYear;
@@ -208,7 +252,10 @@ export function computeGrossProfit(netSales, totalCostOfSales) {
 
 /**
  * Builds the per-year cost-of-sales table consumed by the "Estado" cost table.
- * Salary categories are treated as flat annual totals applied to every year of the projection.
+ * MOD/MOIndirecta/Ingenieria are per-year maps (BUG FIX: used to be a single
+ * flat total reused for every year - salaries never got a raise across the
+ * whole projection, unlike raw material/net sales which already grow with
+ * inflation - see sumSalariesByCategoryPerYear).
  * RF-55: Administrative (admin salaries) is NOT part of cost of sales / gross profit -
  * the reference Estado R template only ever subtracts it later, in Operating Expenses.
  * See computeAdministrativeExpenses / computeOperatingExpenses for where it's used.
@@ -219,17 +266,24 @@ export function buildCostOfSalesTable(
 ) {
   return years.map((year) => {
     const rawMaterial = MP[year] || 0;
+    const directLabour = MOD[year] || 0;
+    const indirectManufacturing = MOIndirecta[year] || 0;
+    const engineeringSalaries = Ingenieria[year] || 0;
     const indirectMaterialsForYear = indirectMaterials[year] || 0;
     const totalCostOfSales =
-      rawMaterial + MOD + MOIndirecta + Ingenieria + indirectMaterialsForYear;
+      rawMaterial +
+      directLabour +
+      indirectManufacturing +
+      engineeringSalaries +
+      indirectMaterialsForYear;
     const netSalesForYear = netSales?.[year] || 0;
 
     return {
       year,
       rawMaterial,
-      directLabour: MOD,
-      indirectManufacturing: MOIndirecta,
-      engineeringSalaries: Ingenieria,
+      directLabour,
+      indirectManufacturing,
+      engineeringSalaries,
       indirectMaterials: indirectMaterialsForYear,
       totalCostOfSales,
       netSales: netSalesForYear,
@@ -285,11 +339,13 @@ export function computeSalesExpenses(
 }
 
 /**
- * Administrative Expenses = admin salaries (flat, from Empleados_2) + admin
- * general expenses (Premisas "Porcentaje de administracion" * net sales).
+ * Administrative Expenses = admin salaries (per-year, from Empleados_2 -
+ * BUG FIX: used to be a single flat total with no raise across the whole
+ * projection) + admin general expenses (Premisas "Porcentaje de
+ * administracion" * net sales).
  */
 export function computeAdministrativeExpenses(
-  administrativeSalary,
+  administrativeSalaryByYear,
   adminPctByYear,
   netSalesByYear,
   years,
@@ -297,7 +353,7 @@ export function computeAdministrativeExpenses(
   const administrativeByYear = {};
   for (const year of years) {
     administrativeByYear[year] =
-      administrativeSalary +
+      (administrativeSalaryByYear[year] || 0) +
       (netSalesByYear[year] || 0) * (adminPctByYear[year] || 0);
   }
   return administrativeByYear;
@@ -308,17 +364,26 @@ export function computeAdministrativeExpenses(
  */
 export function computeOperatingExpenses(
   administrativeByYear,
+  administrativeSalary,
   depreciationTotalByYear,
   salesExpensesByYear,
   years,
 ) {
   const operatingExpensesByYear = {};
+
   for (const year of years) {
+    // BUG FIX: "(a + b || 0)" applies the fallback AFTER adding - if either
+    // side is undefined/NaN for a given year, the whole sum silently
+    // collapsed to 0, dropping administrative salary (and administrativeByYear)
+    // together instead of just defaulting the missing one. Each term now
+    // falls back to 0 on its own before adding.
     operatingExpensesByYear[year] =
       (administrativeByYear[year] || 0) +
-      (depreciationTotalByYear[year] || 0) +
-      (salesExpensesByYear[year] || 0);
+      (administrativeSalary[year] || 0) +
+      (depreciationTotalByYear[year] || 0);
+    // (salesExpensesByYear[year] || 0);
   }
+
   return operatingExpensesByYear;
 }
 
@@ -342,7 +407,6 @@ export function computeOperatingProfit(grossProfit, operatingExpenses) {
  */
 export function computeCumulativeInvestment(assetGroups, years) {
   const totalByYear = {};
-
   for (const year of years) {
     totalByYear[year] = assetGroups.reduce(
       (groupSum, assets) => groupSum + sumAssetsValueInYear(assets, year),
@@ -361,19 +425,17 @@ export function computeCumulativeInvestment(assetGroups, years) {
 export function computeFinancingAmount(
   investmentByYear,
   salariesTotal,
-  managementBillsByYear,
+  administrativeExpenses,
   machineryInvestmentByYear,
-  years,
+  civilWorks,
+  year,
 ) {
-  const amountByYear = {};
-  for (const year of years) {
-    amountByYear[year] =
-      (investmentByYear[year] || 0) +
-      salariesTotal +
-      (managementBillsByYear[year] || 0) +
-      (machineryInvestmentByYear[year] || 0) * 0.35;
-  }
-  return amountByYear;
+  const assets = machineryInvestmentByYear[year] + investmentByYear[year];
+  const workForce = administrativeExpenses[year] + salariesTotal;
+
+  const totalAmount = assets + workForce + civilWorks[year];
+
+  return totalAmount;
 }
 
 /**
@@ -390,7 +452,12 @@ export function computeFinancingAmount(
  * corresponding month block (loan already paid off, or the loan outlives the
  * projection horizon) reports 0 for both.
  */
-export function computeAmortizationSchedule(allAmount, periods, annualRate, years) {
+export function computeAmortizationSchedule(
+  allAmount,
+  periods,
+  annualRate,
+  years,
+) {
   const financialExpensesByYear = {};
   const creditPaymentByYear = {};
   for (const year of years) {

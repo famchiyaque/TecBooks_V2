@@ -13,12 +13,16 @@ export const INFLOWS_TOOLTIPS = {
   unitPrice: {
     table:
       "Calculates the price of each unit currently and to account for inflation in the future.",
-    competitivePrice: "salePrice × (1 + inflation[year])^yearIndex",
+    competitivePrice:
+      "BOM sale price compounded by each year's own national inflation rate",
   },
   sales: {
     table:
-      "Revenue from selling that year's projected purchase orders at that year's unit price.",
-    sales: "Unit Price × projected purchase orders",
+      "Sales estimate for the projection horizon. Derived: Customer Orders come from the demand module, the unit price from the pricing module, and only the total income is computed here.",
+    customerOrders:
+      "Projected customer orders for the year. The first year is a partial ramp-up, so its volume is taken as-is and never scaled.",
+    unitPrice: "Unit sale price for that year, from the pricing module",
+    sales: "Customer Orders × Unit Price",
   },
   utilityPrice: {
     table:

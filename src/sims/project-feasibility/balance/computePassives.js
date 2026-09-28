@@ -1,5 +1,4 @@
-import computeAmortizationInterest from "@/sims/project-feasibility/income/computeAmortizationInterest";
-import computeInvestment from "@/sims/project-feasibility/income/computeInvestment";
+import computeFinancing from "@/sims/project-feasibility/income/computeFinancing.js";
 import { Logger } from "../utils/logger.js";
 
 const logger = new Logger("ComputePassives");
@@ -7,20 +6,18 @@ const logger = new Logger("ComputePassives");
 function computePassives(project) {
   const years = project.timeline.years;
 
-  const { total } = computeInvestment(project);
-  const { yearAmortization, yearInterest } = computeAmortizationInterest(
-    total,
-    project,
-  );
+  const { financialExpensesByYear, pendingPrincipalByYear } =
+    computeFinancing(project, years);
 
   // Long term passives
-  const longTermPassives = years.reduce((acc, year, idx) => {
-    const pending = total - yearAmortization[idx] * (idx + 1);
+  const longTermPassives = years.reduce((acc, year) => {
+    const pending = pendingPrincipalByYear[year];
+    const interestsPayment = financialExpensesByYear[year] || 0;
 
-    if (pending >= 0)
+    if (pending !== null && pending >= 0)
       acc[year] = {
         currentCapital: pending,
-        interestsPayment: yearInterest[idx],
+        interestsPayment,
       };
     else
       acc[year] = {
@@ -55,7 +52,7 @@ function computePassives(project) {
   );
 
   const result = { longTermPassives, currentPassives, totalPassives };
-  logger.debug("computePassives", { total, yearAmortization, yearInterest, ...result });
+  logger.debug("computePassives", result);
   return result;
 }
 

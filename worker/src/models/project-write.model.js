@@ -85,11 +85,12 @@ export async function insertPremises(database, gameId, premises, periods) {
     .prepare(
       `INSERT INTO premises (
         game_id, starting_money, exchange_rate, national_leading_rate, cpp, cetes, libor,
-        national_inflation, foreign_inflation, isr, impac, ptu, periods
-      ) VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        national_inflation, foreign_inflation, isr, impac, ptu, periods, demand_growth
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       gameId,
+      premises.startingMoney ?? 0,
       premises.exchangeRate,
       premises.nationalLeadingRate,
       premises.cpp,
@@ -100,7 +101,8 @@ export async function insertPremises(database, gameId, premises, periods) {
       premises.isr,
       premises.impac,
       premises.ptu,
-      periods
+      periods,
+      premises.demandGrowth
     )
     .run();
 
@@ -200,8 +202,8 @@ export async function insertExpenses(database, gameId, expenses) {
     expenses.map((expense) =>
       database
         .prepare(
-          `INSERT INTO expenses (game_id, category, subcategory, name, description, default_cost, expense_type)
-           VALUES (?, ?, ?, ?, ?, ?, 'fixed')`
+          `INSERT INTO expenses (game_id, category, subcategory, name, description, default_cost, expense_type, notes)
+           VALUES (?, ?, ?, ?, ?, ?, 'fixed', ?)`
         )
         .bind(
           gameId,
@@ -209,7 +211,8 @@ export async function insertExpenses(database, gameId, expenses) {
           expense.subcategory,
           expense.name,
           expense.description,
-          expense.defaultCost
+          expense.defaultCost,
+          expense.notes ?? ''
         )
     )
   );
@@ -337,22 +340,96 @@ export async function insertBomGraph(database, teamId, bom, capacity) {
       capacity.qualityYield
     )
     .run();
+
+  // Real per-year Capacidad inputs (migration 0013) - the scalar `capacity`
+  // row above only has the flat fallback (firstFinite), see
+  // cbm-to-game.mapper.js's `yearly`.
+  const yearly = (capacity.yearly ?? []).filter((row) => typeof row.year === 'number');
+  if (yearly.length) {
+    await runBatch(
+      database,
+      yearly.map((row) =>
+        database
+          .prepare(
+            `INSERT INTO production_line_capacity_yearly (
+              production_line_id, year, quality_yield, seconds_x_unit, hours_shift, shifts,
+              production_lines_count, week_working_days, months_working_weeks, year_working_months,
+              annual_capacity
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            line.id,
+            row.year,
+            row.qualityYield,
+            row.secondsPerUnit,
+            row.hoursShift,
+            row.shifts,
+            row.productionLines,
+            row.weekWorkingDays,
+            row.monthsWorkingWeeks,
+            row.yearWorkingMonths,
+            row.annualCapacity ?? 0
+          )
+      )
+    );
+  }
+}
+
+function isValidYearlyRow(row) {
+  return typeof row?.year === 'number' && typeof row?.total === 'number'
+    && Number.isFinite(row.year) && Number.isFinite(row.total)
 }
 
 export async function insertDemand(database, gameId, demand) {
-  if (demand.yearZeroYear !== null && demand.yearZeroTotal !== null) {
-    await database
-      .prepare(
-        `INSERT INTO purchase_order_yearly_total (game_id, year, total, is_projection)
-         VALUES (?, ?, ?, 0)`
-      )
-      .bind(gameId, demand.yearZeroYear, demand.yearZeroTotal)
-      .run();
+  const yearlyRows = []
+  const seenYears = new Set()
+
+  // COs' "Año Cero | Total" block (year zero + real future years, see
+  // readCOs) - takes priority over the legacy scalar yearZeroYear/Total
+  // fields below, which it already includes as its first entry.
+  for (const row of demand.yearlyTotals ?? []) {
+    if (!isValidYearlyRow(row) || seenYears.has(row.year)) continue
+    yearlyRows.push({ year: row.year, total: row.total })
+    seenYears.add(row.year)
+  }
+  if (
+    demand.yearZeroYear !== null && demand.yearZeroYear !== undefined
+    && demand.yearZeroTotal !== null && demand.yearZeroTotal !== undefined
+    && !seenYears.has(demand.yearZeroYear)
+  ) {
+    yearlyRows.push({ year: demand.yearZeroYear, total: demand.yearZeroTotal })
+    seenYears.add(demand.yearZeroYear)
+  }
+  // Histórico (past years, before year zero) - not part of yearlyTotals.
+  for (const row of demand.history ?? []) {
+    if (!isValidYearlyRow(row) || seenYears.has(row.year)) continue
+    yearlyRows.push({ year: row.year, total: row.total })
+    seenYears.add(row.year)
   }
 
-  const months = (demand.monthShares ?? [])
-    .map((percentage, index) => ({ month: index + 1, percentage }))
-    .filter((row) => typeof row.percentage === 'number' && Number.isFinite(row.percentage));
+  if (yearlyRows.length) {
+    await runBatch(
+      database,
+      yearlyRows.map((row) =>
+        database
+          .prepare(
+            `INSERT INTO purchase_order_yearly_total (game_id, year, total, is_projection)
+             VALUES (?, ?, ?, 0)`
+          )
+          .bind(gameId, row.year, row.total)
+      )
+    )
+  }
+
+  const months = Array.from({ length: 12 }, (_, index) => {
+    const percentage = demand.monthShares?.[index]
+    const fixedAmount = demand.yearZeroOrders?.[index]
+    return {
+      month: index + 1,
+      percentage: typeof percentage === 'number' && Number.isFinite(percentage) ? percentage : null,
+      fixedAmount: typeof fixedAmount === 'number' && Number.isFinite(fixedAmount) ? fixedAmount : null,
+    }
+  }).filter((row) => row.percentage !== null || row.fixedAmount !== null)
 
   if (months.length) {
     await runBatch(
@@ -360,12 +437,12 @@ export async function insertDemand(database, gameId, demand) {
       months.map((row) =>
         database
           .prepare(
-            `INSERT INTO purchase_order_monthly_distribution (game_id, month, percentage)
-             VALUES (?, ?, ?)`
+            `INSERT INTO purchase_order_monthly_distribution (game_id, month, percentage, fixed_amount)
+             VALUES (?, ?, ?, ?)`
           )
-          .bind(gameId, row.month, row.percentage)
+          .bind(gameId, row.month, row.percentage ?? 0, row.fixedAmount)
       )
-    );
+    )
   }
 }
 
@@ -393,6 +470,7 @@ export async function deleteGameGraph(database, gameId) {
 
     await database.prepare('DELETE FROM capacity WHERE game_team_id = ?').bind(teamId).run();
     if (lineId) {
+      await database.prepare('DELETE FROM production_line_capacity_yearly WHERE production_line_id = ?').bind(lineId).run();
       await database.prepare('DELETE FROM production_lines WHERE id = ?').bind(lineId).run();
     }
     if (bomId) {

@@ -4,10 +4,9 @@ import { Alert } from '@mui/material'
 import EditableTable from '@/components/global/EditableTable'
 import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
 import { buildCostOfSales } from './buildCostOfSales'
-import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
-import { ENTRADA_ROWS, baseEntradaValue } from './cashFlowCalculations'
-
-const INITIAL_BALANCE = 1_000_000
+import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
+import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 /**
  * Cash Table "Entradas" (RF-63) - Saldo Inicial, Ventas (= BOM price * CO,
@@ -17,10 +16,12 @@ const INITIAL_BALANCE = 1_000_000
  * those in, same override pattern as the other cost tables.
  */
 function CashTable({ project, currency }) {
+  useTableRowsSync(project.gameId, cashFlowEditsSlice, 'cashFlowEdits')
   const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
   const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
   const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows)
+  const openingCash = startingMoneyFromCbm(project.cbm)
 
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
@@ -38,6 +39,8 @@ function CashTable({ project, currency }) {
     result.error ? {} : computeCapexByYear(project.cbm, years)
   ), [project, result, years])
 
+  const outflowRows = React.useMemo(() => buildOutflowRows(project.cbm), [project])
+
   // Saldo Inicial[year] = prior year's Flujo Neto (Entradas - Salidas), first
   // year seeded with the initial cash balance. Sequential (each year only
   // ever looks back one year), and override-aware on BOTH sides: editing
@@ -47,7 +50,7 @@ function CashTable({ project, currency }) {
     const map = {}
     years.forEach((year, index) => {
       if (index === 0) {
-        map[year] = INITIAL_BALANCE
+        map[year] = openingCash
         return
       }
       const prevYear = years[index - 1]
@@ -59,12 +62,12 @@ function CashTable({ project, currency }) {
       )
       const prevOutflowValue = (rowKey) => outflowBaseValue(rowKey, prevYear, rowByYear, capexByYear)
       const prevTotalSalidas = outflowEditsSlice.effectiveTotal(
-        { overrides: outflowOverrides, customRows: outflowCustomRows }, OUTFLOW_ROWS, prevOutflowValue, prevYear
+        { overrides: outflowOverrides, customRows: outflowCustomRows }, outflowRows, prevOutflowValue, prevYear
       )
       map[year] = prevTotalEntradas - prevTotalSalidas
     })
     return map
-  }, [years, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear])
+  }, [years, openingCash, overrides, customRows, outflowOverrides, outflowCustomRows, rowByYear, capexByYear, outflowRows])
 
   if (result.error) {
     return <Alert severity="warning">{result.error}</Alert>

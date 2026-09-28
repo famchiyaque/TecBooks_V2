@@ -15,6 +15,7 @@ export function createProjectClass({ fileName } = {}) {
       financingPeriods: undefined,
     },
     premises: {
+      startingMoney: undefined,
       fxClose: emptyYearSeries(),
       nationalLeadingRate: emptyYearSeries(),
       cpp: emptyYearSeries(),
@@ -40,24 +41,35 @@ export function createProjectClass({ fileName } = {}) {
       // actually has - keyed by whatever category label X is, not limited
       // to the 4 above.
       depreciationByCategory: {},
+      demandGrowth: undefined,
     },
     demand: {
       monthShares: Array.from({ length: 12 }, () => undefined),
       yearZeroOrders: Array.from({ length: 12 }, () => 0),
       history: [],
+      // "Año Cero | Total" block (COs sheet, columns H/I) - one row per
+      // year the project actually gives (not just year zero). First entry
+      // is year zero; every entry after is a real captured/given CO total
+      // for that future year, straight from the Excel - see readCOs.
+      yearlyTotals: [],
       yearZeroYear: undefined,
       yearZeroTotal: undefined,
     },
     capacity: {
+      // BUG FIX: was a single flat value per field (year-zero only) even
+      // though Capacidad's own sheet has a year column per field and these
+      // genuinely change year to year (Shifts, Production Lines, Quality
+      // Yield, etc. - see readCapacidad). Per-year series now, same
+      // HORIZON_YEARS-indexed array shape as premises.* fields.
       line: {
-        qualityYield: undefined,
-        secondsPerUnit: undefined,
-        hoursShift: undefined,
-        shifts: undefined,
-        productionLines: undefined,
-        weekWorkingDays: undefined,
-        monthsWorkingWeeks: undefined,
-        yearWorkingMonths: undefined,
+        qualityYield: emptyYearSeries(),
+        secondsPerUnit: emptyYearSeries(),
+        hoursShift: emptyYearSeries(),
+        shifts: emptyYearSeries(),
+        productionLines: emptyYearSeries(),
+        weekWorkingDays: emptyYearSeries(),
+        monthsWorkingWeeks: emptyYearSeries(),
+        yearWorkingMonths: emptyYearSeries(),
       },
       machines: [],
     },
@@ -79,6 +91,7 @@ export function createProjectClass({ fileName } = {}) {
     derivedBase: {
       unitsPerHour: undefined,
       annualCapacity: undefined,
+      annualCapacityByYear: emptyYearSeries(),
       operatorCount: 0,
       supervisorCount: 0,
       bomMaterialCost: undefined,

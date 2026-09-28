@@ -1,34 +1,59 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { Alert, Box, Chip, Grid, TextField, Typography } from '@mui/material'
-import { cashFlowEditsSlice, outflowEditsSlice } from '@/store/costTable.store'
-import { computeTrema, computeNPV, computeIRR, decideProject } from '@/utils/dashboard/financialEvaluation'
-import { buildCostOfSales } from './buildCostOfSales'
-import { cbmToOperatingExpenseInputs } from './cbmToCostTableInputs'
-import { ENTRADA_ROWS, baseEntradaValue } from './cashFlowCalculations'
-import { OUTFLOW_ROWS, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
-import formatCurrency from '@/utils/sims/program/formatCurrency.util'
+import React from "react";
+import {
+  Alert,
+  Box,
+  Chip,
+  Grid,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
+import {
+  computeTrema,
+  computeNPV,
+  computeIRR,
+  decideProject,
+} from "@/utils/dashboard/financialEvaluation";
+import { buildCostOfSales } from "./buildCostOfSales";
+import { cbmToOperatingExpenseInputs } from "./cbmToCostTableInputs";
+import { computeCashBalanceByYear } from "@/sims/project-feasibility/costTable/cashFlowCalculations.js";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 function formatPct(value) {
-  return `${(Number(value) * 100).toFixed(2)}%`
+  return `${(Number(value) * 100).toFixed(2)}%`;
+}
+
+// Stores the rate as a decimal fraction (0.10 = 10%) but lets the user edit
+// in whole-percent terms (10 = 10%) with a % suffix - no decimal confusion.
+function PercentField({ label, value, onChange, helperText }) {
+  return (
+    <TextField
+      label={label}
+      type="number"
+      size="small"
+      fullWidth
+      value={Number.isFinite(value) ? Number((value * 100).toFixed(2)) : 0}
+      onChange={(event) => onChange(Number(event.target.value) / 100 || 0)}
+      helperText={helperText}
+      slotProps={{
+        input: {
+          endAdornment: <InputAdornment position="end">%</InputAdornment>,
+        },
+      }}
+    />
+  );
 }
 
 function Stat({ label, value, highlight }) {
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        height: '100%',
-        bgcolor: highlight ? '#fff4d6' : 'rgba(7, 58, 90, 0.04)',
-        border: '1px solid',
-        borderColor: highlight ? '#f0c419' : 'rgba(7, 58, 90, 0.1)',
-      }}
+    <div
+      className={`h-full rounded-xl border p-3 ${
+        highlight ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50/60"
+      }`}
     >
-      <Typography variant="caption" sx={{ opacity: 0.7 }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 700, color: '#073a5a' }}>{value}</Typography>
-    </Box>
-  )
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[15px] font-semibold text-slate-900 tabular-nums">{value}</p>
+    </div>
+  );
 }
 
 /**
@@ -51,102 +76,105 @@ function Stat({ label, value, highlight }) {
  * against overrides made in either table, same as Profit Summary does.
  */
 function ProjectEvaluationSummary({ project, currency }) {
-  const [riskPremium, setRiskPremium] = React.useState(0.1)
+  const [riskPremium, setRiskPremium] = React.useState(0.1);
+  const [marketRate, setMarketRate] = React.useState(0);
+  const [inflation, setInflation] = React.useState(0);
 
-  const entradaOverrides = useSelector(cashFlowEditsSlice.selectOverrides)
-  const entradaCustomRows = useSelector(cashFlowEditsSlice.selectCustomRows)
-  const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides)
-  const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows)
-
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
+  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project]);
 
   const years = React.useMemo(
     () => (result.error ? [] : result.costOfSalesByYear.map((row) => row.year)),
-    [result]
-  )
-  const rowByYear = React.useMemo(() => {
-    if (result.error) return {}
-    return Object.fromEntries(result.costOfSalesByYear.map((row) => [row.year, row]))
-  }, [result])
-  const capexByYear = React.useMemo(() => (
-    result.error ? {} : computeCapexByYear(project.cbm, years)
-  ), [project, result, years])
-  const opex = React.useMemo(() => cbmToOperatingExpenseInputs(project.cbm, years), [project, years])
+    [result],
+  );
+  const opex = React.useMemo(
+    () => cbmToOperatingExpenseInputs(project.cbm, years),
+    [project, years],
+  );
+
+  const loadedMarketRate = opex.nationalLeadingRate[years[0]] || 0;
+  const loadedInflation = opex.nationalInflation[years[0]] || 0;
+
+  React.useEffect(() => {
+    setMarketRate(loadedMarketRate);
+    setInflation(loadedInflation);
+  }, [loadedMarketRate, loadedInflation]);
 
   if (result.error) {
-    return <Alert severity="warning">{result.error}</Alert>
+    return <Alert severity="warning">{result.error}</Alert>;
   }
 
-  const netCashFlowByYear = years.map((year) => {
-    const totalEntradas = cashFlowEditsSlice.effectiveTotal(
-      { overrides: entradaOverrides, customRows: entradaCustomRows },
-      ENTRADA_ROWS,
-      (rowKey) => baseEntradaValue(rowKey, year, rowByYear),
-      year
-    )
-    const totalSalidas = outflowEditsSlice.effectiveTotal(
-      { overrides: outflowOverrides, customRows: outflowCustomRows },
-      OUTFLOW_ROWS,
-      (rowKey) => outflowBaseValue(rowKey, year, rowByYear, capexByYear),
-      year
-    )
-    return totalEntradas - totalSalidas
-  })
+  const { endingBalanceByYear } = computeCashBalanceByYear(project.cbm);
+  const netCashFlowByYear = Object.values(endingBalanceByYear);
 
-  const marketRate = opex.nationalLeadingRate[years[0]] || 0
-  const inflation = opex.nationalInflation[years[0]] || 0
-  const trema = computeTrema(marketRate, inflation, riskPremium)
-  const npv = computeNPV(netCashFlowByYear, trema)
-  const irr = computeIRR(netCashFlowByYear)
-  const decision = decideProject(npv, irr, trema)
+  const trema = computeTrema(marketRate, inflation, riskPremium);
+  const npv = computeNPV(netCashFlowByYear, trema);
+  const irr = computeIRR(netCashFlowByYear);
+  const decision = decideProject(npv, irr, trema);
 
   return (
     <Box>
-      <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 2 }}>
-        Based on the project's full {years.length}-year cash flow ({years[0]}-{years[years.length - 1]})
-      </Typography>
+      <p className="mb-3 text-sm text-slate-500">
+        TREMA, TIR and VNA based on the project's full {years.length}-year cash flow ({years[0]}-
+        {years[years.length - 1]}) - the accept/reject call below follows directly from them.
+      </p>
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3}>
-          <Stat label="Best Market Interest Rate" value={formatPct(marketRate)} />
+          <div className="flex h-full flex-col justify-center rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+            <PercentField
+              label="Best Market Interest Rate"
+              value={marketRate}
+              onChange={setMarketRate}
+            />
+          </div>
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Inflation" value={formatPct(inflation)} />
+          <div className="flex h-full flex-col justify-center rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+            <PercentField
+              label="Inflation"
+              value={inflation}
+              onChange={setInflation}
+            />
+          </div>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Stat label="TREMA" value={formatPct(trema)} highlight />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="TIR" value={irr === null ? 'N/A' : formatPct(irr)} highlight />
+          <Stat
+            label="TIR"
+            value={irr === null ? "N/A" : formatPct(irr)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
           <Stat label="VNA (NPV)" value={formatCurrency(npv, currency)} highlight />
         </Grid>
-        <Grid item xs={6} sm={3} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid item xs={6} sm={3} sx={{ display: "flex", alignItems: "center" }}>
           <Chip
-            label={decision.accepted ? 'Project Accepted' : 'Project Rejected'}
-            color={decision.accepted ? 'success' : 'error'}
+            label={decision.accepted ? "Project Accepted" : "Project Rejected"}
+            color={decision.accepted ? "success" : "error"}
             sx={{ fontWeight: 700 }}
           />
         </Grid>
       </Grid>
 
       {decision.reason && (
-        <Alert severity="warning" sx={{ mt: 2 }}>{decision.reason}</Alert>
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          {decision.reason}
+        </Alert>
       )}
 
-      <Box sx={{ mt: 3 }}>
-        <TextField
+      <Box sx={{ mt: 3, maxWidth: 240 }}>
+        <PercentField
           label="Risk Premium"
-          type="number"
-          size="small"
           value={riskPremium}
-          onChange={(event) => setRiskPremium(Number(event.target.value) || 0)}
-          helperText="No source field in InputNovus - enter as a decimal (e.g. 0.10 = 10%)"
+          onChange={setRiskPremium}
+          helperText="No source field in InputNovus - enter as a percentage (e.g. 10 = 10%)"
         />
       </Box>
     </Box>
-  )
+  );
 }
 
-export default ProjectEvaluationSummary
+export default ProjectEvaluationSummary;

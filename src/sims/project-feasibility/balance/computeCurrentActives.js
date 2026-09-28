@@ -5,10 +5,8 @@ const logger = new Logger("ComputeCurrentActives");
 
 function computeCurrentActives(project) {
   const years = project.timeline.years;
-  // Real ending cash balance (Entradas - Salidas, chained from year zero),
-  // same math the Cash Flow tab uses - not computeFlow.js's buggy carry
-  // forward (hardcoded balance, "next year's balance = this year's total
-  // expenses" instead of a real running total).
+  // Real ending cash balance (Entradas - Salidas, chained from year zero
+  // opening cash = premises.startingMoney).
   const { endingBalanceByYear } = computeCashBalanceByYear(project);
   const cashAndBank = years.reduce((acc, year) => {
     acc[year] = endingBalanceByYear[year] ?? 0;

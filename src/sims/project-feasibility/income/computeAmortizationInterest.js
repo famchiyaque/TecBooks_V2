@@ -21,8 +21,6 @@ export default function computeAmortizationInterest(totalInvestment, project) {
   const periods = project.timeline.financingPeriods;
   const interestRate = project.premises.nationalLeadingRate;
 
-  const years = Math.floor(periods / 12);
-
   const amortization = totalInvestment / periods;
   const interest = new Array(periods).fill(0).map((_, idx) => {
     const year = Math.floor(idx / 12);
@@ -35,6 +33,7 @@ export default function computeAmortizationInterest(totalInvestment, project) {
   const yearInterest = computeInterest(interest, periods);
 
   const result = { amortization, interest, yearAmortization, yearInterest };
+  console.log(result)
   logger.debug("computeAmortizationInterest", { totalInvestment: totalInvestmentInput, periods, interestRate, ...result });
   return result;
 }

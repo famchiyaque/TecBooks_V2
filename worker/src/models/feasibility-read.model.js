@@ -144,6 +144,15 @@ export async function getProductionLine(database, lineId) {
     .first();
 }
 
+export async function listCapacityLineYearly(database, productionLineId) {
+  if (!productionLineId) return [];
+  const { results } = await database
+    .prepare('SELECT * FROM production_line_capacity_yearly WHERE production_line_id = ? ORDER BY year')
+    .bind(productionLineId)
+    .all();
+  return results ?? [];
+}
+
 export async function getBom(database, bomId) {
   if (!bomId) return null;
   return database
@@ -166,23 +175,43 @@ export async function listBomParts(database, bomId) {
   return results ?? [];
 }
 
-export async function getYearZeroDemand(database, gameId) {
+// BUG FIX: used to be `ORDER BY year DESC LIMIT 1` - only worked because the
+// table used to hold year zero + PAST history years (is_projection = 0,
+// strictly before year zero), so year zero was always the latest one. Now
+// that COs' "Año Cero | Total" block also saves real FUTURE years the same
+// way (see insertDemand), the latest row is a future year, not year zero -
+// picking by year is ambiguous either direction (MIN grabs history, MAX
+// grabs the furthest future year). `startYear` (the game's own horizon
+// start, set once at upload from cbm.timeline.years[0]) is the one
+// unambiguous anchor for which row IS year zero.
+export async function getYearZeroDemand(database, gameId, startYear) {
   return database
     .prepare(
       `SELECT year, total
        FROM purchase_order_yearly_total
-       WHERE game_id = ? AND is_projection = 0
-       ORDER BY year
-       LIMIT 1`
+       WHERE game_id = ? AND is_projection = 0 AND year = ?`
+    )
+    .bind(gameId, startYear)
+    .first();
+}
+
+export async function listDemandYearlyTotals(database, gameId) {
+  const { results } = await database
+    .prepare(
+      `SELECT year, total, is_projection
+       FROM purchase_order_yearly_total
+       WHERE game_id = ?
+       ORDER BY year`
     )
     .bind(gameId)
-    .first();
+    .all();
+  return results ?? [];
 }
 
 export async function listMonthShares(database, gameId) {
   const { results } = await database
     .prepare(
-      `SELECT month, percentage
+      `SELECT month, percentage, fixed_amount
        FROM purchase_order_monthly_distribution
        WHERE game_id = ?
        ORDER BY month`

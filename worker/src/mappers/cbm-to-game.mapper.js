@@ -23,6 +23,22 @@ function sumSeries(series) {
   return series.reduce((total, value) => total + (asNumber(value, 0) ?? 0), 0);
 }
 
+/**
+ * Same formula as applyDerivedBase.js's capacityForIndex (Capacidad sheet's
+ * own "Anual Capacity" row) - duplicated here since the worker doesn't
+ * share a module boundary with src/sims. Quality Yield is not a factor (a
+ * separate metric, see readCapacidad/projectQualityYield on the client).
+ * production_line_capacity_yearly.annual_capacity is NOT NULL, so this
+ * always needs a number - falls back to 0 when an input is missing.
+ */
+function computeAnnualCapacity({ secondsPerUnit, hoursShift, shifts, productionLines, weekWorkingDays, monthsWorkingWeeks, yearWorkingMonths }) {
+  const unitsPerHour = secondsPerUnit && secondsPerUnit > 0 ? 3600 / secondsPerUnit : null;
+  const factors = [unitsPerHour, hoursShift, shifts, productionLines, weekWorkingDays, monthsWorkingWeeks, yearWorkingMonths];
+  return factors.every((n) => typeof n === 'number' && Number.isFinite(n))
+    ? factors.reduce((acc, n) => acc * n, 1)
+    : 0;
+}
+
 function classifyEmployeeCategory(name, type) {
   const upperName = String(name ?? '').toUpperCase();
   if (upperName.startsWith('MOD ')) return 'direct';
@@ -167,6 +183,7 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
     },
     years,
     premises: {
+      startingMoney: asNumber(premises.startingMoney, 0),
       exchangeRate: firstFinite(premises.fxClose),
       nationalLeadingRate: firstFinite(premises.nationalLeadingRate),
       cpp: firstFinite(premises.cpp),
@@ -184,6 +201,7 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       indirectProductCostPct: firstFinite(premises.indirectProductCostPct),
       salesExpensePct: firstFinite(premises.salesExpensePct),
       adminPct: firstFinite(premises.adminPct),
+      demandGrowth: asNumber(cbm?.premises?.demandGrowth),
       depreciationCategories: mapDepreciationCategories(cbm, years),
       yearly: years.map((year, index) => ({
         year,
@@ -212,6 +230,9 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       name: service.description || service.subcategory || 'Service',
       description: service.description || '',
       defaultCost: asNumber(service.monthlyAmount, 0),
+      // BUG FIX: "Notes and Considerations" column - existed on the
+      // expenses table already, was just never written here.
+      notes: service.notes || '',
     })),
     assets: mapAssets(cbm),
     employees: mapEmployees(cbm),
@@ -229,15 +250,45 @@ export function mapCbmToGamePlan(cbm, fallbackName) {
       yearZeroYear: asNumber(cbm?.demand?.yearZeroYear),
       yearZeroTotal: asNumber(cbm?.demand?.yearZeroTotal),
       monthShares: cbm?.demand?.monthShares ?? [],
+      yearZeroOrders: cbm?.demand?.yearZeroOrders ?? [],
+      history: cbm?.demand?.history ?? [],
+      // COs' "Año Cero | Total" block (see readCOs) - year zero + any real
+      // future-year CO totals the Excel gives directly, not just a guess.
+      yearlyTotals: cbm?.demand?.yearlyTotals ?? [],
     },
     capacity: {
-      qualityYield: asNumber(line.qualityYield),
-      secondsPerUnit: asNumber(line.secondsPerUnit),
-      hoursShift: asNumber(line.hoursShift),
-      shifts: asNumber(line.shifts),
-      productionLineCount: asNumber(line.productionLines),
-      weekWorkingDays: asNumber(line.weekWorkingDays),
-      yearWorkingMonths: asNumber(line.yearWorkingMonths),
+      // BUG FIX: line.* are now HORIZON_YEARS-indexed arrays (see readCapacidad),
+      // so asNumber(array) always fell back to null here, silently dropping
+      // every Capacidad value before it ever reached the DB. firstFinite
+      // reads the first real value in the series instead - same fallback the
+      // scalar `capacity` table's own columns need since they have no year.
+      qualityYield: firstFinite(line.qualityYield),
+      secondsPerUnit: firstFinite(line.secondsPerUnit),
+      hoursShift: firstFinite(line.hoursShift),
+      shifts: firstFinite(line.shifts),
+      productionLineCount: firstFinite(line.productionLines),
+      weekWorkingDays: firstFinite(line.weekWorkingDays),
+      yearWorkingMonths: firstFinite(line.yearWorkingMonths),
+      // production_line_capacity_yearly (migration 0013): the real per-year
+      // Capacidad inputs, so CapacityLineTable-less edits still round-trip
+      // through the DB instead of collapsing to the flat scalars above.
+      yearly: years.map((year, index) => {
+        const yearInputs = {
+          secondsPerUnit: asNumber(line.secondsPerUnit?.[index]),
+          hoursShift: asNumber(line.hoursShift?.[index]),
+          shifts: asNumber(line.shifts?.[index]),
+          productionLines: asNumber(line.productionLines?.[index]),
+          weekWorkingDays: asNumber(line.weekWorkingDays?.[index]),
+          monthsWorkingWeeks: asNumber(line.monthsWorkingWeeks?.[index]),
+          yearWorkingMonths: asNumber(line.yearWorkingMonths?.[index]),
+        };
+        return {
+          year,
+          qualityYield: asNumber(line.qualityYield?.[index]),
+          ...yearInputs,
+          annualCapacity: computeAnnualCapacity(yearInputs),
+        };
+      }),
     },
   };
 }

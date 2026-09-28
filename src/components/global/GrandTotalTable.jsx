@@ -45,6 +45,7 @@ export default function GrandTotalTable({
         <Table size="small" className="w-full border-collapse text-xs">
           <TableHead>
             <TableRow className="border-b border-slate-200 bg-slate-50/60">
+              <TableCell sx={{ width: 64 }} />
               <TableCell
                 className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}
               >
@@ -59,12 +60,12 @@ export default function GrandTotalTable({
                   {label || columnKey}
                 </TableCell>
               ))}
-              <TableCell sx={{ width: 64 }} />
             </TableRow>
           </TableHead>
 
           <TableBody>
             <TableRow className="bg-slate-100/80">
+              <TableCell sx={{ width: 64 }} />
               <TableCell
                 className={`${CELL_PAD} whitespace-nowrap font-bold text-slate-900`}
               >
@@ -79,7 +80,6 @@ export default function GrandTotalTable({
                   {formatValue(totalsByColumn[index], currency)}
                 </TableCell>
               ))}
-              <TableCell sx={{ width: 64 }} />
             </TableRow>
           </TableBody>
         </Table>

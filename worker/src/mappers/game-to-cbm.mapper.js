@@ -114,11 +114,13 @@ export function mapGameRowsToCbm({
   assetCosts,
   capacity,
   productionLine,
+  capacityLineYearly,
   bom,
   bomParts,
   services,
   yearZeroDemand,
   monthShares,
+  demandYearlyTotals,
 }) {
   const years = yearsFromGame(game);
   const compensationByEmployee = new Map();
@@ -185,12 +187,41 @@ export function mapGameRowsToCbm({
   }
 
   const shares = Array.from({ length: 12 }, () => 0);
+  const yearZeroOrders = Array.from({ length: 12 }, () => 0);
   for (const row of monthShares ?? []) {
     const index = Number(row.month) - 1;
-    if (index >= 0 && index < 12) shares[index] = asNumber(row.percentage, 0);
+    if (index < 0 || index >= 12) continue;
+    shares[index] = asNumber(row.percentage, 0);
+    const actual = asNumber(row.fixed_amount);
+    yearZeroOrders[index] = actual !== undefined ? actual : 0;
   }
   const yearZeroTotal = asNumber(yearZeroDemand?.total, 0);
-  const yearZeroOrders = shares.map((share) => yearZeroTotal * share);
+  const yearZeroYear = asNumber(yearZeroDemand?.year);
+  const hasMonthlyActuals = (monthShares ?? []).some(
+    (row) => asNumber(row.fixed_amount) !== undefined
+  );
+  if (!hasMonthlyActuals) {
+    for (let index = 0; index < 12; index += 1) {
+      yearZeroOrders[index] = yearZeroTotal * shares[index];
+    }
+  }
+  // BUG FIX: purchase_order_yearly_total now holds year zero + PAST history
+  // years (Histórico columns) AND real FUTURE years (Año Cero | Total block,
+  // see insertDemand/readCOs) - all is_projection = 0. Split by position
+  // relative to year zero, not just "not year zero": years before it are
+  // history (averaged into the projection base), year zero and after are
+  // yearlyTotals (real, override the projected value outright - see
+  // cbmToCostTableInputs.js).
+  const nonProjectionRows = (demandYearlyTotals ?? []).filter((row) => !row.is_projection);
+  const history = nonProjectionRows
+    .filter((row) => row.year < yearZeroYear)
+    .map((row) => ({ year: row.year, total: asNumber(row.total, 0) }));
+  const yearlyTotals = [
+    ...(yearZeroYear !== undefined ? [{ year: yearZeroYear, total: yearZeroTotal }] : []),
+    ...nonProjectionRows
+      .filter((row) => row.year > yearZeroYear)
+      .map((row) => ({ year: row.year, total: asNumber(row.total, 0) })),
+  ].sort((a, b) => a.year - b.year);
 
   return {
     metadata: {
@@ -204,6 +235,7 @@ export function mapGameRowsToCbm({
       financingPeriods: asNumber(premises?.periods, 60),
     },
     premises: {
+      startingMoney: asNumber(premises?.starting_money, 0),
       fxClose: seriesFromYearly(years, premisesYearly, 'exchange_rate', premises?.exchange_rate),
       nationalLeadingRate: seriesFromYearly(
         years,
@@ -271,6 +303,7 @@ export function mapGameRowsToCbm({
         'administration_percentage',
         premisesPercentage?.administration_percentage
       ),
+      demandGrowth: asNumber(premises?.demand_growth),
       depreciationBuildings: depreciationSeries(deprecationsByCategory, 'building', years),
       depreciationTransport: depreciationSeries(deprecationsByCategory, 'transport', years),
       depreciationCompute: depreciationSeries(deprecationsByCategory, 'compute', years),
@@ -287,19 +320,29 @@ export function mapGameRowsToCbm({
     demand: {
       monthShares: shares,
       yearZeroOrders,
-      yearZeroYear: asNumber(yearZeroDemand?.year),
+      history,
+      yearlyTotals,
+      yearZeroYear,
       yearZeroTotal,
     },
     capacity: {
+      // BUG FIX: these used to be flat scalars (capacity's own columns have
+      // no year dimension) - a save/reload round-trip collapsed real
+      // per-year Capacidad variation (Quality Yield, Shifts, etc.) to one
+      // repeated value. production_line_capacity_yearly (see migration 0013)
+      // now holds the real per-year rows - read those, falling back to the
+      // old flat scalar/column for a project saved before this existed.
       line: {
-        qualityYield: asNumber(capacity?.quality_yield),
-        secondsPerUnit: asNumber(capacity?.seconds_x_unit ?? productionLine?.seconds_per_process),
-        hoursShift: asNumber(capacity?.hours_shift),
-        shifts: asNumber(capacity?.shifts),
-        productionLines: 1,
-        weekWorkingDays: asNumber(capacity?.week_working_days),
-        monthsWorkingWeeks: 4,
-        yearWorkingMonths: asNumber(capacity?.year_working_months),
+        qualityYield: seriesFromYearly(years, capacityLineYearly, 'quality_yield', capacity?.quality_yield),
+        secondsPerUnit: seriesFromYearly(
+          years, capacityLineYearly, 'seconds_x_unit', capacity?.seconds_x_unit ?? productionLine?.seconds_per_process
+        ),
+        hoursShift: seriesFromYearly(years, capacityLineYearly, 'hours_shift', capacity?.hours_shift),
+        shifts: seriesFromYearly(years, capacityLineYearly, 'shifts', capacity?.shifts),
+        productionLines: seriesFromYearly(years, capacityLineYearly, 'production_lines_count', 1),
+        weekWorkingDays: seriesFromYearly(years, capacityLineYearly, 'week_working_days', capacity?.week_working_days),
+        monthsWorkingWeeks: seriesFromYearly(years, capacityLineYearly, 'months_working_weeks', 4),
+        yearWorkingMonths: seriesFromYearly(years, capacityLineYearly, 'year_working_months', capacity?.year_working_months),
       },
       machines,
     },
@@ -320,6 +363,7 @@ export function mapGameRowsToCbm({
       subcategory: service.subcategory ?? '',
       description: service.description || service.name || '',
       monthlyAmount: asNumber(service.default_cost, 0),
+      notes: service.notes ?? '',
     })),
   };
 }

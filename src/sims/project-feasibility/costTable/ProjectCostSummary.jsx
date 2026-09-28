@@ -18,13 +18,17 @@ function ProjectCostSummary({ project, currency }) {
 
   return (
     <>
+      <p className="mb-3 text-sm text-slate-500">
+        Cost of Sales, broken down by input: raw material, labor and salaries
+        that go directly into producing what this project sells.
+      </p>
       {result.unclassifiedEmployees.length > 0 && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           {result.unclassifiedEmployees.length} employee{result.unclassifiedEmployees.length === 1 ? '' : 's'} with an
           unrecognized category weren't counted in this table: {result.unclassifiedEmployees.join(', ')}
         </Alert>
       )}
-      <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} currency={currency}/>
+      <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
     </>
   )
 }
