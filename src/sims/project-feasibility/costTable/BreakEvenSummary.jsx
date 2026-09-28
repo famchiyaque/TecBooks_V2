@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Box, Grid, TextField, Typography } from "@mui/material";
+import { Alert, Box, Grid, TextField } from "@mui/material";
 import { buildCostOfSales } from "./buildCostOfSales";
 import { cbmToCostTableInputs } from "./cbmToCostTableInputs";
 import BreakEvenChart from "./BreakEvenChart";
@@ -19,23 +19,14 @@ function formatUnits(value) {
 
 function Stat({ label, value, highlight }) {
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        height: "100%",
-        bgcolor: highlight ? "#fff4d6" : "rgba(7, 58, 90, 0.04)",
-        border: "1px solid",
-        borderColor: highlight ? "#f0c419" : "rgba(7, 58, 90, 0.1)",
-      }}
+    <div
+      className={`h-full rounded-xl border p-3 ${
+        highlight ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50/60"
+      }`}
     >
-      <Typography variant="caption" sx={{ opacity: 0.7 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ fontWeight: 700, color: "#073a5a" }}>
-        {value}
-      </Typography>
-    </Box>
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[15px] font-semibold text-slate-900 tabular-nums">{value}</p>
+    </div>
   );
 }
 
@@ -108,12 +99,11 @@ function BreakEvenSummary({ project }) {
 
   return (
     <Box>
-      <Typography
-        variant="caption"
-        sx={{ opacity: 0.7, display: "block", mb: 2 }}
-      >
-        Based on {row.year}, this project's first year
-      </Typography>
+      <p className="mb-3 text-sm text-slate-500">
+        Break-even for {row.year}, this project's first year: fixed costs,
+        variable cost per unit and the sales volume/revenue needed to cover
+        them (plus your desired profit target).
+      </p>
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3}>
