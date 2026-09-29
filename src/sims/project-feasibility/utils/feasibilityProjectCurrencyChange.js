@@ -5,6 +5,18 @@ const feasibilityProjectCurrencyChange = (
     console.log("DATA: ", data);
     const result = structuredClone(data);
 
+    // Exposed on the returned model for downstream consumers that can't
+    // read cbm fields directly (e.g. computeCurrentActives' mock stocks
+    // value) - so they can still stay consistent with the selected currency.
+    result.currencyRate = rate;
+
+    // Premisas - only startingMoney is a currency amount; every other
+    // Premisas field (inflation/ISR/PTU/admin%/depreciation%/leading rate/
+    // demand growth) is a rate or percentage and must NOT be multiplied.
+    if (typeof data.premises?.startingMoney === "number") {
+        result.premises.startingMoney = data.premises.startingMoney * rate;
+    }
+
     // BOM
     result.bom.salePrice = data.bom.salePrice * rate;
 
