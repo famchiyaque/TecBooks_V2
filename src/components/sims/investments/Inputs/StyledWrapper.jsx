@@ -82,7 +82,7 @@ const StyledWrapper = styled.div`
     padding: 0 0.3rem;
     text-align: center;
     min-width: 5rem;
-    max-width: 5rem;
+    max-width: 5.5rem;
 }`
 
 export default StyledWrapper
