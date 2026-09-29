@@ -16,11 +16,37 @@ import {
   LONG_TERM_PASSIVES,
 } from "@/components/sims/program/balance/Passive.jsx";
 import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
-import useTableRowsQuery from "@/hooks/sims/project/useTableRows.js";
 
 const DEFAULT_CURRENT_PASSIVE_LABEL = "Documentos por pagar corto plazo";
 const DEFAULT_YEAR_ZERO_VALUE = 450000;
 const DEFAULT_LATER_YEAR_VALUE = 45000;
+// Stable id so the seed below, the hydrate fallback, and any later reconcile
+// all refer to the SAME row - a nanoid here would re-add a duplicate every
+// time the two paths disagreed.
+const DEFAULT_CURRENT_PASSIVE_ROW_ID = "default-doc-por-pagar-cp";
+
+/**
+ * The default Current Passives row, in the SERVER's row shape (what
+ * useTableRowsSync's `fallbackRows` expects, and what EditableTableSlice's
+ * hydrate turns into `id`).
+ *
+ * Years come from the caller, not HORIZON_YEARS: `cbm.timeline.years` is
+ * derived per project from the game's start/end date (see
+ * worker/src/mappers/game-to-cbm.mapper.js yearsFromGame), so a project whose
+ * horizon isn't 2025-2035 needs its own keys.
+ */
+function buildDefaultCurrentPassiveRow(years) {
+  return {
+    rowId: DEFAULT_CURRENT_PASSIVE_ROW_ID,
+    label: DEFAULT_CURRENT_PASSIVE_LABEL,
+    values: Object.fromEntries(
+      years.map((year, index) => [
+        year,
+        index === 0 ? DEFAULT_YEAR_ZERO_VALUE : DEFAULT_LATER_YEAR_VALUE,
+      ])
+    ),
+  };
+}
 
 /**
  * Per-year effective (override + custom-row aware) Balance Sheet totals,
@@ -37,6 +63,14 @@ const DEFAULT_LATER_YEAR_VALUE = 45000;
  * Passive.jsx did. Owning that hydrate+seed here instead means it fires for
  * whichever tab reads balance totals first - Ratios, Equity or Balance.
  *
+ * BUG FIX (2): even with the seed owned here, the first row still came up
+ * blank on a cold load and only filled in after a page reload, because the
+ * seed ran in a PASSIVE effect - one frame after a render that had already
+ * divided by zero - and the server round-trip was still in flight. Now the
+ * default row exists in the store's initial state (see the layout effect
+ * below plus useTableRowsSync's `fallbackRows`), so the very first render
+ * already divides by a real number and there is nothing left to wait for.
+ *
  * @param {Object} cbm
  * @param {number} gameId
  * @returns {Object} keyed by year: { currentActivesTotal, deferedActivesTotal,
@@ -51,8 +85,17 @@ function useEffectiveBalanceTotals(cbm, gameId) {
   const { costOfSalesByYear } = buildCostOfSales(cbm);
 
   const dispatch = useDispatch();
-  useTableRowsSync(gameId, currentPassiveSlice, "currentPassives");
-  const { data: tableRowsData } = useTableRowsQuery(gameId);
+  const defaultCurrentPassiveRow = React.useMemo(
+    () => (years.length > 0 ? buildDefaultCurrentPassiveRow(years) : null),
+    [years]
+  );
+  const defaultCurrentPassiveRows = React.useMemo(
+    () => (defaultCurrentPassiveRow ? [defaultCurrentPassiveRow] : []),
+    [defaultCurrentPassiveRow]
+  );
+  useTableRowsSync(gameId, currentPassiveSlice, "currentPassives", {
+    fallbackRows: defaultCurrentPassiveRows,
+  });
 
   const currentActivesOverrides = useSelector(currentActivesSlice.selectOverrides);
   const currentActivesCustomRows = useSelector(currentActivesSlice.selectCustomRows);
@@ -63,25 +106,34 @@ function useEffectiveBalanceTotals(cbm, gameId) {
   const longTermPassivesOverrides = useSelector(longTermPassiveSlice.selectOverrides);
   const longTermPassivesCustomRows = useSelector(longTermPassiveSlice.selectCustomRows);
 
-  // Seed the default "Documentos por pagar corto plazo" row exactly once,
-  // and only once we KNOW from the server that this game truly has none
-  // saved yet for "currentPassives" (row_table) - useTableRowsSync's own
-  // hydrate effect (registered above, so it runs first) already replaced
-  // customRows with whatever the server has by the time this checks.
+  // Put the default "Documentos por pagar corto plazo" row in the store on
+  // the FIRST commit, before the browser paints. useLayoutEffect (not
+  // useEffect) is the whole point: a dispatch from here re-renders
+  // synchronously before paint, so the Ratios tab never shows a frame of
+  // "—" where it divides by currentPassivesTotal.
+  //
+  // The server's answer still wins: useTableRowsSync's hydrate replaces
+  // customRows wholesale once row_table responds, and only falls back to this
+  // same row when the server has nothing saved (see its `fallbackRows`).
+  // Seeding twice is therefore harmless - both paths build the identical row
+  // with the identical id - which is why the id has to be stable.
+  //
+  // The ref keeps this to one dispatch per mount, so the user can still
+  // delete the row (and have it stay deleted) for the rest of the session.
   const seededDefaultRow = React.useRef(false);
-  React.useEffect(() => {
-    if (seededDefaultRow.current || !tableRowsData) return;
+  React.useLayoutEffect(() => {
+    if (seededDefaultRow.current) return;
+    if (!defaultCurrentPassiveRow) return;
+    if (currentPassivesCustomRows.length > 0) return;
     seededDefaultRow.current = true;
-    const hasSavedRows = (tableRowsData.currentPassives ?? []).length > 0;
-    if (hasSavedRows || currentPassivesCustomRows.length > 0) return;
-    if (years.length === 0) return;
-    const values = {};
-    years.forEach((year, index) => {
-      values[year] = index === 0 ? DEFAULT_YEAR_ZERO_VALUE : DEFAULT_LATER_YEAR_VALUE;
-    });
-    dispatch(currentPassiveSlice.actions.addCustomRow({ label: DEFAULT_CURRENT_PASSIVE_LABEL, values }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableRowsData]);
+    dispatch(
+      currentPassiveSlice.actions.addCustomRow({
+        id: DEFAULT_CURRENT_PASSIVE_ROW_ID,
+        label: defaultCurrentPassiveRow.label,
+        values: defaultCurrentPassiveRow.values,
+      })
+    );
+  }, [defaultCurrentPassiveRow, currentPassivesCustomRows, dispatch]);
 
   const getCurrentActivesValue = (rowKey, year) => actives.currentActives[rowKey]?.[year] ?? 0;
   const getDeferedActivesValue = (rowKey, year) => actives.deferedActives[rowKey]?.[year] ?? 0;

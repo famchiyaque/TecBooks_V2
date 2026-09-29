@@ -28,7 +28,10 @@ export class EditableTableSlice {
         },
         addCustomRow: (state, action) => {
           state.customRows.push({
-            id: nanoid(),
+            // Callers that need a STABLE id across mounts/hydrate cycles
+            // (e.g. a seeded default row reconciled by id) pass one; everyone
+            // else keeps getting a fresh nanoid.
+            id: action.payload?.id ?? nanoid(),
             label: action.payload?.label ?? 'New row',
             // Lets a caller seed a default row with real values (e.g.
             // Current Passives' "Documentos por pagar" placeholder) instead
