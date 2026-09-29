@@ -13,8 +13,17 @@ const SAVE_DEBOUNCE_MS = 800
  * request per keystroke. D1 stays the source of truth; Redux is only the
  * in-session edit buffer (see technical-debt.md - don't revive Redux as a
  * session CBM database).
+ *
+ * `fallbackRows` (server-shape: `[{ rowId, label, values }]`) is what hydrate
+ * installs when the server genuinely has nothing saved for this table. A
+ * table whose total feeds a ratio can't just hydrate to `[]` in that case -
+ * the first paint would already divide by zero. Doing it here rather than in
+ * a separate seeding effect is what makes it race-free: hydrate is the single
+ * place that owns "replace customRows wholesale", so nothing can wipe the
+ * fallback afterwards. Optional - tables with nothing to fall back to (the
+ * default) behave exactly as before.
  */
-export default function useTableRowsSync(gameId, slice, tableKey) {
+export default function useTableRowsSync(gameId, slice, tableKey, { fallbackRows } = {}) {
   const dispatch = useDispatch()
   const { data } = useTableRows(gameId)
   const customRows = useSelector(slice.selectCustomRows)
@@ -27,7 +36,8 @@ export default function useTableRowsSync(gameId, slice, tableKey) {
   useEffect(() => {
     if (hydrated.current || !data) return
     hydrated.current = true
-    dispatch(slice.actions.hydrate(data[tableKey] ?? []))
+    const saved = data[tableKey] ?? []
+    dispatch(slice.actions.hydrate(saved.length > 0 ? saved : (fallbackRows ?? [])))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
