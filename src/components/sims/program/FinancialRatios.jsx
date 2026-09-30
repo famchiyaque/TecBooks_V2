@@ -1,15 +1,11 @@
 import React from "react";
 import TableContainer from "@/components/global/TableContainer";
 import useEffectiveBalanceTotals from "@/sims/project-feasibility/balance/useEffectiveBalanceTotals.js";
+import RatiosChart from "./RatiosChart.jsx";
 
 function formatRatio(value) {
   if (!Number.isFinite(value)) return "—";
   return `${value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}x`;
-}
-
-function formatPercent(value) {
-  if (!Number.isFinite(value)) return "—";
-  return `${(value * 100).toLocaleString("es-MX", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
 // BUG FIX: Debt to Assets / Equity to Assets showed as % (×100) - the
@@ -77,7 +73,10 @@ const RATIO_DEFINITIONS = [
     key: "netProfitMargin",
     label: "Net Profit Margin",
     tooltip: "Rentabilidad sobre las ventas = Utilidad neta / Ventas netas",
-    format: formatPercent,
+    // BUG FIX: showed as % (×100) - Template Financiero's "Rentabilidad
+    // sobre las ventas" row shows a plain decimal (-0.35, not -35%). Same
+    // fix category as Debt to Assets / Equity to Assets above.
+    format: formatDecimal,
     compute: (t) => safeDivide(t.netIncome, t.netSales),
   },
   {
@@ -99,10 +98,13 @@ function FinancialRatios({ project }) {
     ...years.map((year) => ({ key: String(year), label: String(year), align: "right" })),
   ];
 
+  const valuesByKey = {};
   const rows = RATIO_DEFINITIONS.map((definition) => {
     const row = { concept: definition.label, tooltip: definition.tooltip };
+    valuesByKey[definition.key] = {};
     years.forEach((year) => {
       const value = definition.compute(totalsByYear[year]);
+      valuesByKey[definition.key][year] = value;
       const colorClass = !Number.isFinite(value)
         ? "text-slate-300"
         : value < 0
@@ -116,12 +118,15 @@ function FinancialRatios({ project }) {
   });
 
   return (
-    <TableContainer
-      title="Financial Ratios"
-      subtitle="Liquidity, leverage, efficiency and profitability - computed from the live Balance Sheet and Income Statement."
-      columns={columns}
-      rows={rows}
-    />
+    <>
+      <TableContainer
+        title="Financial Ratios"
+        subtitle="Liquidity, leverage, efficiency and profitability - computed from the live Balance Sheet and Income Statement."
+        columns={columns}
+        rows={rows}
+      />
+      <RatiosChart years={years} valuesByKey={valuesByKey} />
+    </>
   );
 }
 
