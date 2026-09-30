@@ -79,6 +79,32 @@ export function getIRR(lifetime, inflows, outflows, precomputedNPV) {
     return parseFloat(irr.toFixed(1));
 }
 
+function getCPV(outflows, discountRate) {
+    const n = outflows.length - 1
+    
+    let acc = 0
+
+    for (let i = 1; i < n; i++) {
+        acc += outflows[i] / Math.pow(1+discountRate, i)
+    }
+
+    return acc
+}
+
+export function getEUAC(outflows, discountRate, salvage_value=0) {
+    const initialInv = outflows[0]
+    const n = outflows.length
+    const r = discountRate/100
+
+    const cpv = getCPV(outflows, r)
+    const npc = initialInv + cpv - salvage_value
+
+    const temp = Math.pow(1 + r, n)
+    const crf = r  * (temp/(temp - 1))
+    const euac = npc * crf
+
+    return parseFloat(euac.toFixed(2))
+}
 
 export function getProj(index, history) {
     for (let i = 0; i < history.length; i++) {

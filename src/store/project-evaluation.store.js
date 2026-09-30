@@ -1,5 +1,5 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
-import { getBreakEven, getIRR, getNPV, getROI } from '@/utils/sims/investments/Calculators'
+import { getBreakEven, getIRR, getNPV, getROI, getEUAC } from '@/utils/sims/investments/Calculators'
 
 const projEvalSlice = createSlice({
     name: 'projEval', 
@@ -9,6 +9,7 @@ const projEvalSlice = createSlice({
         lifetime: 6,
         initialInvestment: 100000,
         discountRate: 10.0,
+        salvage_value: null,
         inflows: [0, 45000, 50000, 55000, 60000, 65000],
         outflows: [100000, 10000, 12000, 15000, 18000, 20000],
         order: 0,
@@ -75,21 +76,28 @@ export const getResults = (state) => {
     const npv = getNPV(
         sp.lifetime,
         cashflows,
-        sp.discountRate
+        sp.discountRate,
     )
 
     const irr = getIRR(
         sp.lifetime,
         sp.inflows,
         sp.outflows,
-        npv
+        npv,
+    )
+
+    const euac = getEUAC(
+        sp.outflows,
+        sp.discountRate,
+        sp.salvage_value,
     )
 
     return {
         breakEven: breakEven,
         roi: roi,
         npv: npv,
-        irr: irr
+        irr: irr,
+        euac: euac
     }
 }
 
