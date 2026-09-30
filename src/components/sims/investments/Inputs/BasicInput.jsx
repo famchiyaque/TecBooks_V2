@@ -37,6 +37,12 @@ function BasicInput({ func, value, name }) {
                     func(isNaN(parsedFloat) ? 0 : parsedFloat);
                 }
                 break
+            case 'Salvage Value':
+                {
+                    const parsedInt = parseInt(newValue, 10);
+                    func(isNaN(parsedInt) ? 0 : parsedInt);
+                }
+                break
             default:
                 console.warn(`Unhandled input name: ${name}`)
                 break

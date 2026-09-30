@@ -9,7 +9,7 @@ const projEvalSlice = createSlice({
         lifetime: 6,
         initialInvestment: 100000,
         discountRate: 10.0,
-        salvage_value: null,
+        salvageValue: 0,
         inflows: [0, 45000, 50000, 55000, 60000, 65000],
         outflows: [100000, 10000, 12000, 15000, 18000, 20000],
         order: 0,
@@ -20,6 +20,7 @@ const projEvalSlice = createSlice({
         setLifetime: (state, action) => { state.lifetime = action.payload },
         setInitialInvestment: (state, action) => { state.initialInvestment = action.payload; state.outflows[0] = action.payload; },
         setDiscountRate: (state, action) => { state.discountRate = action.payload },
+        setSalvageValue: (state, action) => { state.salvageValue = action.payload },
         setInflows: (state, action) => { state.inflows = action.payload },
         setOutflows: (state, action) => { state.outflows = action.payload },
         setOrder: (state, action) => { state.order = action.payload },
@@ -29,7 +30,7 @@ const projEvalSlice = createSlice({
 
 export const {
     setProject, setLifetime, setInitialInvestment, setDiscountRate,
-    setInflows, setOutflows, setOrder, setCurrProjectIndex
+    setSalvageValue, setInflows, setOutflows, setOrder, setCurrProjectIndex
 } = projEvalSlice.actions
 
 export const createProjEvalStore = () => configureStore({
@@ -44,6 +45,7 @@ export const getProjectInfo = (state) => {
         lifetime: sp.lifetime, 
         initialInvestment: sp.initialInvestment,
         discountRate: sp.discountRate,
+        salvageValue: sp.salvageValue,
         inflows: sp.inflows,
         outflows: sp.outflows
     }
@@ -89,7 +91,7 @@ export const getResults = (state) => {
     const euac = getEUAC(
         sp.outflows,
         sp.discountRate,
-        sp.salvage_value,
+        sp.salvageValue ?? 0,
     )
 
     return {
@@ -112,6 +114,7 @@ export const referenceProjectHistory = (historyIndex) => (dispatch) => {
     dispatch(setLifetime(proj.lifetime));
     dispatch(setInitialInvestment(proj.initialInvestment));
     dispatch(setDiscountRate(proj.discountRate));
+    dispatch(setSalvageValue(proj.salvageValue ?? proj.salvage_value ?? 0));
     dispatch(setInflows(proj.inflows));
     dispatch(setOutflows(proj.outflows));
   };
