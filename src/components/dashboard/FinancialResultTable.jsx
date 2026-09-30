@@ -11,7 +11,7 @@ export const FINANCIAL_RESULT_ROWS = [
   { key: 'financialIncome', label: 'Financial Income' },
 ]
 
-function FinancialResultTable({ costOfSalesByYear, gameId }) {
+function FinancialResultTable({ costOfSalesByYear, gameId, currency }) {
   useTableRowsSync(gameId, financialResultEditsSlice, 'financialResultEdits')
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
@@ -24,6 +24,7 @@ function FinancialResultTable({ costOfSalesByYear, gameId }) {
       rows={FINANCIAL_RESULT_ROWS}
       getValue={getValue}
       totalLabel="Total"
+      currency={currency}
     />
   )
 }

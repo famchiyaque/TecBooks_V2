@@ -8,7 +8,7 @@ import TableContainer from "@/components/global/TableContainer";
  * Props:
  *  - items: { concept: string, amount: number }[]
  */
-export default function InvestmentTable({ items }) {
+export default function InvestmentTable({ items, currency }) {
   console.log(items);
   const columns = useMemo(
     () => [
@@ -34,6 +34,7 @@ export default function InvestmentTable({ items }) {
           columns={columns}
           rows={rows}
           className="max-w-xl"
+          currency={currency}
         />
       )}
     </>

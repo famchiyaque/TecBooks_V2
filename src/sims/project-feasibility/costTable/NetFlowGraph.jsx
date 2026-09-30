@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import useCashFlow from "@/hooks/sims/project/useFlow.js";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 // Calcula la línea de tendencia (regresión lineal simple) sobre los valores
 function calcTrendline(values) {
@@ -18,7 +19,7 @@ function calcTrendline(values) {
   return xs.map((x) => intercept + slope * x);
 }
 
-function NetFlowGraph({ project }) {
+function NetFlowGraph({ project, currency }) {
   const { netFlow } = useCashFlow(project);
 
   const { categories, values, trend } = useMemo(() => {
@@ -50,9 +51,7 @@ function NetFlowGraph({ project }) {
       title: { text: "Net Flow (millones de pesos)" },
       labels: {
         formatter: function () {
-          return `${this.value.toLocaleString("es-MX", {
-            maximumFractionDigits: 0,
-          })} M`;
+          return `${formatCurrency(this.value, currency, 0)} M`;
         },
       },
       plotLines: [

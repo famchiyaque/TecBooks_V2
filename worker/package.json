@@ -19,10 +19,10 @@
     "tail:develop": "wrangler tail --env develop"
   },
   "dependencies": {
-    "hono": "^4.6.0",
+    "@clerk/backend": "latest",
     "bcryptjs": "^2.4.3",
-    "zod": "^4.1.12",
-    "@clerk/backend": "latest"
+    "hono": "^4.6.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "wrangler": "^4.25.0"

@@ -2,6 +2,7 @@ import React from "react";
 import TableContainer from "@/components/global/TableContainer";
 import useEffectiveBalanceTotals from "@/sims/project-feasibility/balance/useEffectiveBalanceTotals.js";
 import RatiosChart from "./RatiosChart.jsx";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 function formatRatio(value) {
   if (!Number.isFinite(value)) return "—";
@@ -45,7 +46,7 @@ const RATIO_DEFINITIONS = [
     key: "workingCapital",
     label: "Working Capital",
     tooltip: "Capital de Trabajo = Activo Circulante - Pasivo Circulante",
-    format: (value) => `$${(value || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    format: (value, currency) => formatCurrency(value, currency),
     compute: (t) => t.currentActivesTotal - t.currentPassivesTotal,
   },
   {
@@ -88,7 +89,7 @@ const RATIO_DEFINITIONS = [
   },
 ];
 
-function FinancialRatios({ project }) {
+function FinancialRatios({ project, currency }) {
   const cbm = project.cbm;
   const years = cbm.timeline.years;
   const totalsByYear = useEffectiveBalanceTotals(cbm, project.gameId);
@@ -111,7 +112,7 @@ function FinancialRatios({ project }) {
           ? "text-rose-600"
           : "text-slate-900";
       row[String(year)] = (
-        <span className={`tabular-nums ${colorClass}`}>{definition.format(value)}</span>
+        <span className={`tabular-nums ${colorClass}`}>{definition.format(value, currency)}</span>
       );
     });
     return row;

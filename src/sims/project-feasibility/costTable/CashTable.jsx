@@ -8,7 +8,14 @@ import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflo
 import { ENTRADA_ROWS, baseEntradaValue, startingMoneyFromCbm } from './cashFlowCalculations'
 import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
-function CashTable({ project }) {
+/**
+ * Cash Table "Entradas" (RF-63) - Saldo Inicial, Ventas (= BOM price * CO,
+ * already computed as netSales), Préstamo a largo plazo (= financingAmount),
+ * and the two manual rows (Préstamos a corto plazo / Otros Ingresos) the
+ * activity diagram leaves as open inputs - double-click any cell to fill
+ * those in, same override pattern as the other cost tables.
+ */
+function CashTable({ project, currency }) {
   useTableRowsSync(project.gameId, cashFlowEditsSlice, 'cashFlowEdits')
   const overrides = useSelector(cashFlowEditsSlice.selectOverrides)
   const customRows = useSelector(cashFlowEditsSlice.selectCustomRows)
@@ -80,6 +87,7 @@ function CashTable({ project }) {
       rows={ENTRADA_ROWS}
       getValue={getValue}
       totalLabel="Total Cash Inflows"
+      currency={currency}
     />
   )
 }

@@ -22,7 +22,7 @@ export const OPERATING_EXPENSE_ROWS = [
   { key: 'salesExpenses', label: 'Sales Expenses' },
 ]
 
-function OperatingExpensesTable({ costOfSalesByYear, gameId }) {
+function OperatingExpensesTable({ costOfSalesByYear, gameId, currency }) {
   useTableRowsSync(gameId, operatingExpenseEditsSlice, 'operatingExpenseEdits')
   const columns = costOfSalesByYear.map((row) => ({ key: row.year, label: row.year }))
   const getValue = (rowKey, year) => costOfSalesByYear.find((row) => row.year === year)?.[rowKey] ?? 0
@@ -35,6 +35,7 @@ function OperatingExpensesTable({ costOfSalesByYear, gameId }) {
       rows={OPERATING_EXPENSE_ROWS}
       getValue={getValue}
       totalLabel="Total Operating Expenses"
+      currency={currency}
     />
   )
 }

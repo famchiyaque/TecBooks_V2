@@ -57,6 +57,9 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  * Total row: pass `rowVariant: "total"` on any row object.
  * Mixed units: pass `valueType: "units" | "currency"` on a row to override the
  * column's `type` for that row only (the label column is never affected).
+ * `currency`: pass an ISO code down from the project's own currency setting -
+ * every money cell (any row/column resolving to type "currency") formats
+ * with it, falling back to formatCurrency's own default when omitted.
  * ------------------------------------------------------------------------
  */
 
@@ -68,7 +71,7 @@ function formatUnits(value) {
   return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
-function CellValue({ column, value, valueType }) {
+function CellValue({ column, value, valueType, currency }) {
   // Row-level `valueType` wins over the column's `type` so one table can mix
   // units and money across the same year columns (Sales: Customer Orders is a
   // unit count, Unit Price and Total Income are currency).
@@ -93,7 +96,7 @@ function CellValue({ column, value, valueType }) {
               : "text-emerald-700")
         }
       >
-        {formatCurrency(value)}
+        {formatCurrency(value, currency)}
       </span>
     );
   }
@@ -204,6 +207,7 @@ function DataRows({
   isFixed,
   labelKey,
   emptyLabel,
+  currency,
   rowKeyPrefix = "",
   applyColWidth = true,
   endBorder = false,
@@ -275,7 +279,7 @@ function DataRows({
             >
               {col.key === labelKey && row.tooltip ? (
                 <span className="inline-flex items-center">
-                  <CellValue column={col} value={row[col.key]} />
+                  <CellValue column={col} value={row[col.key]} currency={currency} />
                   <InfoTooltip title={row.tooltip} />
                 </span>
               ) : (
@@ -285,6 +289,7 @@ function DataRows({
                   // never on the label column - that cell holds
                   // the concept text, not a number to format
                   valueType={col.key === labelKey ? undefined : row.valueType}
+                  currency={currency}
                 />
               )}
             </td>
@@ -308,6 +313,7 @@ export default function TableContainer({
   className = "",
   layout = "auto",
   scrollBody = false,
+  currency,
 }) {
   const groupColumn = columns.find((c) => c.group);
   const cellPad = dense ? "px-4 py-2" : "px-5 py-3";
@@ -337,6 +343,7 @@ export default function TableContainer({
     isFixed,
     labelKey,
     emptyLabel,
+    currency,
   };
 
   useLayoutEffect(() => {

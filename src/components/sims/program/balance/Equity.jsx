@@ -18,7 +18,7 @@ const EQUITY_ROWS = [
  * Actives/Defered Actives/Current Passives/Long term passives now actually
  * moves Shareholder's Equity, not just its own table's total.
  */
-function Equity({ project }) {
+function Equity({ project, currency }) {
   useTableRowsSync(project.gameId, equitySlice, "equity");
   const cbm = project.cbm;
   const years = cbm.timeline.years;
@@ -50,6 +50,7 @@ function Equity({ project }) {
       rows={EQUITY_ROWS}
       getValue={getValue}
       totalLabel="Total Shareholder's equity"
+      currency={currency}
     />
   );
 }

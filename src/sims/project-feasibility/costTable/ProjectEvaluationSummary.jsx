@@ -1,5 +1,4 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import {
   Alert,
   Box,
@@ -8,7 +7,6 @@ import {
   InputAdornment,
   TextField,
 } from "@mui/material";
-import { cashFlowEditsSlice, outflowEditsSlice } from "@/store/costTable.store";
 import {
   computeTrema,
   computeNPV,
@@ -17,18 +15,8 @@ import {
 } from "@/utils/dashboard/financialEvaluation";
 import { buildCostOfSales } from "./buildCostOfSales";
 import { cbmToOperatingExpenseInputs } from "./cbmToCostTableInputs";
-import { ENTRADA_ROWS, baseEntradaValue } from "./cashFlowCalculations";
-import {
-  buildOutflowRows,
-  computeCapexByYear,
-  outflowBaseValue,
-} from "./outflowCalculations";
 import { computeCashBalanceByYear } from "@/sims/project-feasibility/costTable/cashFlowCalculations.js";
-
-function formatCurrency(value) {
-  const num = Number(value) || 0;
-  return `$${num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 function formatPct(value) {
   return `${(Number(value) * 100).toFixed(2)}%`;
@@ -87,35 +75,16 @@ function Stat({ label, value, highlight }) {
  * is built from) - reads both edits slices directly so it stays live
  * against overrides made in either table, same as Profit Summary does.
  */
-function ProjectEvaluationSummary({ project }) {
+function ProjectEvaluationSummary({ project, currency }) {
   const [riskPremium, setRiskPremium] = React.useState(0.1);
   const [marketRate, setMarketRate] = React.useState(0);
   const [inflation, setInflation] = React.useState(0);
-
-  const entradaOverrides = useSelector(cashFlowEditsSlice.selectOverrides);
-  const entradaCustomRows = useSelector(cashFlowEditsSlice.selectCustomRows);
-  const outflowOverrides = useSelector(outflowEditsSlice.selectOverrides);
-  const outflowCustomRows = useSelector(outflowEditsSlice.selectCustomRows);
 
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project]);
 
   const years = React.useMemo(
     () => (result.error ? [] : result.costOfSalesByYear.map((row) => row.year)),
     [result],
-  );
-  const rowByYear = React.useMemo(() => {
-    if (result.error) return {};
-    return Object.fromEntries(
-      result.costOfSalesByYear.map((row) => [row.year, row]),
-    );
-  }, [result]);
-  const capexByYear = React.useMemo(
-    () => (result.error ? {} : computeCapexByYear(project.cbm, years)),
-    [project, result, years],
-  );
-  const outflowRows = React.useMemo(
-    () => buildOutflowRows(project.cbm),
-    [project],
   );
   const opex = React.useMemo(
     () => cbmToOperatingExpenseInputs(project.cbm, years),
@@ -179,7 +148,7 @@ function ProjectEvaluationSummary({ project }) {
           />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="VNA (NPV)" value={formatCurrency(npv)} highlight />
+          <Stat label="VNA (NPV)" value={formatCurrency(npv, currency)} highlight />
         </Grid>
         <Grid item xs={6} sm={3} sx={{ display: "flex", alignItems: "center" }}>
           <Chip

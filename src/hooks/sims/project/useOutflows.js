@@ -21,16 +21,10 @@ export default function useOutflows(project) {
     project?.timeline && project?.bom && project?.premises
       ? computeProductionCost(project)
       : emptyProductionCosts();
-  const { yearAmortization, yearInterest } = amortizationInterests;
+  const { yearInterest } = amortizationInterests;
 
-  const totalFinancialExpenses = Object.values(productionCosts.total).map(
-    (yearTotal, idx) => {
-      let financial = 0;
-      if (yearAmortization.length > idx) {
-        financial += yearAmortization[idx] + yearInterest[idx];
-      }
-      return yearTotal + financial;
-    },
+  const totalFinancialExpenses = Object.keys(productionCosts.total).map(
+    (_, idx) => yearInterest[idx] ?? 0,
   );
 
   return {

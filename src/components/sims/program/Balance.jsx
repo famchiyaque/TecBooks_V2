@@ -5,17 +5,13 @@ import useBalance from "@/hooks/sims/project/useBalance";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 import useEffectiveBalanceTotals from "@/sims/project-feasibility/balance/useEffectiveBalanceTotals.js";
 import FixedAssetsTable from "@/components/dashboard/FixedAssetsTable";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 import CurrentActives from "./balance/CurrentActives.jsx";
 import DeferedActives from "./balance/DeferedActives.jsx";
 import Passive from "./balance/Passive.jsx";
 import Equity from "./balance/Equity.jsx";
 
 const CELL_PAD = "px-2 py-2";
-
-function formatCurrency(value) {
-  const num = value || 0;
-  return `$${num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 // Matches the Template Financiero's Balance sheet totals: Total Activo =
 // Activo Circulante + Activo Fijo (neto) + Activo Diferido. Renders the
@@ -28,7 +24,7 @@ const ACTIVES_TOTAL_ROWS = [
   { key: "totalActives", label: "Total Actives" },
 ];
 
-function TotalActives({ project, actives }) {
+function TotalActives({ project, actives, currency }) {
   const cbm = project.cbm;
   const years = cbm.timeline.years;
   const totalsByYear = useEffectiveBalanceTotals(cbm, project.gameId);
@@ -94,7 +90,7 @@ function TotalActives({ project, actives }) {
                     row.key === "totalActives" ? "font-bold" : ""
                   } text-slate-900`}
                 >
-                  {formatCurrency(rowValue(row.key, year))}
+                  {formatCurrency(rowValue(row.key, year), currency)}
                 </TableCell>
               ))}
             </TableRow>
@@ -116,32 +112,33 @@ function TotalActives({ project, actives }) {
   );
 }
 
-function Balance({ project }) {
+function Balance({ project, currency }) {
   const balance = useBalance(project);
 
   return (
     <div className="flex flex-col mt-3 p-3">
       <CollapsibleSection title="CurrentActives" defaultExpanded>
-        <CurrentActives currentActives={balance.actives.currentActives} gameId={project.gameId} />
+        <CurrentActives currentActives={balance.actives.currentActives} gameId={project.gameId} currency={currency} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Fixed Assets" defaultExpanded>
         <FixedAssetsTable
           byCategory={balance.actives?.fixedAssetsByCategory}
           total={balance.actives?.fixedAssets}
+          currency={currency}
         />
       </CollapsibleSection>
 
       <CollapsibleSection title="Defered Actives">
-        <DeferedActives deferedActives={balance.actives?.deferedActives} gameId={project.gameId} />
+        <DeferedActives deferedActives={balance.actives?.deferedActives} gameId={project.gameId} currency={currency} />
       </CollapsibleSection>
 
-      <TotalActives project={project} actives={balance.actives} />
+      <TotalActives project={project} actives={balance.actives} currency={currency} />
 
-      <Passive passives={balance.passives} gameId={project.gameId} />
+      <Passive passives={balance.passives} gameId={project.gameId} currency={currency} />
 
       <CollapsibleSection title="Shareholder's equity">
-        <Equity project={project} />
+        <Equity project={project} currency={currency}/>
       </CollapsibleSection>
     </div>
   );

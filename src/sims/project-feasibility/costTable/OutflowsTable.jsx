@@ -14,7 +14,7 @@ import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
  * (Civil Works, Insurance, Other Expenses) - editable like every other row
  * here, same double-click override pattern.
  */
-function OutflowsTable({ project }) {
+function OutflowsTable({ project, currency }) {
   useTableRowsSync(project.gameId, outflowEditsSlice, 'outflowEdits')
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
@@ -49,6 +49,7 @@ function OutflowsTable({ project }) {
       rows={rows}
       getValue={getValue}
       totalLabel="Total Cash Outflows"
+      currency={currency}
     />
   )
 }

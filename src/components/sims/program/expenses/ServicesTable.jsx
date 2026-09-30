@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import TableContainer from "@/components/global/TableContainer";
 
-export default function ServicesTable({ services }) {
+export default function ServicesTable({ services, currency }) {
   const columns = useMemo(
     () => [
       {
@@ -33,6 +33,7 @@ export default function ServicesTable({ services }) {
       layout="fixed"
       scrollBody
       className="h-full flex-1 min-w-0"
+      currency={currency}
     />
   );
 }

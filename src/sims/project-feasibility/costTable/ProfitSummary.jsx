@@ -13,7 +13,8 @@ import { buildCostOfSales } from './buildCostOfSales'
  * directly inside ProfitSummaryTable's "Total Taxes" breakdown instead.
  * Same underlying calculation as ProjectCostSummary (shares buildCostOfSales).
  */
-function ProfitSummary({ project }) {
+function ProfitSummary({ project, currency }) {
+
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   if (result.error) {
@@ -26,9 +27,9 @@ function ProfitSummary({ project }) {
         From Net Sales through Net Income: operating expenses, financial
         result and taxes - each row editable like the Cost Table.
       </p>
-      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
-      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
-      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} />
+      <OperatingExpensesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
+      <FinancialResultTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
+      <ProfitSummaryTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
     </>
   )
 }

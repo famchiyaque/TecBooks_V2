@@ -7,7 +7,7 @@ import { buildCompetitivePriceRows } from "./income/CompetitivePriceTable";
 import { buildSalesRows } from "./income/SalesTable";
 import { INFLOWS_TOOLTIPS } from "./income/inflowsTooltips";
 
-function Income({ project }) {
+function Income({ project, currency }) {
   const income = useIncome(project);
 
   const years = useMemo(
@@ -77,7 +77,7 @@ function Income({ project }) {
         and how they relate to the unit price of each BOM.
       </p>
 
-      <TableContainer columns={columns} sections={sections} layout="fixed" />
+      <TableContainer columns={columns} sections={sections} layout="fixed" currency={currency} />
     </div>
   );
 }

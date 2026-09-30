@@ -9,7 +9,7 @@ import TableContainer from "@/components/global/TableContainer";
  * @param {Object} amortizationInterests - Object containing amortization/interest data.
  * @returns {JSX.Element} The rendered table.
  */
-function AmortizationInterestTable({ amortizationInterests, baseYear }) {
+function AmortizationInterestTable({ amortizationInterests, baseYear, currency }) {
   const yearCount = amortizationInterests?.yearAmortization?.length ?? 0;
 
   const columns = useMemo(
@@ -48,6 +48,7 @@ function AmortizationInterestTable({ amortizationInterests, baseYear }) {
       title="Amortization & Interest"
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

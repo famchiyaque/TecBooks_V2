@@ -1,11 +1,7 @@
 import React from 'react'
 import { IconButton } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-
-function formatCurrency(value) {
-  const num = Number(value) || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 
 function valueColorClass(value) {
   if (value === undefined || value === null) return 'text-slate-300'
@@ -29,7 +25,7 @@ function valueColorClass(value) {
  * since its operands (Gross Value / Accumulated Depreciation) are already
  * visible rows above.
  */
-function FixedAssetsTable({ byCategory, total }) {
+function FixedAssetsTable({ byCategory, total, currency }) {
   const [expandedRows, setExpandedRows] = React.useState(() => new Set())
 
   const categories = Object.keys(byCategory ?? {})
@@ -82,7 +78,7 @@ function FixedAssetsTable({ byCategory, total }) {
                     <td className="whitespace-nowrap px-2 py-2 font-medium text-slate-700">{category}</td>
                     {years.map((year) => (
                       <td key={year} className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-emerald-700">
-                        {formatCurrency(rowValue(categoryRows, year, 'grossValue'))}
+                        {formatCurrency(rowValue(categoryRows, year, 'grossValue'), currency)}
                       </td>
                     ))}
                   </tr>
@@ -106,7 +102,7 @@ function FixedAssetsTable({ byCategory, total }) {
                     </td>
                     {years.map((year) => (
                       <td key={year} className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-rose-600">
-                        ({formatCurrency(rowValue(categoryRows, year, 'accumulatedDepreciation'))})
+                        ({formatCurrency(rowValue(categoryRows, year, 'accumulatedDepreciation'), currency)})
                       </td>
                     ))}
                   </tr>
@@ -119,7 +115,7 @@ function FixedAssetsTable({ byCategory, total }) {
                             <td className="whitespace-nowrap py-1.5 pl-11 pr-2 text-slate-500">{item.name}</td>
                             {years.map((year) => (
                               <td key={year} className="whitespace-nowrap py-1.5 pr-2 text-right">
-                                <span className="tabular-nums text-emerald-700">{formatCurrency(itemValue(item, year))}</span>
+                                <span className="tabular-nums text-emerald-700">{formatCurrency(itemValue(item, year), currency)}</span>
                               </td>
                             ))}
                           </tr>
@@ -127,7 +123,7 @@ function FixedAssetsTable({ byCategory, total }) {
                             <td className="whitespace-nowrap py-1.5 pl-16 pr-2 text-slate-400">(-) Depreciation</td>
                             {years.map((year) => (
                               <td key={year} className="whitespace-nowrap py-1.5 pr-2 text-right">
-                                <span className="tabular-nums text-rose-500">({formatCurrency(itemDepreciation(item, year))})</span>
+                                <span className="tabular-nums text-rose-500">({formatCurrency(itemDepreciation(item, year), currency)})</span>
                               </td>
                             ))}
                           </tr>
@@ -138,7 +134,7 @@ function FixedAssetsTable({ byCategory, total }) {
                         {years.map((year) => (
                           <td key={year} className="whitespace-nowrap py-1.5 pr-2 text-right">
                             <span className={`tabular-nums ${valueColorClass(-rowValue(categoryRows, year, 'annualDepreciation'))}`}>
-                              ({formatCurrency(rowValue(categoryRows, year, 'annualDepreciation'))})
+                              ({formatCurrency(rowValue(categoryRows, year, 'annualDepreciation'), currency)})
                             </span>
                           </td>
                         ))}
@@ -175,7 +171,7 @@ function FixedAssetsTable({ byCategory, total }) {
               </td>
               {years.map((year) => (
                 <td key={year} className="whitespace-nowrap px-2 py-2 border-t border-slate-300 text-right tabular-nums font-semibold text-slate-900">
-                  {formatCurrency(rowValue(total, year, 'netValue'))}
+                  {formatCurrency(rowValue(total, year, 'netValue'), currency)}
                 </td>
               ))}
             </tr>
