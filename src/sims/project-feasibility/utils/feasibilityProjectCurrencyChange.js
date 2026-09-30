@@ -2,6 +2,7 @@ const feasibilityProjectCurrencyChange = (
     data,
     rate,
 ) => {
+    console.log("DATA: ", data);
     const result = structuredClone(data);
 
     // Exposed on the returned model for downstream consumers that can't
