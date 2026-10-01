@@ -1,4 +1,4 @@
-import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { configureStore, createSlice, createSelector, combineReducers } from "@reduxjs/toolkit";
 import { getBreakEven, getIRR, getNPV, getROI, getEUAC } from '@/utils/sims/investments/Calculators'
 
 const projEvalSlice = createSlice({
@@ -20,7 +20,10 @@ const projEvalSlice = createSlice({
         setLifetime: (state, action) => { state.lifetime = action.payload },
         setInitialInvestment: (state, action) => { state.initialInvestment = action.payload; state.outflows[0] = action.payload; },
         setDiscountRate: (state, action) => { state.discountRate = action.payload },
-        setSalvageValue: (state, action) => { state.salvageValue = action.payload },
+        setSalvageValue: (state, action) => {
+            const parsed = Number(action.payload)
+            state.salvageValue = Number.isFinite(parsed) ? parsed : 0
+        },
         setInflows: (state, action) => { state.inflows = action.payload },
         setOutflows: (state, action) => { state.outflows = action.payload },
         setOrder: (state, action) => { state.order = action.payload },
@@ -33,75 +36,62 @@ export const {
     setSalvageValue, setInflows, setOutflows, setOrder, setCurrProjectIndex
 } = projEvalSlice.actions
 
+export const projEvalReducer = projEvalSlice.reducer
+
+const projEvalRootReducer = combineReducers({ projEval: projEvalReducer })
+
 export const createProjEvalStore = () => configureStore({
-    reducer: { projEval: projEvalSlice.reducer }
+    reducer: projEvalRootReducer
 })
 
-export const getProjectInfo = (state) => {
-    const sp = state.projEval
+export const replaceProjEvalReducer = (store) => {
+    store.replaceReducer(projEvalRootReducer)
+}
 
-    return {
+const selectProjEval = (state) => state.projEval
+const selectLifetime = (state) => state.projEval.lifetime
+const selectInflows = (state) => state.projEval.inflows
+const selectOutflows = (state) => state.projEval.outflows
+const selectDiscountRate = (state) => state.projEval.discountRate
+const selectSalvageValue = (state) => state.projEval.salvageValue ?? 0
+
+export const getProjectInfo = createSelector(
+    [selectProjEval],
+    (sp) => ({
         project: sp.project,
-        lifetime: sp.lifetime, 
+        lifetime: sp.lifetime,
         initialInvestment: sp.initialInvestment,
         discountRate: sp.discountRate,
-        salvageValue: sp.salvageValue,
+        salvageValue: sp.salvageValue ?? 0,
         inflows: sp.inflows,
         outflows: sp.outflows
-    }
-}
-
-export const getCashflows = (state) => {
-    const sp = state.projEval
-
-    return sp.inflows.map((inflow, index) => {
-        return inflow - sp.outflows[index]
     })
-}
+)
 
-export const getResults = (state) => {
-    const sp = state.projEval
+export const getCashflows = createSelector(
+    [selectInflows, selectOutflows],
+    (inflows, outflows) => inflows.map((inflow, index) => inflow - outflows[index])
+)
 
-    const cashflows = getCashflows(state)
+export const getResults = createSelector(
+    [selectLifetime, selectInflows, selectOutflows, selectDiscountRate, selectSalvageValue],
+    (lifetime, inflows, outflows, discountRate, salvageValue) => {
+        const cashflows = inflows.map((inflow, index) => inflow - outflows[index])
+        const breakEven = getBreakEven(lifetime, inflows, outflows)
+        const roi = getROI(inflows, outflows)
+        const npv = getNPV(lifetime, cashflows, discountRate)
+        const irr = getIRR(lifetime, inflows, outflows, npv)
+        const euac = getEUAC(outflows, discountRate, salvageValue)
 
-    const breakEven = getBreakEven(
-        sp.lifetime, 
-        sp.inflows, 
-        sp.outflows,
-    )
-
-    const roi = getROI(
-        sp.inflows,
-        sp.outflows,
-    )
-
-    const npv = getNPV(
-        sp.lifetime,
-        cashflows,
-        sp.discountRate,
-    )
-
-    const irr = getIRR(
-        sp.lifetime,
-        sp.inflows,
-        sp.outflows,
-        npv,
-    )
-
-    const euac = getEUAC(
-        sp.outflows,
-        sp.discountRate,
-        sp.salvageValue ?? 0,
-    )
-
-    return {
-        breakEven: breakEven,
-        roi: roi,
-        npv: npv,
-        irr: irr,
-        euac: euac
+        return {
+            breakEven,
+            roi,
+            npv,
+            irr,
+            euac
+        }
     }
-}
+)
 
 export const referenceProjectHistory = (historyIndex) => (dispatch) => {
     const storedProjHistory = JSON.parse(sessionStorage.getItem("projEvalHistory"));

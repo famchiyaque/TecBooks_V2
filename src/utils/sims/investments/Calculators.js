@@ -95,9 +95,10 @@ export function getEUAC(outflows, discountRate, salvage_value=0) {
     const initialInv = outflows[0]
     const n = outflows.length
     const r = discountRate/100
+    const salvage = Number(salvage_value) || 0
 
     const cpv = getCPV(outflows, r)
-    const npc = initialInv + cpv - salvage_value
+    const npc = initialInv + cpv - salvage
 
     const temp = Math.pow(1 + r, n)
     const crf = r  * (temp/(temp - 1))
