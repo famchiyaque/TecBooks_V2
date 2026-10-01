@@ -72,7 +72,7 @@ function Income({ project, currency }) {
 
   return (
     <div className="flex flex-col mt-3 p-3">
-      <p className="mb-3 text-sm text-slate-500">
+      <p className="mb-3 text-[17.5px] text-slate-500">
         This tab describes inflows by unit: the numbers break down sales
         and how they relate to the unit price of each BOM.
       </p>

@@ -20,8 +20,8 @@ function Stat({ label, value, highlight }) {
         highlight ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50/60"
       }`}
     >
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-0.5 text-[15px] font-semibold text-slate-900 tabular-nums">{value}</p>
+      <p className="text-[15px] text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[19px] font-semibold text-slate-900 tabular-nums">{value}</p>
     </div>
   );
 }
@@ -95,7 +95,7 @@ function BreakEvenSummary({ project, currency }) {
 
   return (
     <Box>
-      <p className="mb-3 text-sm text-slate-500">
+      <p className="mb-3 text-[17.5px] text-slate-500">
         Break-even for {row.year}, this project's first year: fixed costs,
         variable cost per unit and the sales volume/revenue needed to cover
         them (plus your desired profit target).

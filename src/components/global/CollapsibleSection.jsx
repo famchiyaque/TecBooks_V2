@@ -18,7 +18,7 @@ function CollapsibleSection({ title, tooltip, defaultExpanded = false, children 
       }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(7, 58, 90, 0.03)' }}>
-        <Typography sx={{ fontWeight: 700, color: '#073a5a', display: 'inline-flex', alignItems: 'center' }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 20, color: '#073a5a', display: 'inline-flex', alignItems: 'center' }}>
           {title}
           <InfoTooltip title={tooltip} />
         </Typography>

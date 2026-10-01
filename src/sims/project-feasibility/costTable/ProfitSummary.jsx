@@ -23,7 +23,7 @@ function ProfitSummary({ project, currency }) {
 
   return (
     <>
-      <p className="mb-3 text-sm text-slate-500">
+      <p className="mb-3 text-[17.5px] text-slate-500">
         From Net Sales through Net Income: operating expenses, financial
         result and taxes - each row editable like the Cost Table.
       </p>

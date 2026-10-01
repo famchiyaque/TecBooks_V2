@@ -184,7 +184,7 @@ function TableHeader({ columns, cellPad, scrollBody, applyColWidth }) {
             scope="col"
             className={
               cellPad +
-              " whitespace-nowrap text-[13px] font-medium text-slate-500 " +
+              " whitespace-nowrap text-[16px] font-medium text-slate-500 " +
               (col.align === "right" ? "text-right" : "text-left")
             }
             style={
@@ -408,13 +408,13 @@ export default function TableContainer({
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
           <div>
             {title && (
-              <h3 className="inline-flex items-center text-[15px] font-semibold text-slate-900">
+              <h3 className="inline-flex items-center text-[19px] font-semibold text-slate-900">
                 {title}
                 <InfoTooltip title={titleTooltip} />
               </h3>
             )}
             {subtitle && (
-              <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>
+              <p className="mt-0.5 text-[17.5px] text-slate-500">{subtitle}</p>
             )}
           </div>
           {actions && (
@@ -431,7 +431,7 @@ export default function TableContainer({
         >
           <table
             ref={measureRef}
-            className="min-w-max border-collapse text-sm"
+            className="min-w-max border-collapse text-[17.5px]"
           >
             <TableHeader
               columns={columns}
@@ -464,7 +464,7 @@ export default function TableContainer({
       >
         <table
           className={
-            "border-collapse text-sm " +
+            "border-collapse text-[17.5px] " +
             (isFixed || colWidths ? "table-fixed " : "min-w-max ") +
             (tableWidth ? "" : "w-full")
           }
@@ -506,7 +506,7 @@ export default function TableContainer({
                           " flex w-full items-center justify-between gap-4 bg-slate-50/80 text-left hover:bg-slate-50"
                         }
                       >
-                        <span className="inline-flex items-center text-[15px] font-semibold text-slate-900">
+                        <span className="inline-flex items-center text-[19px] font-semibold text-slate-900">
                           {section.title}
                           <InfoTooltip title={section.titleTooltip} />
                         </span>
@@ -542,7 +542,7 @@ function emptyRows(emptyLabel, columns, cellPad, endBorder = false) {
     <tr className={endBorder ? "border-b-[3px] border-slate-400" : ""}>
       <td
         colSpan={columns.length}
-        className={cellPad + " text-center text-sm text-slate-400"}
+        className={cellPad + " text-center text-[17.5px] text-slate-400"}
       >
         {emptyLabel}
       </td>

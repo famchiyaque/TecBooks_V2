@@ -36,7 +36,7 @@ function ProjectDropzone() {
       }}
     >
       <input {...getInputProps()} />
-      <Typography sx={{ color: '#073a5a' }}>
+      <Typography sx={{ fontSize: 20, color: '#073a5a' }}>
         {isParsing
           ? 'Reading Excel…'
           : isDragActive

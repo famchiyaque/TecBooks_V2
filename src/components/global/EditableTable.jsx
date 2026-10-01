@@ -164,23 +164,23 @@ function EditableTable({
     <section className="mt-3 rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
       {title && (
         <div className="border-b border-slate-100 px-6 py-4">
-          <h3 className="text-[15px] font-semibold text-slate-900">{title}</h3>
+          <h3 className="text-[19px] font-semibold text-slate-900">{title}</h3>
         </div>
       )}
 
       <div className="overflow-x-auto">
-        <Table size="small" className="w-full border-collapse text-xs">
+        <Table size="small" className="w-full border-collapse text-[15px]">
           <TableHead>
             <TableRow className="border-b border-slate-200 bg-slate-50/60">
               <TableCell sx={{ width: 64 }} />
-              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}>
+              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[14px] font-medium text-slate-500`}>
                 Concept
               </TableCell>
               {columns.map(({ key, label }) => (
                 <TableCell
                   key={key}
                   align="right"
-                  className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}
+                  className={`${CELL_PAD} whitespace-nowrap text-[14px] font-medium text-slate-500`}
                 >
                   {label}
                 </TableCell>

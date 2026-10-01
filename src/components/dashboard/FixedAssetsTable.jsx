@@ -51,16 +51,16 @@ function FixedAssetsTable({ byCategory, total, currency }) {
   return (
     <section className="mt-3 rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
       <div className="border-b border-slate-100 px-6 py-4">
-        <h3 className="text-[15px] font-semibold text-slate-900">Fixed Assets</h3>
+        <h3 className="text-[19px] font-semibold text-slate-900">Fixed Assets</h3>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-xs">
+        <table className="w-full border-collapse text-[15px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/60">
-              <th className="whitespace-nowrap px-2 py-2 text-left text-[11px] font-medium text-slate-500">Concept</th>
+              <th className="whitespace-nowrap px-2 py-2 text-left text-[14px] font-medium text-slate-500">Concept</th>
               {years.map((year) => (
-                <th key={year} className="whitespace-nowrap px-2 py-2 text-right text-[11px] font-medium text-slate-500">
+                <th key={year} className="whitespace-nowrap px-2 py-2 text-right text-[14px] font-medium text-slate-500">
                   {year}
                 </th>
               ))}
