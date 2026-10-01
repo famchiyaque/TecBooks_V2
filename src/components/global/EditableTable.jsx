@@ -12,6 +12,11 @@ import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 // TableContainer doesn't support.
 const CELL_PAD = 'px-2 py-2'
 
+// Kill switch for the add-row/edit-value UI across every table that uses
+// EditableTable. Flip back to true to restore - no other change needed,
+// Redux slice / useTableRowsSync / row_table persistence are untouched.
+const ROWS_EDITABLE = false
+
 // Full figure, rounded only to cents (2 decimals) - no K/M abbreviation,
 // that throws away real precision on values like 1996263.45414.
 function defaultFormat(value, currency) {
@@ -68,8 +73,8 @@ function EditableValueCell({ value, onCommit, formatValue, currency }) {
   return (
     <TableCell
       align="right"
-      onDoubleClick={startEditing}
-      className={`${CELL_PAD} whitespace-nowrap cursor-text`}
+      onDoubleClick={ROWS_EDITABLE ? startEditing : undefined}
+      className={`${CELL_PAD} whitespace-nowrap ${ROWS_EDITABLE ? 'cursor-text' : ''}`}
     >
       <span className={`tabular-nums ${valueColorClass(value)}`}>{formatValue(value, currency)}</span>
     </TableCell>
@@ -110,8 +115,8 @@ function EditableLabelCell({ label, onCommit }) {
 
   return (
     <TableCell
-      onDoubleClick={startEditing}
-      className={`${CELL_PAD} whitespace-nowrap cursor-text font-medium text-slate-700`}
+      onDoubleClick={ROWS_EDITABLE ? startEditing : undefined}
+      className={`${CELL_PAD} whitespace-nowrap ${ROWS_EDITABLE ? 'cursor-text' : ''} font-medium text-slate-700`}
     >
       {label}
     </TableCell>
@@ -194,14 +199,16 @@ function EditableTable({
                 className={`group transition-colors hover:bg-slate-50/60 ${rowIndex % 2 === 1 ? 'bg-slate-50/30' : ''}`}
               >
                 <TableCell align="right" className={CELL_PAD}>
-                  <IconButton
-                    size="small"
-                    aria-label="add row"
-                    onClick={() => dispatch(slice.actions.addCustomRow())}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
+                  {ROWS_EDITABLE && (
+                    <IconButton
+                      size="small"
+                      aria-label="add row"
+                      onClick={() => dispatch(slice.actions.addCustomRow())}
+                      className="opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </TableCell>
                 <TableCell className={`${CELL_PAD} whitespace-nowrap text-slate-700`}>{row.label}</TableCell>
                 {columns.map(({ key: columnKey }) => (
@@ -219,22 +226,26 @@ function EditableTable({
             {customRows.map((customRow) => (
               <TableRow key={customRow.id} className="group transition-colors hover:bg-slate-50/60">
                 <TableCell align="right" className={`${CELL_PAD} whitespace-nowrap`}>
-                  <IconButton
-                    size="small"
-                    aria-label="add row"
-                    onClick={() => dispatch(slice.actions.addCustomRow())}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    aria-label="delete row"
-                    onClick={() => dispatch(slice.actions.removeCustomRow(customRow.id))}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <DeleteOutline fontSize="small" />
-                  </IconButton>
+                  {ROWS_EDITABLE && (
+                    <>
+                      <IconButton
+                        size="small"
+                        aria-label="add row"
+                        onClick={() => dispatch(slice.actions.addCustomRow())}
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <AddIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        aria-label="delete row"
+                        onClick={() => dispatch(slice.actions.removeCustomRow(customRow.id))}
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <DeleteOutline fontSize="small" />
+                      </IconButton>
+                    </>
+                  )}
                 </TableCell>
                 <EditableLabelCell
                   label={customRow.label}
@@ -257,13 +268,15 @@ function EditableTable({
             {rows.length === 0 && customRows.length === 0 && (
               <TableRow>
                 <TableCell align="right" className={CELL_PAD}>
-                  <IconButton
-                    size="small"
-                    aria-label="add row"
-                    onClick={() => dispatch(slice.actions.addCustomRow())}
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
+                  {ROWS_EDITABLE && (
+                    <IconButton
+                      size="small"
+                      aria-label="add row"
+                      onClick={() => dispatch(slice.actions.addCustomRow())}
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </TableCell>
                 <TableCell colSpan={columns.length + 1} className={`${CELL_PAD} whitespace-nowrap italic text-slate-400`}>
                   No rows yet
