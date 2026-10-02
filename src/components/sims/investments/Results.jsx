@@ -1,9 +1,6 @@
-import React, { use } from 'react'
 import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
 import EditNoteIcon from '@mui/icons-material/EditNote'
-import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
+import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt'
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt'
 import { useSelector } from 'react-redux'
 import { getProjectInfo, getResults } from '@/store/project-evaluation.store'
@@ -12,6 +9,7 @@ function Results() {
   const projectInfo = useSelector(getProjectInfo)
   const results = useSelector(getResults)
   const { breakEven, roi, npv, irr, euac } = results
+  const accepted = irr > projectInfo.discountRate
 
   const addResultsToHistory = () => {
     const storedHistory = sessionStorage.getItem("projEvalHistory");
@@ -36,73 +34,59 @@ function Results() {
   };
 
   return (
-    <>
-      <div className='results-papers-div'>
-        <div>
-          <Typography variant='subtitle2'>Payback</Typography>
-          <Paper elevation={0} className='paper-flex' style={{ backgroundColor: "transparent" }}>
-            <Typography variant='h4' gutterBottom>
-                {breakEven == null ? "X" : breakEven}
-            </Typography>
-            <p className='box-p'>years</p>
-          </Paper>
+    <div className="flex flex-col gap-4 px-4 py-3">
+      <div className="flex justify-around items-end">
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-sm text-gray-500">Payback</p>
+          <p className="flex items-baseline gap-1">
+            <span className="text-3xl">{breakEven == null ? "X" : breakEven}</span>
+            <span className="text-sm text-gray-500">years</span>
+          </p>
         </div>
 
-        <div>
-          <Typography variant='subtitle2'>ROI</Typography>
-          <Paper elevation={0} className='paper-flex' style={{ backgroundColor: "transparent" }}>
-            <Typography variant='h4' gutterBottom>
-                {roi == null ? "X" : roi}
-            </Typography>
-            <p className='box-p'>%</p>
-          </Paper>
-        </div>
-
-        <div>
-          <Typography variant='subtitle2'>IRR</Typography>
-          <Paper elevation={0} className='paper-flex' style={{ backgroundColor: "transparent" }}>
-            <Typography variant='h4' gutterBottom>
-                {irr == 0.0 ? 'X' : irr}
-            </Typography>
-            <p className='box-p'>%</p>
-          </Paper>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-sm text-gray-500">ROI</p>
+          <p className="flex items-baseline gap-1">
+            <span className="text-3xl">{roi == null ? "X" : roi}</span>
+            <span className="text-sm text-gray-500">%</span>
+          </p>
         </div>
       </div>
 
-      <div className='irr-compare-flex'>
-          <div>
-            <Typography variant='subtitle2'>NPV</Typography>
-            <Paper elevation={0} className='paper-flex' style={{ backgroundColor: "transparent" }}>
-              <p className='box-p' style={{ color: `${npv > 0 ? 'green' : 'red'}`}}>$</p>
-              <Typography variant='h4' gutterBottom>
-                 {npv}
-              </Typography>
-            </Paper>
-          </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-between items-baseline">
+          <span>NPV</span>
+          <span className={npv > 0 ? "text-3xl text-green-600" : "text-3xl text-red-600"}>${npv}</span>
+        </div>
+        <div className="flex justify-between items-baseline">
+          <span>EUAC</span>
+          <span className="text-3xl">${euac}</span>
+        </div>
+        <div className="flex justify-between items-baseline">
+          <span>IRR</span>
+          <span className="text-3xl">{irr == 0.0 ? "X" : `${irr}%`}</span>
+        </div>
+      </div>
 
-        {(irr > (projectInfo.discountRate)) ? (
-            <ThumbUpAltIcon style={{ height: '50px', width: '50px', color: 'green' }} />
+      <div className="flex justify-center">
+        <div className="flex w-full max-w-sm justify-around items-center">
+          {accepted ? (
+            <ThumbUpAltIcon className="!h-12 !w-12 !text-green-600" />
           ) : (
-            <ThumbDownAltIcon style={{ height: '50px', width: '50px', color: 'red' }} />
+            <ThumbDownAltIcon className="!h-12 !w-12 !text-red-600" />
           )}
+          <p className={accepted ? "text-green-600" : "text-red-600"}>
+            {accepted ? "The project is accepted" : "The project is not accepted"}
+          </p>
+        </div>
       </div>
 
-      <div>
-            <Typography variant='subtitle2'>EUAC</Typography>
-            <Paper elevation={0} style={{ backgroundColor: "transparent" }}>
-            <p className='box-p' style={{ color: `${npv > 0 ? 'green' : 'red'}`}}>$</p>
-              <Typography variant='h4' gutterBottom>
-                 {euac}
-              </Typography>
-            </Paper>
-          </div>
-
-      <Button variant='outlined' size='medium' onClick={addResultsToHistory}>
+      <Button variant="outlined" size="medium" onClick={addResultsToHistory}>
         Record Project&nbsp;
         <EditNoteIcon />
       </Button>
-    </>
-    )
+    </div>
+  )
 }
 
 export default Results
