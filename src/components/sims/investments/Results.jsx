@@ -11,7 +11,7 @@ import { getProjectInfo, getResults } from '@/store/project-evaluation.store'
 function Results() {
   const projectInfo = useSelector(getProjectInfo)
   const results = useSelector(getResults)
-  const { breakEven, roi, npv, irr } = results
+  const { breakEven, roi, npv, irr, euac } = results
 
   const addResultsToHistory = () => {
     const storedHistory = sessionStorage.getItem("projEvalHistory");
@@ -70,7 +70,7 @@ function Results() {
       </div>
 
       <div className='irr-compare-flex'>
-        <div>
+          <div>
             <Typography variant='subtitle2'>NPV</Typography>
             <Paper elevation={0} className='paper-flex' style={{ backgroundColor: "transparent" }}>
               <p className='box-p' style={{ color: `${npv > 0 ? 'green' : 'red'}`}}>$</p>
@@ -86,6 +86,16 @@ function Results() {
             <ThumbDownAltIcon style={{ height: '50px', width: '50px', color: 'red' }} />
           )}
       </div>
+
+      <div>
+            <Typography variant='subtitle2'>EUAC</Typography>
+            <Paper elevation={0} style={{ backgroundColor: "transparent" }}>
+            <p className='box-p' style={{ color: `${npv > 0 ? 'green' : 'red'}`}}>$</p>
+              <Typography variant='h4' gutterBottom>
+                 {euac}
+              </Typography>
+            </Paper>
+          </div>
 
       <Button variant='outlined' size='medium' onClick={addResultsToHistory}>
         Record Project&nbsp;

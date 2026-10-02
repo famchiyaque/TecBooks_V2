@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import BasicInput from './Inputs/BasicInput'
 import TableInput from './Inputs/TableInput'
-import { getProjectInfo, setDiscountRate, setInflows, setInitialInvestment, setLifetime, setOutflows, setProject } from '@/store/project-evaluation.store'
+import { getProjectInfo, setDiscountRate, setInflows, setInitialInvestment, setLifetime, setOutflows, setProject, setSalvageValue } from '@/store/project-evaluation.store'
 import { useDispatch, useSelector } from 'react-redux'
 import IconButton from '@mui/material/IconButton'
 import CopyAllIcon from '@mui/icons-material/CopyAll'
@@ -14,7 +14,7 @@ function InputSection() {
 
   const { 
     project, lifetime, initialInvestment,
-    discountRate, inflows, outflows
+    discountRate, salvageValue, inflows, outflows
    } = useSelector(getProjectInfo)
 
   const setProjectCallback = (val) => dispatch(setProject(val))
@@ -36,6 +36,7 @@ function InputSection() {
   const setDiscountRateCallback = (val) => dispatch(setDiscountRate(val))
   const setInflowsCallback = (val) => dispatch(setInflows(val))
   const setOutflowsCallback = (val) => dispatch(setOutflows(val))
+  const setSalvageValueCallback = (val) => dispatch(setSalvageValue(val))
 
   const basicInputs = [
     {
@@ -62,6 +63,12 @@ function InputSection() {
       func: setDiscountRateCallback,
       value: discountRate
     },
+    {
+      name: 'Salvage Value',
+      size: 18,
+      func: setSalvageValueCallback,
+      value: salvageValue
+    }
   ]
 
   const tableInputs = [

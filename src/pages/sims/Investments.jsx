@@ -10,7 +10,7 @@ import '@/styles/investments.css'
 import GenericHeader from '@/components/global/GenericHeader'
 import GenericSubheader from '@/components/global/GenericSubheader'
 import Divider from '@mui/material/Divider'
-import { createProjEvalStore } from '@/store/project-evaluation.store'
+import { createProjEvalStore, replaceProjEvalReducer } from '@/store/project-evaluation.store'
 
 function InvestmentsSimContent() {
   useEffect(() => {
@@ -51,6 +51,10 @@ function InvestmentsSimContent() {
  */
 function InvestmentsSim() {
   const [store] = useState(() => createProjEvalStore())
+
+  useEffect(() => {
+    replaceProjEvalReducer(store)
+  }, [store, replaceProjEvalReducer])
 
   return (
     <Provider store={store}>
