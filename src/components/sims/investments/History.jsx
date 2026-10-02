@@ -11,11 +11,11 @@ import IconButton from '@mui/material/IconButton'
 import ClearAllIcon from '@mui/icons-material/ClearAll'
 import { useSelector, useDispatch } from 'react-redux'
 import { referenceProjectHistory } from '@/store/project-evaluation.store'
-import { getBreakEven, getIRR, getNPV, getROI } from '@/utils/sims/investments/Calculators'
+import { getBreakEven, getIRR, getNPV, getROI, getEUAC } from '@/utils/sims/investments/Calculators'
 
 const EXAMPLE_PROJECTS = [
   {
-    project: 'solar farm',
+    project: 'Project A',
     lifetime: 5,
     initialInvestment: 80000,
     discountRate: 8,
@@ -24,7 +24,7 @@ const EXAMPLE_PROJECTS = [
     outflows: [80000, 4000, 4000, 5000, 5000, 6000],
   },
   {
-    project: 'retail expansion',
+    project: 'Project B',
     lifetime: 4,
     initialInvestment: 50000,
     discountRate: 12,
@@ -35,17 +35,18 @@ const EXAMPLE_PROJECTS = [
 ]
 
 function buildHistoryEntry(index, projectInfo) {
+  console.log("project Info: ", projectInfo)
   const cashflows = projectInfo.inflows.map((inflow, i) => inflow - projectInfo.outflows[i])
   const npv = getNPV(cashflows, projectInfo.discountRate)
+  const euac = getEUAC(projectInfo.outflows, projectInfo.discountRate, projectInfo.salvage_value)
 
   return {
     index,
     projectInfo,
     results: {
-      breakEven: getBreakEven(projectInfo.inflows, projectInfo.outflows),
-      roi: getROI(projectInfo.inflows, projectInfo.outflows),
       npv,
       irr: getIRR(projectInfo.inflows, projectInfo.outflows, npv),
+      euac,
     },
   }
 }
@@ -105,10 +106,9 @@ function History() {
         <TableHead>
           <TableRow>
             <TableCell align="left" style={{  padding: '0.2rem 0 0.2rem 1rem'}}>Name</TableCell>
-            <TableCell align="center" style={{  padding: '0'}}>BE</TableCell>
-            <TableCell align="center" style={{  padding: '0'}}>ROI</TableCell>
             <TableCell align="center" style={{  padding: '0'}}>NPV</TableCell>
             <TableCell align="center" style={{  padding: '0'}}>IRR</TableCell>
+            <TableCell align="center" style={{  padding: '0'}}>EUAC</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -126,10 +126,9 @@ function History() {
               <TableCell component="th" scope="row" align="left">
                 {proj.projectInfo.project}
               </TableCell>
-              <TableCell align="right">{proj.results.breakEven} years</TableCell>
-              <TableCell align="right">{proj.results.roi}%</TableCell>
               <TableCell align="right">${proj.results.npv}</TableCell>
               <TableCell align="right">{proj.results.irr}%</TableCell>
+              <TableCell align="right">${proj.results.euac}</TableCell>
               <TableCell align="center" sx={{ padding: '0' }}>
                 <IconButton 
                   onClick={(e) => {

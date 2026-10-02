@@ -59,12 +59,12 @@ function Results() {
           <span className={npv > 0 ? "text-3xl text-green-600" : "text-3xl text-red-600"}>${npv}</span>
         </div>
         <div className="flex justify-between items-baseline">
-          <span>EUAC</span>
-          <span className="text-3xl">${euac}</span>
-        </div>
-        <div className="flex justify-between items-baseline">
           <span>IRR</span>
           <span className="text-3xl">{irr == 0.0 ? "X" : `${irr}%`}</span>
+        </div>
+        <div className="flex justify-between items-baseline">
+          <span>EUAC</span>
+          <span className="text-3xl">${euac}</span>
         </div>
       </div>
 
