@@ -1,12 +1,20 @@
 import { configureStore, createSlice, createSelector, combineReducers } from "@reduxjs/toolkit";
 import { getBreakEven, getIRR, getNPV, getROI, getEUAC } from '@/utils/sims/investments/Calculators'
 
+// lifetime is operating years after year 0. Cash-flow arrays keep year 0 at index 0.
+function resizeFlows(arr, length) {
+    const source = Array.isArray(arr) ? arr : []
+    if (source.length === length) return source
+    if (source.length > length) return source.slice(0, length)
+    return [...source, ...Array(length - source.length).fill(0)]
+}
+
 const projEvalSlice = createSlice({
     name: 'projEval', 
     initialState: {
         // define initial states
         project: 'production line',
-        lifetime: 6,
+        lifetime: 5,
         initialInvestment: 100000,
         discountRate: 10.0,
         salvageValue: 0,
@@ -17,7 +25,16 @@ const projEvalSlice = createSlice({
     },
     reducers: {
         setProject: (state, action) => { state.project = action.payload },
-        setLifetime: (state, action) => { state.lifetime = action.payload },
+        setLifetime: (state, action) => {
+            const parsed = Number(action.payload)
+            const lifetime = Number.isFinite(parsed)
+                ? Math.min(20, Math.max(0, Math.trunc(parsed)))
+                : 0
+            state.lifetime = lifetime
+            const periods = lifetime + 1
+            state.inflows = resizeFlows(state.inflows, periods)
+            state.outflows = resizeFlows(state.outflows, periods)
+        },
         setInitialInvestment: (state, action) => { state.initialInvestment = action.payload; state.outflows[0] = action.payload; },
         setDiscountRate: (state, action) => { state.discountRate = action.payload },
         setSalvageValue: (state, action) => {
@@ -49,7 +66,6 @@ export const replaceProjEvalReducer = (store) => {
 }
 
 const selectProjEval = (state) => state.projEval
-const selectLifetime = (state) => state.projEval.lifetime
 const selectInflows = (state) => state.projEval.inflows
 const selectOutflows = (state) => state.projEval.outflows
 const selectDiscountRate = (state) => state.projEval.discountRate
@@ -74,13 +90,13 @@ export const getCashflows = createSelector(
 )
 
 export const getResults = createSelector(
-    [selectLifetime, selectInflows, selectOutflows, selectDiscountRate, selectSalvageValue],
-    (lifetime, inflows, outflows, discountRate, salvageValue) => {
+    [selectInflows, selectOutflows, selectDiscountRate, selectSalvageValue],
+    (inflows, outflows, discountRate, salvageValue) => {
         const cashflows = inflows.map((inflow, index) => inflow - outflows[index])
-        const breakEven = getBreakEven(lifetime, inflows, outflows)
+        const breakEven = getBreakEven(inflows, outflows)
         const roi = getROI(inflows, outflows)
-        const npv = getNPV(lifetime, cashflows, discountRate)
-        const irr = getIRR(lifetime, inflows, outflows, npv)
+        const npv = getNPV(cashflows, discountRate)
+        const irr = getIRR(inflows, outflows, npv)
         const euac = getEUAC(outflows, discountRate, salvageValue)
 
         return {
@@ -101,10 +117,11 @@ export const referenceProjectHistory = (historyIndex) => (dispatch) => {
   
     dispatch(setCurrProjectIndex(historyIndex));
     dispatch(setProject(proj.project));
-    dispatch(setLifetime(proj.lifetime));
     dispatch(setInitialInvestment(proj.initialInvestment));
     dispatch(setDiscountRate(proj.discountRate));
     dispatch(setSalvageValue(proj.salvageValue ?? proj.salvage_value ?? 0));
     dispatch(setInflows(proj.inflows));
     dispatch(setOutflows(proj.outflows));
+    const operatingYears = Array.isArray(proj.inflows) ? proj.inflows.length - 1 : 0
+    dispatch(setLifetime(operatingYears));
   };

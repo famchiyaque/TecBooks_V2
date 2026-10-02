@@ -19,18 +19,8 @@ function InputSection() {
 
   const setProjectCallback = (val) => dispatch(setProject(val))
   const setLifetimeCallback = (val) => {
-    // ensure val is a number
     const newLifetime = typeof val === 'string' && val === '' ? 0 : Number(val);
-  
     dispatch(setLifetime(newLifetime));
-  
-    const resizeArray = (arr, length) => {
-      if (arr.length > length) return arr.slice(0, length); // truncate
-      else return [...arr, ...Array(length - arr.length).fill(0)]; // append zeros
-    };
-  
-    dispatch(setInflows(resizeArray(inflows, newLifetime)));
-    dispatch(setOutflows(resizeArray(outflows, newLifetime)));
   };  
   const setInitialInvCallback = (val) => dispatch(setInitialInvestment(val))
   const setDiscountRateCallback = (val) => dispatch(setDiscountRate(val))
@@ -38,8 +28,7 @@ function InputSection() {
   const setOutflowsCallback = (val) => dispatch(setOutflows(val))
   const setSalvageValueCallback = (val) => dispatch(setSalvageValue(val))
 
-  const futureYear = new Date().getFullYear() + lifetime
-  console.log("future year: ", futureYear)
+  const futureYear = new Date().getFullYear() - 1 + lifetime
 
   const basicInputs = [
     {
@@ -103,6 +92,7 @@ function InputSection() {
       if (parsed.inflows && parsed.outflows) {
         dispatch(setInflows(parsed.inflows));
         dispatch(setOutflows(parsed.outflows));
+        dispatch(setLifetime(parsed.inflows.length - 1));
       }
     } catch (err) {
       console.error("Failed to paste flows:", err);
@@ -110,23 +100,11 @@ function InputSection() {
   };
 
   const addFlowColumn = () => {
-    const newLifetime = lifetime + 1 <= 20 ? lifetime + 1 : 20;
-    const newInflows = [...inflows, 0];
-    const newOutflows = [...outflows, 0];
-
-    dispatch(setLifetime(newLifetime));
-    dispatch(setInflows(newInflows));
-    dispatch(setOutflows(newOutflows));
+    dispatch(setLifetime(lifetime + 1));
   };
 
   const removeFlowColumn = () => {
-    const newLifetime = lifetime - 1 >= 0 ? lifetime - 1 : 0
-    const newInflows = inflows.slice(0, -1);
-    const newOutflows = outflows.slice(0, -1);
-
-    dispatch(setLifetime(newLifetime));
-    dispatch(setInflows(newInflows));
-    dispatch(setOutflows(newOutflows));
+    dispatch(setLifetime(lifetime - 1));
   }
 
   return (
@@ -186,7 +164,7 @@ function InputSection() {
             <div className='min-w-max'>
 
               <div className='flex pl-[1rem]'>
-                {Array.from({ length: lifetime }, (_, i) => {
+                {Array.from({ length: inflows.length }, (_, i) => {
                   const year = new Date().getFullYear() - 1 + i;
                   return (
                     <div key={i} className="italic text-gray-500 text-sm w-[6.1rem] flex-shrink-0">
@@ -198,7 +176,7 @@ function InputSection() {
 
                 <div className='w-[100%] flex flex-col'>
                   {tableInputs.map((input, idx) => (
-                    <TableInput func={input.func} flows={input.value} name={input.name} />
+                    <TableInput func={input.func} flows={input.value} name={input.name} key={idx} />
                   ))}
                 </div>
 

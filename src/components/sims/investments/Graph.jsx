@@ -6,7 +6,6 @@ function Graph() {
   const canvasRef = useRef(null)
 
   const project = useSelector((state) => state.projEval.project)
-  const lifetime = useSelector((state) => state.projEval.lifetime)
   const inflows = useSelector((state) => state.projEval.inflows)
   const outflows = useSelector((state) => state.projEval.outflows)
   const order = useSelector((state) => state.projEval.order)
@@ -16,7 +15,7 @@ function Graph() {
     const year = new Date().getFullYear() - 1
     const firstYear = year.toString()
     let labels = [firstYear]
-    for (let i = 1; i < lifetime; i++) {
+    for (let i = 1; i < inflows.length; i++) {
       labels.push((year + i).toString())
     }
 
@@ -93,7 +92,7 @@ function Graph() {
     const chart = new Chart(ctx, config)
 
     return () => chart.destroy()
-  }, [lifetime, project, inflows, outflows, order])
+  }, [project, inflows, outflows, order])
 
   return (
     <div style={{ width: "90%", height: "100%", margin: "0 auto" }}>

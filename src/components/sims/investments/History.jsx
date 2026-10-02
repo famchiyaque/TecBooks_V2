@@ -16,7 +16,7 @@ import { getBreakEven, getIRR, getNPV, getROI } from '@/utils/sims/investments/C
 const EXAMPLE_PROJECTS = [
   {
     project: 'solar farm',
-    lifetime: 6,
+    lifetime: 5,
     initialInvestment: 80000,
     discountRate: 8,
     salvageValue: 10000,
@@ -25,7 +25,7 @@ const EXAMPLE_PROJECTS = [
   },
   {
     project: 'retail expansion',
-    lifetime: 5,
+    lifetime: 4,
     initialInvestment: 50000,
     discountRate: 12,
     salvageValue: 5000,
@@ -36,16 +36,16 @@ const EXAMPLE_PROJECTS = [
 
 function buildHistoryEntry(index, projectInfo) {
   const cashflows = projectInfo.inflows.map((inflow, i) => inflow - projectInfo.outflows[i])
-  const npv = getNPV(projectInfo.lifetime, cashflows, projectInfo.discountRate)
+  const npv = getNPV(cashflows, projectInfo.discountRate)
 
   return {
     index,
     projectInfo,
     results: {
-      breakEven: getBreakEven(projectInfo.lifetime, projectInfo.inflows, projectInfo.outflows),
+      breakEven: getBreakEven(projectInfo.inflows, projectInfo.outflows),
       roi: getROI(projectInfo.inflows, projectInfo.outflows),
       npv,
-      irr: getIRR(projectInfo.lifetime, projectInfo.inflows, projectInfo.outflows, npv),
+      irr: getIRR(projectInfo.inflows, projectInfo.outflows, npv),
     },
   }
 }
