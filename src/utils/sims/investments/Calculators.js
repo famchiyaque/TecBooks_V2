@@ -10,10 +10,10 @@ export function getBreakEven(inflows, outflows) {
     }
 }
 
-export function getROI(inflows, outflows) {
-    const benefits = inflows.reduce((prev, curr) => prev + curr, 0)
-    const costs = outflows.reduce((prev, curr) => prev + curr, 0)
-    const roi = ((benefits - costs) / costs) * 100
+export function getROI(cashflows) {
+    const inv = Math.abs(cashflows[0])
+    const net = cashflows.reduce((prev, curr) => prev + curr, 0) + inv
+    const roi = ((net - inv)/inv)*100
     return parseFloat(roi.toFixed(1))
 }
 

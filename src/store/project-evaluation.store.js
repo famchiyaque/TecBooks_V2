@@ -94,7 +94,7 @@ export const getResults = createSelector(
     (inflows, outflows, discountRate, salvageValue) => {
         const cashflows = inflows.map((inflow, index) => inflow - outflows[index])
         const breakEven = getBreakEven(inflows, outflows)
-        const roi = getROI(inflows, outflows)
+        const roi = getROI(cashflows)
         const npv = getNPV(cashflows, discountRate)
         const irr = getIRR(inflows, outflows, npv)
         const euac = getEUAC(outflows, discountRate, salvageValue)

@@ -39,7 +39,7 @@ function Results() {
     <>
       <div className='results-papers-div'>
         <div>
-          <Typography variant='subtitle2'>Break Even</Typography>
+          <Typography variant='subtitle2'>Payback</Typography>
           <Paper elevation={0} className='paper-flex' style={{ backgroundColor: "transparent" }}>
             <Typography variant='h4' gutterBottom>
                 {breakEven == null ? "X" : breakEven}
