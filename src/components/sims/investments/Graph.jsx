@@ -13,7 +13,7 @@ function Graph() {
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext('2d')
-    const year = new Date().getFullYear()
+    const year = new Date().getFullYear() - 1
     const firstYear = year.toString()
     let labels = [firstYear]
     for (let i = 1; i < lifetime; i++) {

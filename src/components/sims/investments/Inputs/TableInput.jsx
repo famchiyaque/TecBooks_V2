@@ -2,7 +2,6 @@ import React from 'react'
 import StyledWrapper from './StyledWrapper'
 
 function TableInput({ func, flows, name }) {
-    console.log("printing name: ", name)
 
     const callbackSecurity = (e, index) => {
         const newValue = e.target.value.replace(/\$/g, '')

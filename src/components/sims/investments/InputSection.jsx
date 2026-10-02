@@ -38,6 +38,9 @@ function InputSection() {
   const setOutflowsCallback = (val) => dispatch(setOutflows(val))
   const setSalvageValueCallback = (val) => dispatch(setSalvageValue(val))
 
+  const futureYear = new Date().getFullYear() + lifetime
+  console.log("future year: ", futureYear)
+
   const basicInputs = [
     {
       name: 'Project',
@@ -46,8 +49,8 @@ function InputSection() {
       value: project
     },
     {
-      name: 'Lifetime',
-      size: 10,
+      name: 'Lifetime (yrs)',
+      size: 12,
       func: setLifetimeCallback,
       value: lifetime
     },
@@ -58,14 +61,14 @@ function InputSection() {
       value: initialInvestment
     },
     {
-      name: 'Discount Rate',
-      size: 13,
+      name: 'Discount Rate (%)',
+      size: 16,
       func: setDiscountRateCallback,
       value: discountRate
     },
     {
-      name: 'Salvage Value',
-      size: 18,
+      name: `Salvage Value in ${futureYear}`,
+      size: 22,
       func: setSalvageValueCallback,
       value: salvageValue
     }
