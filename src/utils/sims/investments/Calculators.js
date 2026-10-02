@@ -1,16 +1,13 @@
 export function getBreakEven(lifetime, inflows, outflows) {
-    let accumulated = 0
-    let prev = 0
-    for (let i = 0; i < lifetime; i++) {
-        accumulated += inflows[i] - outflows[i]
-        if (accumulated >= 0) {
-            const monthlyRate = inflows[i]/12 - outflows[i]/12
-            const monthsIn = Math.abs(accumulated/monthlyRate)*0.1
-            return parseFloat((i - 1 + monthsIn).toFixed(1))
+    let acc = 0
+    for (let i = 0; i < outflows.length; i++) {
+        const flow = inflows[i] - outflows[i]
+        acc += flow
+        if (acc >= 0) {
+            const leftover = Math.abs((acc-flow)/flow)
+            return parseFloat((i - 1 + leftover).toFixed(2))
         }
-        prev += inflows[i] - outflows[i]
     }
-    return null
 }
 
 export function getROI(inflows, outflows) {
