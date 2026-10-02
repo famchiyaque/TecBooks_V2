@@ -9,7 +9,7 @@ function BasicInput({ func, value, name }) {
             case 'Project':
                 func(newValue.trim());
                 break
-            case 'Lifetime':
+            case 'Lifetime (yrs)':
                 if (newValue === '') {
                     func(''); // keep input empty temporarily
                     break;

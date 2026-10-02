@@ -33,6 +33,8 @@ function TableInput({ func, flows, name }) {
                                     className='input-field'
                                     // className={`${index == 0 ? 'input-field border-none text-gray-500' : 'input-field'}`}
                                     style={{ 
+                                        display: name == 'Inflows' && index == 0 ? 'none' : '',
+                                        marginLeft: name == 'Inflows' ? '0.5rem' : '',
                                         width: '99%', 
                                         padding: '0.15rem 0 0.15rem 4px',
                                         border: index == 0 ? '1px solid dark-gray' : undefined,
