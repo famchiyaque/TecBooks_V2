@@ -1,28 +1,15 @@
-name: Deploy to Development
+name: Deploy to Production
 
 on:
   push:
     branches:
-      - develop
+      - main
   pull_request:
     branches:
-      - develop
+      - main
 
 jobs:
-  notify-deployment:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Trigger deployment webhook
-        run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -H "X-Hub-Signature-256: ${{ secrets.WEBHOOK_SIGNATURE }}" \
-            -d '{"ref":"refs/heads/develop","repository":{"name":"${{ github.repository }}"},"pusher":{"name":"${{ github.actor }}"},"commits":[]}' \
-            ${{ secrets.DEV_WEBHOOK_URL }}
-
-  deploy-frontend-develop:
+  deploy-frontend-main:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,16 +31,16 @@ jobs:
 
       - name: Build only (PR validation)
         if: github.event_name == 'pull_request'
-        run: npx vite build --mode develop
+        run: npx vite build --mode production
 
       - name: Build and deploy
         if: github.event_name == 'push'
-        run: pnpm run deploy:develop
+        run: pnpm run deploy:main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-  deploy-worker-develop:
+  deploy-worker-main:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -76,11 +63,11 @@ jobs:
 
       - name: Dry-run deploy (PR validation)
         if: github.event_name == 'pull_request'
-        run: npx wrangler deploy --dry-run --env develop
+        run: npx wrangler deploy --dry-run
 
       - name: Deploy
         if: github.event_name == 'push'
-        run: pnpm run deploy:develop
+        run: pnpm run deploy:main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
