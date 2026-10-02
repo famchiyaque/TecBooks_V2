@@ -229,16 +229,16 @@ function ProfitSummaryTable({ costOfSalesByYear, gameId, currency }) {
   return (
     <section className="mt-3 rounded-2xl border-2 border-sky-200 bg-sky-50/30 shadow-sm">
       <div className="border-b border-sky-200 bg-sky-100/60 px-6 py-4">
-        <h3 className="text-[15px] font-semibold text-sky-900">Profit Summary</h3>
+        <h3 className="text-[19px] font-semibold text-sky-900">Profit Summary</h3>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-xs">
+        <table className="w-full border-collapse text-[15px]">
           <thead>
             <tr className="border-b border-sky-200 bg-sky-100/40">
-              <th className="whitespace-nowrap px-2 py-2 text-left text-[11px] font-medium text-sky-700">Concept</th>
+              <th className="whitespace-nowrap px-2 py-2 text-left text-[14px] font-medium text-sky-700">Concept</th>
               {rows.map((row) => (
-                <th key={row.year} className="whitespace-nowrap px-2 py-2 text-right text-[11px] font-medium text-sky-700">
+                <th key={row.year} className="whitespace-nowrap px-2 py-2 text-right text-[14px] font-medium text-sky-700">
                   {row.year}
                 </th>
               ))}

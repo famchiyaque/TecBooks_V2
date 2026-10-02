@@ -50,8 +50,8 @@ function Stat({ label, value, highlight }) {
         highlight ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50/60"
       }`}
     >
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-0.5 text-[15px] font-semibold text-slate-900 tabular-nums">{value}</p>
+      <p className="text-[15px] text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[19px] font-semibold text-slate-900 tabular-nums">{value}</p>
     </div>
   );
 }
@@ -113,7 +113,7 @@ function ProjectEvaluationSummary({ project, currency }) {
 
   return (
     <Box>
-      <p className="mb-3 text-sm text-slate-500">
+      <p className="mb-3 text-[17.5px] text-slate-500">
         TREMA, TIR and VNA based on the project's full {years.length}-year cash flow ({years[0]}-
         {years[years.length - 1]}) - the accept/reject call below follows directly from them.
       </p>

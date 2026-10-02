@@ -205,18 +205,18 @@ function ProjectDashboard() {
 
   return (
     <Box sx={{ p: 4, textAlign: "left" }}>
-      <Typography variant="overline" sx={{ color: "#073a5a" }}>
+      <Typography variant="overline" sx={{ color: "#073a5a", fontSize: 15 }}>
         {program.name}
       </Typography>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
         <Typography
           variant="h5"
-          sx={{ fontWeight: 700, color: "#073a5a", mb: 0 }}
+          sx={{ fontWeight: 700, fontSize: 33, color: "#073a5a", mb: 0 }}
         >
           {projectDisplayName(project)}
         </Typography>
         <TourButton tour={projectDashboardTour} />
-        <FormControl size="small" sx={{ minWidth: 160, ml: "auto" }}>
+        <FormControl size="small" sx={{ minWidth: 160, ml: "auto", "& .MuiInputLabel-root": { fontSize: 18 }, "& .MuiSelect-select": { fontSize: 18 }, "& .MuiMenuItem-root": { fontSize: 18 } }}>
           <InputLabel id="currency-label">Currency</InputLabel>
 
           <Select
@@ -239,7 +239,11 @@ function ProjectDashboard() {
         onChange={(_, next) => setTab(next)}
         variant="scrollable"
         scrollButtons="auto"
-        sx={{ borderBottom: 1, borderColor: "divider" }}
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          "& .MuiTab-root": { fontSize: 18, minHeight: 48 },
+        }}
       >
         {TABS.map((item) => (
           <Tab key={item.id} label={item.label} />
@@ -286,7 +290,7 @@ function TabContent({ activeTab, programId, projectId, project, currency }) {
 
   if (!project.gameId) {
     return (
-      <Alert severity="warning">
+      <Alert severity="warning" sx={{ fontSize: 18 }}>
         This project has no game id, so its tables cannot load from the
         database.
       </Alert>
@@ -294,11 +298,11 @@ function TabContent({ activeTab, programId, projectId, project, currency }) {
   }
 
   if (isPending)
-    return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
+    return <Typography sx={{ mt: 2, fontSize: 20 }}>Loading project data…</Typography>;
 
   if (isError || !cbm) {
     return (
-      <Alert severity="error">
+      <Alert severity="error" sx={{ fontSize: 18 }}>
         Couldn&apos;t load this project&apos;s rows from the server.
       </Alert>
     );

@@ -37,19 +37,22 @@ function NetFlowGraph({ project, currency }) {
   const options = {
     chart: {
       type: "column",
-      style: { fontFamily: "inherit" },
+      style: { fontFamily: "inherit", fontSize: "15px" },
     },
     title: {
       text: "Net Flow",
+      style: { fontSize: "19px" },
     },
     xAxis: {
       categories,
-      title: { text: "Year" },
+      title: { text: "Year", style: { fontSize: "15px" } },
+      labels: { style: { fontSize: "15px" } },
       crosshair: true,
     },
     yAxis: {
-      title: { text: "Net Flow (millones de pesos)" },
+      title: { text: "Net Flow (millones de pesos)", style: { fontSize: "15px" } },
       labels: {
+        style: { fontSize: "15px" },
         formatter: function () {
           return `${formatCurrency(this.value, currency, 0)} M`;
         },
@@ -67,9 +70,11 @@ function NetFlowGraph({ project, currency }) {
       valuePrefix: "$",
       valueSuffix: " M",
       valueDecimals: 2,
+      style: { fontSize: "15px" },
     },
     legend: {
       enabled: true,
+      itemStyle: { fontSize: "15px" },
     },
     series: [
       {

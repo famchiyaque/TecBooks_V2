@@ -28,16 +28,16 @@ function BreakEvenChart({ fixedCosts, variableCostPerUnit, salePrice, breakEvenU
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#073a5a', mb: 1 }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, fontSize: 19, color: '#073a5a', mb: 1 }}>
         Punto de Equilibrio
       </Typography>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={data} margin={{ top: 10, right: 24, left: 8, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="units" tick={{ fontSize: 11 }} />
-          <YAxis tickFormatter={formatCurrency} tick={{ fontSize: 11 }} width={90} />
-          <Tooltip formatter={(value) => formatCurrency(value)} labelFormatter={(units) => `${units} units`} />
-          <Legend />
+          <XAxis dataKey="units" tick={{ fontSize: 14 }} />
+          <YAxis tickFormatter={formatCurrency} tick={{ fontSize: 14 }} width={112} />
+          <Tooltip formatter={(value) => formatCurrency(value)} labelFormatter={(units) => `${units} units`} contentStyle={{ fontSize: 15 }} />
+          <Legend wrapperStyle={{ fontSize: 15 }} />
           <Line type="monotone" dataKey="Cost" stroke="#073a5a" strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="Sales" stroke="#0891b2" strokeWidth={2} dot={false} />
         </LineChart>

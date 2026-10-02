@@ -19,10 +19,10 @@ function StagedProjectCard({ item, onRemove }) {
     >
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 600, color: '#073a5a' }} noWrap>
+          <Typography sx={{ fontWeight: 600, fontSize: 20, color: '#073a5a' }} noWrap>
             {item.project.metadata.name || item.fileName}
           </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.6 }} noWrap>
+          <Typography variant="body2" sx={{ fontSize: 18, opacity: 0.6 }} noWrap>
             {item.fileName}
           </Typography>
         </Box>
@@ -42,12 +42,12 @@ function StagedProjectCard({ item, onRemove }) {
             onClick={() => setWarningsOpen((open) => !open)}
             deleteIcon={<ExpandMoreOutlined sx={{ transform: warningsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />}
             onDelete={() => setWarningsOpen((open) => !open)}
-            sx={{ cursor: 'pointer' }}
+            sx={{ cursor: 'pointer', fontSize: 15 }}
           />
           <Collapse in={warningsOpen}>
             <Stack spacing={0.5} sx={{ mt: 1, pl: 1, borderLeft: '2px solid', borderColor: 'warning.light' }}>
               {warnings.map((warning, i) => (
-                <Typography key={i} variant="caption" sx={{ opacity: 0.75, display: 'block' }}>
+                <Typography key={i} variant="caption" sx={{ fontSize: 15, opacity: 0.75, display: 'block' }}>
                   {warning}
                 </Typography>
               ))}
@@ -85,7 +85,7 @@ function NewProgram() {
       <BackButton label="Programs" sx={{ mb: 1, ml: -1 }} />
 
       <Box sx={{ maxWidth: 720, mx: 'auto', textAlign: 'left' }}>
-      <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, fontSize: 33, color: '#073a5a', mb: 2 }}>
         New program
       </Typography>
 
@@ -94,30 +94,30 @@ function NewProgram() {
         fullWidth
         value={programName}
         onChange={(event) => setProgramName(event.target.value)}
-        sx={{ mb: 3 }}
+        sx={{ mb: 3, "& .MuiInputLabel-root": { fontSize: 20 }, "& .MuiInputBase-input": { fontSize: 20 } }}
       />
 
       <ProjectDropzone />
 
       {fileErrors.map((error) => (
-        <Alert key={error.fileName || error.messages[0]} severity="error" sx={{ mt: 2 }}>
+        <Alert key={error.fileName || error.messages[0]} severity="error" sx={{ mt: 2, fontSize: 18 }}>
           {error.fileName ? `${error.fileName}: ` : ''}
           {error.messages.join(' ')}
         </Alert>
       ))}
 
       {confirmError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="error" sx={{ mt: 2, fontSize: 18 }}>
           {confirmError}
         </Alert>
       )}
 
-      <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 600, color: '#073a5a' }}>
+      <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 600, fontSize: 23, color: '#073a5a' }}>
         Staged projects
       </Typography>
 
       {items.length === 0 ? (
-        <Typography sx={{ opacity: 0.8 }}>No validated projects yet.</Typography>
+        <Typography sx={{ fontSize: 20, opacity: 0.8 }}>No validated projects yet.</Typography>
       ) : (
         <Stack spacing={1.5}>
           {items.map((item, index) => (
@@ -134,7 +134,7 @@ function NewProgram() {
         variant="contained"
         disabled={!canConfirm}
         onClick={onConfirm}
-        sx={{ mt: 3, bgcolor: '#073a5a', borderRadius: 999, px: 3 }}
+        sx={{ mt: 3, fontSize: 18, bgcolor: '#073a5a', borderRadius: 999, px: 3 }}
       >
         {isSubmitting ? 'Saving…' : 'Confirm program'}
       </Button>
