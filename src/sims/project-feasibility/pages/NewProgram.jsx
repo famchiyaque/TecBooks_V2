@@ -101,8 +101,12 @@ function NewProgram() {
 
       {fileErrors.map((error) => (
         <Alert key={error.fileName || error.messages[0]} severity="error" sx={{ mt: 2, fontSize: 18 }}>
-          {error.fileName ? `${error.fileName}: ` : ''}
-          {error.messages.join(' ')}
+          {error.fileName && <strong>{error.fileName}</strong>}
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {error.messages.map((message, index) => (
+              <li key={message}><strong>Error {index + 1}:</strong> {message}</li>
+            ))}
+          </ul>
         </Alert>
       ))}
 
