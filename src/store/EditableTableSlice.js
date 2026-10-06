@@ -1,4 +1,4 @@
-import { configureStore, createSlice, nanoid } from '@reduxjs/toolkit'
+import { configureStore, createSlice, nanoid } from "@reduxjs/toolkit";
 
 /**
  * Reusable state for any "editable table": per-cell overrides on a fixed set
@@ -16,42 +16,43 @@ import { configureStore, createSlice, nanoid } from '@reduxjs/toolkit'
  */
 export class EditableTableSlice {
   constructor(name) {
-    this.name = name
+    this.name = name;
 
     this._slice = createSlice({
       name,
       initialState: { overrides: {}, customRows: [] },
       reducers: {
         setOverride: (state, action) => {
-          const { rowKey, columnKey, value } = action.payload
-          state.overrides[`${rowKey}:${columnKey}`] = value
+          const { rowKey, columnKey, value } = action.payload;
+          state.overrides[`${rowKey}:${columnKey}`] = value;
         },
         addCustomRow: (state, action) => {
+          const id = action.payload?.id ?? nanoid();
+
+          if (state.customRows.some((row) => row.id === id)) {
+            return;
+          }
+
           state.customRows.push({
-            // Callers that need a STABLE id across mounts/hydrate cycles
-            // (e.g. a seeded default row reconciled by id) pass one; everyone
-            // else keeps getting a fresh nanoid.
-            id: action.payload?.id ?? nanoid(),
-            label: action.payload?.label ?? 'New row',
-            // Lets a caller seed a default row with real values (e.g.
-            // Current Passives' "Documentos por pagar" placeholder) instead
-            // of always starting blank - every existing caller that doesn't
-            // pass `values` keeps getting an empty row, unchanged.
+            id,
+            label: action.payload?.label ?? "New row",
             values: action.payload?.values ?? {},
-          })
+          });
         },
         removeCustomRow: (state, action) => {
-          state.customRows = state.customRows.filter((row) => row.id !== action.payload)
+          state.customRows = state.customRows.filter(
+            (row) => row.id !== action.payload,
+          );
         },
         setCustomRowLabel: (state, action) => {
-          const { id, label } = action.payload
-          const row = state.customRows.find((candidate) => candidate.id === id)
-          if (row) row.label = label
+          const { id, label } = action.payload;
+          const row = state.customRows.find((candidate) => candidate.id === id);
+          if (row) row.label = label;
         },
         setCustomRowValue: (state, action) => {
-          const { id, columnKey, value } = action.payload
-          const row = state.customRows.find((candidate) => candidate.id === id)
-          if (row) row.values[columnKey] = value
+          const { id, columnKey, value } = action.payload;
+          const row = state.customRows.find((candidate) => candidate.id === id);
+          if (row) row.values[columnKey] = value;
         },
         reset: () => ({ overrides: {}, customRows: [] }),
         // Replaces customRows wholesale with what the server has for this
@@ -64,34 +65,34 @@ export class EditableTableSlice {
             id: row.rowId,
             label: row.label,
             values: row.values ?? {},
-          }))
+          }));
         },
       },
-    })
+    });
 
     // Bind so these can be passed directly as useSelector selectors.
-    this.selectOverrides = (state) => state[this.name].overrides
-    this.selectCustomRows = (state) => state[this.name].customRows
+    this.selectOverrides = (state) => state[this.name].overrides;
+    this.selectCustomRows = (state) => state[this.name].customRows;
   }
 
   get reducer() {
-    return this._slice.reducer
+    return this._slice.reducer;
   }
 
   get actions() {
-    return this._slice.actions
+    return this._slice.actions;
   }
 
   /** Standalone store containing only this table's slice. */
   createStore() {
-    return configureStore({ reducer: { [this.name]: this.reducer } })
+    return configureStore({ reducer: { [this.name]: this.reducer } });
   }
 
   /** override-aware lookup: manual edit wins over the computed value. */
   effectiveValue(state, rowKey, columnKey, computedValue) {
-    const key = `${rowKey}:${columnKey}`
-    const overrides = this.selectOverrides(state)
-    return key in overrides ? overrides[key] : computedValue
+    const key = `${rowKey}:${columnKey}`;
+    const overrides = this.selectOverrides(state);
+    return key in overrides ? overrides[key] : computedValue;
   }
 
   /**
@@ -108,13 +109,16 @@ export class EditableTableSlice {
     // numeric year. Custom-row lookups index row.values[columnKey] directly,
     // so a key-type mismatch silently dropped custom-row amounts from those
     // totals even though the owning table's own Total row showed them.
-    const column = String(columnKey)
+    const column = String(columnKey);
     const fixedTotal = rows.reduce((sum, row) => {
-      const key = `${row.key}:${column}`
-      const base = getValue(row.key, columnKey)
-      return sum + (key in overrides ? overrides[key] : base)
-    }, 0)
-    const customTotal = customRows.reduce((sum, row) => sum + (row.values[column] || 0), 0)
-    return fixedTotal + customTotal
+      const key = `${row.key}:${column}`;
+      const base = getValue(row.key, columnKey);
+      return sum + (key in overrides ? overrides[key] : base);
+    }, 0);
+    const customTotal = customRows.reduce(
+      (sum, row) => sum + (row.values[column] || 0),
+      0,
+    );
+    return fixedTotal + customTotal;
   }
 }

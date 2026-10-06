@@ -6,8 +6,10 @@ const logger = new Logger("ComputePassives");
 function computePassives(project) {
   const years = project.timeline.years;
 
-  const { financialExpensesByYear, pendingPrincipalByYear } =
-    computeFinancing(project, years);
+  const { financialExpensesByYear, pendingPrincipalByYear } = computeFinancing(
+    project,
+    years,
+  );
 
   // Long term passives
   const longTermPassives = years.reduce((acc, year) => {
@@ -51,6 +53,7 @@ function computePassives(project) {
     {},
   );
 
+  console.log("Passives. ", currentPassives);
   const result = { longTermPassives, currentPassives, totalPassives };
   logger.debug("computePassives", result);
   return result;
