@@ -1,6 +1,9 @@
 import React from "react";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
-import { currentPassiveSlice, longTermPassiveSlice } from "@/store/balance.store";
+import {
+  currentPassiveSlice,
+  longTermPassiveSlice,
+} from "@/store/balance.store";
 import EditableTable from "@/components/global/EditableTable";
 import GrandTotalTable from "@/components/global/GrandTotalTable";
 import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
@@ -30,6 +33,7 @@ export const LONG_TERM_PASSIVES = [
 // into both totals (they read the same underlying customRows array).
 function Passive({ passives, gameId, currency }) {
   useTableRowsSync(gameId, longTermPassiveSlice, "longTermPassives");
+  console.log(passives);
   const columns = Object.keys(passives.currentPassives).map((year) => ({
     key: year,
     label: year,

@@ -43,7 +43,7 @@ function buildDefaultCurrentPassiveRow(years) {
       years.map((year, index) => [
         year,
         index === 0 ? DEFAULT_YEAR_ZERO_VALUE : DEFAULT_LATER_YEAR_VALUE,
-      ])
+      ]),
     ),
   };
 }
@@ -87,24 +87,40 @@ function useEffectiveBalanceTotals(cbm, gameId) {
   const dispatch = useDispatch();
   const defaultCurrentPassiveRow = React.useMemo(
     () => (years.length > 0 ? buildDefaultCurrentPassiveRow(years) : null),
-    [years]
+    [years],
   );
   const defaultCurrentPassiveRows = React.useMemo(
     () => (defaultCurrentPassiveRow ? [defaultCurrentPassiveRow] : []),
-    [defaultCurrentPassiveRow]
+    [defaultCurrentPassiveRow],
   );
   useTableRowsSync(gameId, currentPassiveSlice, "currentPassives", {
     fallbackRows: defaultCurrentPassiveRows,
   });
 
-  const currentActivesOverrides = useSelector(currentActivesSlice.selectOverrides);
-  const currentActivesCustomRows = useSelector(currentActivesSlice.selectCustomRows);
-  const deferedActivesOverrides = useSelector(deferedActivesSlice.selectOverrides);
-  const deferedActivesCustomRows = useSelector(deferedActivesSlice.selectCustomRows);
-  const currentPassivesOverrides = useSelector(currentPassiveSlice.selectOverrides);
-  const currentPassivesCustomRows = useSelector(currentPassiveSlice.selectCustomRows);
-  const longTermPassivesOverrides = useSelector(longTermPassiveSlice.selectOverrides);
-  const longTermPassivesCustomRows = useSelector(longTermPassiveSlice.selectCustomRows);
+  const currentActivesOverrides = useSelector(
+    currentActivesSlice.selectOverrides,
+  );
+  const currentActivesCustomRows = useSelector(
+    currentActivesSlice.selectCustomRows,
+  );
+  const deferedActivesOverrides = useSelector(
+    deferedActivesSlice.selectOverrides,
+  );
+  const deferedActivesCustomRows = useSelector(
+    deferedActivesSlice.selectCustomRows,
+  );
+  const currentPassivesOverrides = useSelector(
+    currentPassiveSlice.selectOverrides,
+  );
+  const currentPassivesCustomRows = useSelector(
+    currentPassiveSlice.selectCustomRows,
+  );
+  const longTermPassivesOverrides = useSelector(
+    longTermPassiveSlice.selectOverrides,
+  );
+  const longTermPassivesCustomRows = useSelector(
+    longTermPassiveSlice.selectCustomRows,
+  );
 
   // Put the default "Documentos por pagar corto plazo" row in the store on
   // the FIRST commit, before the browser paints. useLayoutEffect (not
@@ -124,44 +140,76 @@ function useEffectiveBalanceTotals(cbm, gameId) {
   React.useLayoutEffect(() => {
     if (seededDefaultRow.current) return;
     if (!defaultCurrentPassiveRow) return;
-    if (currentPassivesCustomRows.length > 0) return;
+
+    const alreadyExists = currentPassivesCustomRows.some(
+      (row) => row.id === DEFAULT_CURRENT_PASSIVE_ROW_ID,
+    );
+
+    if (alreadyExists) return;
+
     seededDefaultRow.current = true;
+
     dispatch(
       currentPassiveSlice.actions.addCustomRow({
         id: DEFAULT_CURRENT_PASSIVE_ROW_ID,
         label: defaultCurrentPassiveRow.label,
         values: defaultCurrentPassiveRow.values,
-      })
+      }),
     );
   }, [defaultCurrentPassiveRow, currentPassivesCustomRows, dispatch]);
 
-  const getCurrentActivesValue = (rowKey, year) => actives.currentActives[rowKey]?.[year] ?? 0;
-  const getDeferedActivesValue = (rowKey, year) => actives.deferedActives[rowKey]?.[year] ?? 0;
-  const getCurrentPassivesValue = (rowKey, year) => passivesData.currentPassives[year]?.[rowKey] ?? 0;
-  const getLongTermPassivesValue = (rowKey, year) => passivesData.longTermPassives[year]?.[rowKey] ?? 0;
+  const getCurrentActivesValue = (rowKey, year) =>
+    actives.currentActives[rowKey]?.[year] ?? 0;
+  const getDeferedActivesValue = (rowKey, year) =>
+    actives.deferedActives[rowKey]?.[year] ?? 0;
+  const getCurrentPassivesValue = (rowKey, year) =>
+    passivesData.currentPassives[year]?.[rowKey] ?? 0;
+  const getLongTermPassivesValue = (rowKey, year) =>
+    passivesData.longTermPassives[year]?.[rowKey] ?? 0;
 
   const byYear = {};
   years.forEach((year, idx) => {
     const currentActivesTotal = currentActivesSlice.effectiveTotal(
-      { overrides: currentActivesOverrides, customRows: currentActivesCustomRows },
-      COST_ROWS, getCurrentActivesValue, year,
+      {
+        overrides: currentActivesOverrides,
+        customRows: currentActivesCustomRows,
+      },
+      COST_ROWS,
+      getCurrentActivesValue,
+      year,
     );
     const deferedActivesTotal = deferedActivesSlice.effectiveTotal(
-      { overrides: deferedActivesOverrides, customRows: deferedActivesCustomRows },
-      DEFERED_ACTIVES_ROWS, getDeferedActivesValue, year,
+      {
+        overrides: deferedActivesOverrides,
+        customRows: deferedActivesCustomRows,
+      },
+      DEFERED_ACTIVES_ROWS,
+      getDeferedActivesValue,
+      year,
     );
-    const fixedAssetsNetValue = actives.fixedAssets?.find(
-      (item) => String(item.year) === String(year),
-    )?.netValue || 0;
-    const totalActives = currentActivesTotal + deferedActivesTotal + fixedAssetsNetValue;
+    const fixedAssetsNetValue =
+      actives.fixedAssets?.find((item) => String(item.year) === String(year))
+        ?.netValue || 0;
+    const totalActives =
+      currentActivesTotal + deferedActivesTotal + fixedAssetsNetValue;
 
     const currentPassivesTotal = currentPassiveSlice.effectiveTotal(
-      { overrides: currentPassivesOverrides, customRows: currentPassivesCustomRows },
-      CURRENT_PASSIVES, getCurrentPassivesValue, year,
+      {
+        overrides: currentPassivesOverrides,
+        customRows: currentPassivesCustomRows,
+      },
+      CURRENT_PASSIVES,
+      getCurrentPassivesValue,
+      year,
     );
     const longTermPassivesTotal = longTermPassiveSlice.effectiveTotal(
-      { overrides: longTermPassivesOverrides, customRows: longTermPassivesCustomRows },
-      LONG_TERM_PASSIVES, getLongTermPassivesValue, year,
+      {
+        overrides: longTermPassivesOverrides,
+        customRows: longTermPassivesCustomRows,
+      },
+      LONG_TERM_PASSIVES,
+      getLongTermPassivesValue,
+      year,
     );
     const totalPassives = currentPassivesTotal + longTermPassivesTotal;
 
@@ -170,9 +218,10 @@ function useEffectiveBalanceTotals(cbm, gameId) {
     // `inventary` in computeCurrentActives.js/COST_ROWS (mislabeled "Accounts
     // Receivable" in the UI - a separate, pre-existing naming bug).
     const inventoryOverrideKey = `inventary:${year}`;
-    const inventory = inventoryOverrideKey in currentActivesOverrides
-      ? currentActivesOverrides[inventoryOverrideKey]
-      : getCurrentActivesValue("inventary", year);
+    const inventory =
+      inventoryOverrideKey in currentActivesOverrides
+        ? currentActivesOverrides[inventoryOverrideKey]
+        : getCurrentActivesValue("inventary", year);
 
     byYear[year] = {
       currentActivesTotal,
