@@ -14,7 +14,10 @@ function formatRatio(value) {
 // decimals (-20.63, 1.94), not percentages. Matches that instead.
 function formatDecimal(value) {
   if (!Number.isFinite(value)) return "—";
-  return value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString("es-MX", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function safeDivide(numerator, denominator) {
@@ -31,49 +34,51 @@ const RATIO_DEFINITIONS = [
   {
     key: "currentRatio",
     label: "Current Ratio",
-    tooltip: "Razon de Liquidez = Activo Circulante / Pasivo Circulante",
+    tooltip: "Current Ratio = Current Actives / Current Passives",
     format: formatRatio,
     compute: (t) => safeDivide(t.currentActivesTotal, t.currentPassivesTotal),
   },
   {
     key: "acidTest",
     label: "Acid Test (Quick Ratio)",
-    tooltip: "Prueba del Acido = (Activo Circulante - Inventario) / Pasivo Circulante",
+    tooltip: "Acid Test = (Current Actives - Inventory) / Current Passives",
     format: formatRatio,
-    compute: (t) => safeDivide(t.currentActivesTotal - t.inventory, t.currentPassivesTotal),
+    compute: (t) =>
+      safeDivide(t.currentActivesTotal - t.inventory, t.currentPassivesTotal),
   },
   {
     key: "workingCapital",
     label: "Working Capital",
-    tooltip: "Capital de Trabajo = Activo Circulante - Pasivo Circulante",
+    tooltip: "Working Capital = Current Actives - Current Passives",
     format: (value, currency) => formatCurrency(value, currency),
     compute: (t) => t.currentActivesTotal - t.currentPassivesTotal,
   },
   {
     key: "debtToAssets",
     label: "Debt to Assets",
-    tooltip: "Indice de endeudamiento = Pasivo total / Activo total",
+    tooltip: "Debt to Assets = Total Passives / Total Actives",
     format: formatDecimal,
     compute: (t) => safeDivide(t.totalPassives, t.totalActives),
   },
   {
     key: "equityToAssets",
     label: "Equity to Assets",
-    tooltip: "Indice de endeudamiento = Capital contable / Activo total",
+    tooltip: "Equity to Assets = Shareholders' Equity / Total Actives",
     format: formatDecimal,
-    compute: (t) => safeDivide(t.totalActives - t.totalPassives, t.totalActives),
+    compute: (t) =>
+      safeDivide(t.totalActives - t.totalPassives, t.totalActives),
   },
   {
     key: "assetTurnover",
     label: "Total Asset Turnover",
-    tooltip: "Rotacion del activo total = Ventas netas / Activo total",
+    tooltip: "Total Asset Turnover = Net Sales / Total Actives",
     format: formatRatio,
     compute: (t) => safeDivide(t.netSales, t.totalActives),
   },
   {
     key: "netProfitMargin",
     label: "Net Profit Margin",
-    tooltip: "Rentabilidad sobre las ventas = Utilidad neta / Ventas netas",
+    tooltip: "Net Profit Margin = Net Income / Net Sales",
     // BUG FIX: showed as % (×100) - Template Financiero's "Rentabilidad
     // sobre las ventas" row shows a plain decimal (-0.35, not -35%). Same
     // fix category as Debt to Assets / Equity to Assets above.
@@ -83,7 +88,7 @@ const RATIO_DEFINITIONS = [
   {
     key: "returnOnAssets",
     label: "Return on Assets (ROA)",
-    tooltip: "Rendimiento sobre la inversion = Utilidad Neta / Activo total",
+    tooltip: "Return on Assets (ROA) = Net Utility / Total Actives",
     format: formatDecimal,
     compute: (t) => safeDivide(t.netIncome, t.totalActives),
   },
@@ -96,7 +101,11 @@ function FinancialRatios({ project, currency }) {
 
   const columns = [
     { key: "concept", label: "Ratio" },
-    ...years.map((year) => ({ key: String(year), label: String(year), align: "right" })),
+    ...years.map((year) => ({
+      key: String(year),
+      label: String(year),
+      align: "right",
+    })),
   ];
 
   const valuesByKey = {};
@@ -112,7 +121,9 @@ function FinancialRatios({ project, currency }) {
           ? "text-rose-600"
           : "text-slate-900";
       row[String(year)] = (
-        <span className={`tabular-nums ${colorClass}`}>{definition.format(value, currency)}</span>
+        <span className={`tabular-nums ${colorClass}`}>
+          {definition.format(value, currency)}
+        </span>
       );
     });
     return row;
