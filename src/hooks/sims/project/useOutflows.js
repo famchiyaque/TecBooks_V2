@@ -38,7 +38,7 @@ export default function useOutflows(project) {
 
 
 
-function formatServices(project) {
+export function formatServices(project) {
   const items = project?.services;
   if (!Array.isArray(items)) return [];
 
