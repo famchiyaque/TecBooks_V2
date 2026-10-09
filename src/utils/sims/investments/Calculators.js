@@ -1,115 +1,141 @@
+import {
+  getR,
+  getSE,
+  getTValue,
+  getAdjustedLag,
+  getMAD,
+  getMSE,
+  getRMSE,
+  getMAPE,
+  getMPE,
+} from "./statistics";
+
 export function getBreakEven(inflows, outflows) {
-    let acc = 0
-    for (let i = 0; i < outflows.length; i++) {
-        const flow = inflows[i] - outflows[i]
-        acc += flow
-        if (acc >= 0) {
-            const leftover = Math.abs((acc-flow)/flow)
-            return parseFloat((i - 1 + leftover).toFixed(2))
-        }
+  let acc = 0;
+  for (let i = 0; i < outflows.length; i++) {
+    const flow = inflows[i] - outflows[i];
+    acc += flow;
+    if (acc >= 0) {
+      const leftover = Math.abs((acc - flow) / flow);
+      return parseFloat((i - 1 + leftover).toFixed(2));
     }
+  }
 }
 
 export function getROI(cashflows) {
-    const inv = Math.abs(cashflows[0])
-    const net = cashflows.reduce((prev, curr) => prev + curr, 0) + inv
-    const roi = ((net - inv)/inv)*100
-    return parseFloat(roi.toFixed(1))
+  const inv = Math.abs(cashflows[0]);
+  const net = cashflows.reduce((prev, curr) => prev + curr, 0) + inv;
+  const roi = ((net - inv) / inv) * 100;
+  return parseFloat(roi.toFixed(1));
 }
 
 export function getNPV(cashflows, discountRate) {
-    let npv = 0
-    for (let i = 0; i < cashflows.length; i++) {
-        npv += (cashflows[i])/(1 + (discountRate/100)) ** (i+1)
-    }
-    return parseFloat(npv.toFixed(2))
-} 
+  let npv = 0;
+  for (let i = 0; i < cashflows.length; i++) {
+    npv += cashflows[i] / (1 + discountRate / 100) ** (i + 1);
+  }
+  return parseFloat(npv.toFixed(2));
+}
 
 export function getIRR(inflows, outflows, precomputedNPV) {
-    let lowRate = 0;
-    let highRate = 100;
-    let irr = 0;
-    let iterations = 1000;
-    const tolerance = 0.01;
+  let lowRate = 0;
+  let highRate = 100;
+  let irr = 0;
+  let iterations = 1000;
+  const tolerance = 0.01;
 
-    // If the precomputed NPV is close to zero, IRR might be close to 0%
-    if (Math.abs(precomputedNPV) < tolerance) {
-        return irr.toFixed(1);
+  // If the precomputed NPV is close to zero, IRR might be close to 0%
+  if (Math.abs(precomputedNPV) < tolerance) {
+    return irr.toFixed(1);
+  }
+
+  // Use precomputed NPV to adjust initial boundaries
+  if (precomputedNPV > 0) {
+    lowRate = 0;
+    highRate = 200; // Allow for higher rates in extreme cases
+  } else {
+    lowRate = -100; // Handle negative cash flows
+    highRate = 0;
+  }
+
+  while (iterations--) {
+    let guessRate = (lowRate + highRate) / 2;
+    let npv = 0;
+
+    for (let t = 0; t < inflows.length; t++) {
+      const cashFlow = inflows[t] - outflows[t];
+      npv += cashFlow / Math.pow(1 + guessRate / 100, t);
+    }
+    // npv -= initialInv;
+
+    if (Math.abs(npv) < tolerance) {
+      irr = guessRate;
+      break;
     }
 
-    // Use precomputed NPV to adjust initial boundaries
-    if (precomputedNPV > 0) {
-        lowRate = 0;
-        highRate = 200; // Allow for higher rates in extreme cases
+    if (npv > 0) {
+      lowRate = guessRate;
     } else {
-        lowRate = -100; // Handle negative cash flows
-        highRate = 0;
+      highRate = guessRate;
     }
+  }
 
-    while (iterations--) {
-        let guessRate = (lowRate + highRate) / 2;
-        let npv = 0;
+  // If it fails to converge, return highRate as a fallback
+  if (iterations <= 0) {
+    irr = highRate;
+  }
 
-        for (let t = 0; t < inflows.length; t++) {
-            const cashFlow = inflows[t] - outflows[t];
-            npv += cashFlow / Math.pow(1 + guessRate / 100, t);
-        }
-        // npv -= initialInv;
-
-        if (Math.abs(npv) < tolerance) {
-            irr = guessRate;
-            break;
-        }
-
-        if (npv > 0) {
-            lowRate = guessRate;
-        } else {
-            highRate = guessRate;
-        }
-    }
-
-    // If it fails to converge, return highRate as a fallback
-    if (iterations <= 0) {
-        irr = highRate;
-    }
-
-    return parseFloat(irr.toFixed(1));
+  return parseFloat(irr.toFixed(1));
 }
 
 function getCPV(outflows, discountRate) {
-    const n = outflows.length - 1
-    
-    let acc = 0
+  const n = outflows.length - 1;
 
-    for (let i = 1; i < n; i++) {
-        acc += outflows[i] / Math.pow(1+discountRate, i)
-    }
+  let acc = 0;
 
-    return acc
+  for (let i = 1; i < n; i++) {
+    acc += outflows[i] / Math.pow(1 + discountRate, i);
+  }
+
+  return acc;
 }
 
-export function getEUAC(outflows, discountRate, salvage_value=0) {
-    const initialInv = outflows[0]
-    const n = outflows.length
-    const r = discountRate/100
-    const salvage = Number(salvage_value) || 0
+export function getEUAC(outflows, discountRate, salvage_value = 0) {
+  const initialInv = outflows[0];
+  const n = outflows.length;
+  const r = discountRate / 100;
+  const salvage = Number(salvage_value) || 0;
 
-    const cpv = getCPV(outflows, r)
-    const npc = initialInv + cpv - salvage
+  const cpv = getCPV(outflows, r);
+  const npc = initialInv + cpv - salvage;
 
-    const temp = Math.pow(1 + r, n)
-    const crf = r  * (temp/(temp - 1))
-    const euac = npc * crf
+  const temp = Math.pow(1 + r, n);
+  const crf = r * (temp / (temp - 1));
+  const euac = npc * crf;
 
-    return parseFloat(euac.toFixed(2))
+  return parseFloat(euac.toFixed(2));
 }
 
 export function getProj(index, history) {
-    for (let i = 0; i < history.length; i++) {
-        if (history[i].index == index) {
-            return history[i]
-        }
+  for (let i = 0; i < history.length; i++) {
+    if (history[i].index == index) {
+      return history[i];
     }
+  }
+}
+
+export function getStatistics(cashflow) {
+  const r = getR(cashflow);
+  const se = getSE(cashflow);
+  const tValue = getTValue(cashflow);
+  const adjustedLag = getAdjustedLag(cashflow);
+  const mad = getMAD(cashflow);
+  const mse = getMSE(cashflow);
+  const rmse = getRMSE(cashflow);
+  const mape = getMAPE(cashflow);
+  const mpe = getMPE(cashflow);
+
+  return { r, se, tValue, adjustedLag, mad, mse, rmse, mape, mpe };
 }
 
 // export default getResults
