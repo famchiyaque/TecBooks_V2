@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import useIncome from "@/hooks/sims/project/useIncome";
 import TableContainer from "@/components/global/TableContainer";
+import CollapsibleSection from "@/components/global/CollapsibleSection";
 import { buildProductionCostRows } from "./income/ProductionCostTable";
 import { buildUtilityCostRows } from "./income/UtilityCostTable";
 import { buildCompetitivePriceRows } from "./income/CompetitivePriceTable";
@@ -31,7 +32,7 @@ function Income({ project, currency }) {
     [years],
   );
 
-  const sections = useMemo(
+  const costSections = useMemo(
     () => [
       {
         id: "unit-costs",
@@ -47,6 +48,12 @@ function Income({ project, currency }) {
         defaultExpanded: true,
         rows: buildCompetitivePriceRows(income.competitivaPrice, years),
       },
+    ],
+    [income, years],
+  );
+
+  const salesSections = useMemo(
+    () => [
       {
         id: "sales",
         title: "Sales",
@@ -77,7 +84,13 @@ function Income({ project, currency }) {
         and how they relate to the unit price of each BOM.
       </p>
 
-      <TableContainer columns={columns} sections={sections} layout="fixed" currency={currency} />
+      <CollapsibleSection title="Sales & Unit Profit Margen" defaultExpanded>
+        <TableContainer columns={columns} sections={salesSections} layout="fixed" currency={currency} />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Unit Costs & Unit Price" defaultExpanded>
+        <TableContainer columns={columns} sections={costSections} layout="fixed" currency={currency} />
+      </CollapsibleSection>
     </div>
   );
 }
