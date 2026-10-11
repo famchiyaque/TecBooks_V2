@@ -33,7 +33,6 @@ export const LONG_TERM_PASSIVES = [
 // into both totals (they read the same underlying customRows array).
 function Passive({ passives, gameId, currency }) {
   useTableRowsSync(gameId, longTermPassiveSlice, "longTermPassives");
-  console.log(passives);
   const columns = Object.keys(passives.currentPassives).map((year) => ({
     key: year,
     label: year,
