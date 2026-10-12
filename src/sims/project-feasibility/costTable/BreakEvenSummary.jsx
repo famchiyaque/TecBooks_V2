@@ -2,6 +2,7 @@ import React from "react";
 import { Alert, Box, Grid, TextField } from "@mui/material";
 import { buildCostOfSales } from "./buildCostOfSales";
 import { cbmToCostTableInputs } from "./cbmToCostTableInputs";
+import { computeBreakEven } from "./computeBreakEven.js";
 import BreakEvenChart from "./BreakEvenChart";
 import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
@@ -57,26 +58,16 @@ function BreakEvenSummary({ project, currency }) {
   }
 
   const row = result.costOfSalesByYear[0];
-  const annualCapacity =
-    Object.values(production.purchaseOrders)[0] /
-      Object.values(production.qualityYield)[0] || 0;
-
-  const costPerUnit = Object.values(production.materialCostPerUnit)[0];
-  const salePrice = production.salesPricePerUnit?.[row.year] || 0;
-
-  const salaries =
-    row.engineeringSalaries +
-    row.administrativeSalary +
-    row.indirectManufacturing;
-
-  const creditPayment = row.creditPayment + row.financialExpenses;
-
-  const fixedCosts = row.administrativeExpenses + salaries + creditPayment;
-
-  const variableCostPerUnit =
-    (costPerUnit || 0) +
-    (annualCapacity > 0 ? row.directLabour / annualCapacity : 0);
-  const contributionMargin = salePrice - variableCostPerUnit;
+  const {
+    fixedCosts,
+    variableCostPerUnit,
+    salePrice,
+    contributionMargin,
+    breakEvenUnits,
+    breakEvenRevenue,
+    unitsForProfit,
+    revenueForProfit,
+  } = computeBreakEven(row, production, desiredProfit);
 
   if (contributionMargin <= 0) {
     return (
@@ -87,11 +78,6 @@ function BreakEvenSummary({ project, currency }) {
       </Alert>
     );
   }
-
-  const breakEvenUnits = fixedCosts / contributionMargin;
-  const breakEvenRevenue = breakEvenUnits * salePrice;
-  const unitsForProfit = (fixedCosts + desiredProfit) / contributionMargin;
-  const revenueForProfit = unitsForProfit * salePrice;
 
   return (
     <Box>

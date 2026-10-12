@@ -308,8 +308,6 @@ function TabContent({ activeTab, programId, projectId, project, currency }) {
     );
   }
 
-  console.log("TAB CONTENT CURRENCY: ", currency);
-
   if (activeTab.id === "inflows") return <Income project={projectWithCbm} currency={currency}/>;
   if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} currency={currency}/>;
   if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} currency={currency}/>;

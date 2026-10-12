@@ -99,12 +99,9 @@ export function cbmToCostTableInputs(cbm) {
     // not just year zero (see readCOs) - any year the Excel actually gives
     // wins outright over the demandGrowth-projected guess above. Years the
     // Excel doesn't cover keep the projection.
-    console.log('[DEBUG-CO] cbm.demand.yearlyTotals:', JSON.stringify(cbm.demand?.yearlyTotals))
-    console.log('[DEBUG-CO] purchaseOrders before overlay:', JSON.stringify(purchaseOrders))
     for (const { year, total } of cbm.demand?.yearlyTotals ?? []) {
       if (year !== undefined && total !== undefined) purchaseOrders[year] = total
     }
-    console.log('[DEBUG-CO] purchaseOrders after overlay:', JSON.stringify(purchaseOrders))
     qualityYield = projectQualityYield(yearZeroYear, cbm.capacity?.line?.qualityYield)
     salesPricePerUnit = projectSalesPrice(
       yearZeroYear,

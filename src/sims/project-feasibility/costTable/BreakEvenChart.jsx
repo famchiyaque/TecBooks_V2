@@ -4,27 +4,14 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import formatCurrency from '@/utils/sims/program/formatCurrency.util'
+import { buildBreakEvenSeries } from './computeBreakEven.js'
 
 /**
  * RF-62: "Punto de Equilibrio" chart (Estado R rows 64+, without exposing the
- * underlying units-sold table itself - RF-61, deliberately left out). Same
- * two lines the template plots: Cost = fixedCosts + variableCostPerUnit *
- * units, Sales = salePrice * units, from 0 out to 2x break-even so the
- * crossover sits near the middle of the chart, same as the reference.
+ * underlying units-sold table itself - RF-61, deliberately left out).
  */
 function BreakEvenChart({ fixedCosts, variableCostPerUnit, salePrice, breakEvenUnits }) {
-  const maxUnits = Math.max(breakEvenUnits * 2, 1)
-  const steps = 30
-  const stepSize = maxUnits / steps
-
-  const data = Array.from({ length: steps + 1 }, (_, i) => {
-    const units = Math.round(i * stepSize)
-    return {
-      units,
-      Cost: fixedCosts + variableCostPerUnit * units,
-      Sales: salePrice * units,
-    }
-  })
+  const data = buildBreakEvenSeries({ fixedCosts, variableCostPerUnit, salePrice, breakEvenUnits })
 
   return (
     <Box sx={{ mt: 3 }}>

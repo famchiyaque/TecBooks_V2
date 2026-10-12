@@ -28,12 +28,6 @@ export default function computeProductionCost(project) {
   return result;
 }
 
-function workOrdersForYear(production, year) {
-  const yieldRate = production?.qualityYield?.[year] || 0;
-  if (yieldRate === 0) return 0;
-  return (production?.purchaseOrders?.[year] || 0) / yieldRate;
-}
-
 function inflationFactor(premises, yearIndex) {
   return Math.pow(
     1 + (premises?.nationalInflation?.[yearIndex] ?? 0),
@@ -61,16 +55,12 @@ export function toCostPerWorkOrder(
   const adminExpenses = {};
   const workForce = {};
   const total = {};
-  const denominators = {};
 
   years.forEach((year, yearIndex) => {
     const purchaseOrders = production?.purchaseOrders?.[year] || 0;
-    const workOrders = workOrdersForYear(production, year);
     const perPurchaseOrder = (annual) =>
       purchaseOrders === 0 ? 0 : annual / purchaseOrders;
     const inflation = inflationFactor(premises, yearIndex);
-
-    denominators[year] = { customerOrders: purchaseOrders, workOrders };
 
     costRawMaterials[year] = perPurchaseOrder(
       productionCosts.costRawMaterials?.[year] ?? 0,
@@ -90,17 +80,6 @@ export function toCostPerWorkOrder(
       adminExpenses[year] +
       Object.values(workForce[year]).reduce((sum, val) => sum + val, 0);
   });
-
-  console.log("[Unit Costs] work orders vs customer orders", denominators);
-  console.log(
-    "[Unit Costs] yearly admin expenses (before ÷ purchase orders)",
-    Object.fromEntries(
-      Object.entries(productionCosts.adminExpenses ?? {}).map(([year, monthly]) => [
-        year,
-        { monthly, annual: monthly * 12 },
-      ]),
-    ),
-  );
 
   const result = { costRawMaterials, workForce, adminExpenses, total };
   logger.debug("toCostPerWorkOrder", result);

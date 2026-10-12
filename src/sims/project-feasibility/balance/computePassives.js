@@ -53,7 +53,6 @@ function computePassives(project) {
     {},
   );
 
-  console.log("Passives. ", currentPassives);
   const result = { longTermPassives, currentPassives, totalPassives };
   logger.debug("computePassives", result);
   return result;
