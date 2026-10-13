@@ -16,13 +16,14 @@ import {
 } from "@/store/project-evaluation.store";
 
 import SubheaderNav from "@/components/global/SubheaderNav";
+import PlaygroundPage from "@/components/sims/investments/playground/PlaygroundPage";
 
 const DEFAULT_VIEW = "simulator";
 const VIEWS = {
   simulator: { label: "Simulador", Component: InvestmentsSimContent },
   own_data: {
     label: "Ingresar tus propios datos",
-    Component: InvestmentsSimContent,
+    Component: PlaygroundPage,
   },
 };
 
