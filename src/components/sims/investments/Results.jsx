@@ -9,8 +9,7 @@ import { fmt, StatItem } from "./StatItem";
 function Results() {
   const projectInfo = useSelector(getProjectInfo);
   const results = useSelector(getResults);
-  const { breakEven, roi, npv, irr, euac, statistics } = results;
-  const stats = statistics ?? {};
+  const { breakEven, roi, npv, irr, euac } = results;
 
   const accepted = irr > projectInfo.discountRate;
 
@@ -80,7 +79,7 @@ function Results() {
       </div>
 
       {/* Statistics */}
-      <div className="flex flex-col gap-2">
+      {/* <div className="flex flex-col gap-2">
         <p className="text-sm text-gray-500">Forecast statistics</p>
         <div className="grid grid-cols-3 gap-2">
           <StatItem label="R^2" value={fmt(stats.r, 4)} />
@@ -93,7 +92,7 @@ function Results() {
           <StatItem label="MAPE" value={fmt(stats.mape)} unit="%" />
           <StatItem label="MPE" value={fmt(stats.mpe)} unit="%" />
         </div>
-      </div>
+      </div> */}
 
       <div className="flex justify-center">
         <div className="flex w-full max-w-sm justify-around items-center">
