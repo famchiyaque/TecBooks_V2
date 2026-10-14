@@ -6,7 +6,7 @@ const INITIAL_DEMAND = {
   2025: [123, 130, 125, 138, 145, 142, 141, 146, 147, 157, 150, 160],
 };
 
-const PlaygroundPage = () => {
+const ForecastErrorsContent = () => {
   const [demand, setDemand] = useState(INITIAL_DEMAND);
 
   return (
@@ -22,15 +22,13 @@ const PlaygroundPage = () => {
       {/* Ejemplo de cambio desde el padre */}
       <button
         type="button"
-        onClick={() => setDemand({ 2025: createYear(0) })}
+        onClick={() => setDemand(INITIAL_DEMAND)}
         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
       >
-        Reset desde el padre
+        Set deault values
       </button>
-
-      <pre className="text-xs text-slate-500">{JSON.stringify(demand)}</pre>
     </div>
   );
 };
 
-export default PlaygroundPage;
+export default ForecastErrorsContent;

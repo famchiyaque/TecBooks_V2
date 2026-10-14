@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const MONTHS = [
   "January",
@@ -71,7 +71,7 @@ const DemandCell = ({
             e.currentTarget.blur();
           }
         }}
-        className={`w-24 rounded-lg border px-2 py-1.5 text-center text-sm tabular-nums text-slate-800 outline-none transition
+        className={`w-20 rounded-lg border px-2 py-1.5 text-center text-sm tabular-nums text-slate-800 outline-none transition
           focus:bg-white focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60
           ${
             invalid
@@ -88,6 +88,8 @@ const DemandCell = ({
 /* ---------- Componente principal ---------- */
 /**
  * Componente controlado: el padre es dueño de los datos.
+ * Tiene ancho fijo; si hay más años de los que caben, la tabla
+ * se desplaza horizontalmente (la columna de meses queda fija).
  *
  * @param {Record<number, number[]>} value  { [año]: [12 valores] }
  * @param {(next: Record<number, number[]>) => void} onChange
@@ -97,6 +99,7 @@ const DemandCell = ({
  * @param {number}  [testMonths=3]      Últimos N meses marcados como prueba (0 = ninguno).
  * @param {boolean} [disabled=false]
  * @param {string}  [title]
+ * @param {string}  [width="32rem"]     Ancho fijo del componente (cualquier valor CSS).
  */
 const HistoricalDemand = ({
   value,
@@ -107,8 +110,10 @@ const HistoricalDemand = ({
   testMonths = 3,
   disabled = false,
   title = "Historical Demand",
+  width = "24rem",
 }) => {
   const [error, setError] = useState(null); // { key, message }
+  const scrollRef = useRef(null);
 
   const years = Object.keys(value)
     .map(Number)
@@ -116,6 +121,11 @@ const HistoricalDemand = ({
   const totalMonths = years.length * 12;
   const canAdd = !disabled && years.length < maxYears;
   const canRemove = !disabled && years.length > minYears;
+
+  // Al agregar/quitar un año, vuelve al inicio para ver la columna nueva.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+  }, [years.length]);
 
   const emit = (next) => {
     setError(null);
@@ -140,51 +150,70 @@ const HistoricalDemand = ({
   const isTestCell = (yearIdx, monthIdx) =>
     yearIdx * 12 + monthIdx >= totalMonths - testMonths;
 
+  const btnBase =
+    "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed";
+
   return (
-    <section className="w-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section
+      style={{ width, maxWidth: "100%" }}
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+    >
       {/* Encabezado */}
-      <header className="mb-4 flex items-center justify-between gap-6">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+      <header className="mb-4 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-semibold text-slate-900">
+            {title}
+          </h2>
           <p className="text-xs text-slate-500">
             {years.length} of {maxYears} years · {totalMonths} months
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={addYear}
-          disabled={!canAdd}
-          className="rounded-full bg-sky-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition
-            hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300
-            disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
-        >
-          + Add year
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={removeYear}
+            disabled={!canRemove}
+            title={canRemove ? `Remove ${years[0]}` : undefined}
+            className={`${btnBase} border border-slate-200 bg-white text-slate-600
+              hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus:ring-red-200
+              disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-300 disabled:hover:border-slate-100 disabled:hover:bg-slate-50 disabled:hover:text-slate-300`}
+          >
+            <span aria-hidden>−</span> Remove year
+          </button>
+          <button
+            type="button"
+            onClick={addYear}
+            disabled={!canAdd}
+            className={`${btnBase} bg-sky-600 text-white shadow-sm
+              hover:bg-sky-700 focus:ring-sky-300
+              disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none`}
+          >
+            <span aria-hidden>+</span> Add year
+          </button>
+        </div>
       </header>
 
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="border-separate border-spacing-0">
+      {/* Tabla con scroll horizontal interno */}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto rounded-xl border border-slate-100"
+      >
+        <table className="w-max border-separate border-spacing-0">
           <thead>
             <tr>
-              <th className="w-28" />
+              <th className="sticky left-0 z-10 w-28 border-b border-r border-slate-100 bg-white" />
               {years.map((year, yi) => (
-                <th key={year} className="px-1 pb-2">
-                  <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-700">
-                    {year}
-                    {yi === 0 && canRemove && (
-                      <button
-                        type="button"
-                        aria-label={`Remove ${year}`}
-                        onClick={removeYear}
-                        className="flex h-5 w-5 items-center justify-center rounded-full text-xs text-slate-400 transition
-                          hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-200"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
+                <th
+                  key={year}
+                  className="border-b border-slate-100 bg-slate-50/60 px-1 py-2 text-sm font-semibold text-slate-700"
+                >
+                  {year}
+                  {yi === 0 && years.length > 1 && (
+                    <span className="ml-1.5 text-[10px] font-normal text-slate-400">
+                      oldest
+                    </span>
+                  )}
                 </th>
               ))}
             </tr>
@@ -195,7 +224,7 @@ const HistoricalDemand = ({
               <tr key={month}>
                 <th
                   scope="row"
-                  className="pr-4 text-left text-sm font-normal text-slate-600"
+                  className="sticky left-0 z-10 border-r border-slate-100 bg-white px-3 text-left text-sm font-normal text-slate-600"
                 >
                   {month}
                 </th>

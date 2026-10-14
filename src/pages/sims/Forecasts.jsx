@@ -1,51 +1,59 @@
-import React, { useState } from 'react'
-import { Provider } from 'react-redux'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import GenericSubheader from '@/components/global/GenericSubheader'
-import GenericHeader from '@/components/global/GenericHeader'
-import Graph from '@/components/sims/forecasts/Graph'
-import MethodsSidebar from '@/components/sims/forecasts/MethodsSidebar'
-import DataOptionsHeader from '@/components/sims/forecasts/DataOptionsHeader'
-import GraphOptions from '@/components/sims/forecasts/GraphOptions'
-import TimelineSliders from '@/components/sims/forecasts/TimelineSliders'
-import useBaseSalesData from '@/hooks/sims/forecasts/useBaseSalesData'
-import useSeriesData from '@/hooks/sims/forecasts/useSeriesData'
-import { createForecastStore } from '@/store/forecast-playground.store'
-import { createErrorsStore } from '@/store/forecasts-errors.store'
+import React, { useState } from "react";
+import { Provider } from "react-redux";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import GenericSubheader from "@/components/global/GenericSubheader";
+import GenericHeader from "@/components/global/GenericHeader";
+import Graph from "@/components/sims/forecasts/Graph";
+import MethodsSidebar from "@/components/sims/forecasts/MethodsSidebar";
+import DataOptionsHeader from "@/components/sims/forecasts/DataOptionsHeader";
+import GraphOptions from "@/components/sims/forecasts/GraphOptions";
+import TimelineSliders from "@/components/sims/forecasts/TimelineSliders";
+import useBaseSalesData from "@/hooks/sims/forecasts/useBaseSalesData";
+import useSeriesData from "@/hooks/sims/forecasts/useSeriesData";
+import { createForecastStore } from "@/store/forecast-playground.store";
+import { createErrorsStore } from "@/store/forecasts-errors.store";
+import ForecastErrorsContent from "@/components/sims/forecasts/playground/ForecastErrorsContent";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
-    super(props)
-    this.state = { error: null }
+    super(props);
+    this.state = { error: null };
   }
   static getDerivedStateFromError(error) {
-    return { error }
+    return { error };
   }
   render() {
     if (this.state.error) {
       return (
-        <div style={{ padding: 24, background: '#fee', color: '#900', fontFamily: 'monospace' }}>
+        <div
+          style={{
+            padding: 24,
+            background: "#fee",
+            color: "#900",
+            fontFamily: "monospace",
+          }}
+        >
           <strong>Crash capturado:</strong>
-          <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>
+          <pre style={{ whiteSpace: "pre-wrap", marginTop: 8 }}>
             {this.state.error.toString()}
-            {'\n'}
+            {"\n"}
             {this.state.error.stack}
           </pre>
         </div>
-      )
+      );
     }
-    return this.props.children
+    return this.props.children;
   }
 }
 
 function ForecastsPlaygroundContent() {
-  useBaseSalesData()
-  useSeriesData()
+  useBaseSalesData();
+  useSeriesData();
 
   return (
     <ErrorBoundary>
-      <div style={{ backgroundColor: 'white' }}>
+      <div style={{ backgroundColor: "white" }}>
         <div className="w-screen flex">
           <MethodsSidebar />
           <div className="flex-1 h-screen min-h-[800]">
@@ -61,11 +69,7 @@ function ForecastsPlaygroundContent() {
         </div>
       </div>
     </ErrorBoundary>
-  )
-}
-
-function ForecastErrorsContent() {
-  return <div />
+  );
 }
 
 /**
@@ -74,18 +78,18 @@ function ForecastErrorsContent() {
  * does not recreate a store or re-run the playground hooks.
  */
 function ForecastsSim() {
-  const [view, setView] = useState('playground')
-  const [playgroundStore] = useState(() => createForecastStore())
-  const [errorsStore] = useState(() => createErrorsStore())
+  const [view, setView] = useState("playground");
+  const [playgroundStore] = useState(() => createForecastStore());
+  const [errorsStore] = useState(() => createErrorsStore());
 
   const handleViewChange = (_, next) => {
-    if (next) setView(next)
-  }
+    if (next) setView(next);
+  };
 
   return (
-    <div style={{ backgroundColor: 'white' }}>
-      <GenericHeader pageName={'Simulator'} />
-      <GenericSubheader subheader={'Sales Forecaster'}>
+    <div style={{ backgroundColor: "white" }}>
+      <GenericHeader pageName={"Simulator"} />
+      <GenericSubheader subheader={"Sales Forecaster"}>
         <ToggleButtonGroup
           exclusive
           size="small"
@@ -93,16 +97,16 @@ function ForecastsSim() {
           onChange={handleViewChange}
           aria-label="Forecast view"
           sx={{
-            '& .MuiToggleButton-root': {
-              color: 'white',
-              borderColor: 'rgba(255,255,255,0.6)',
-              textTransform: 'none',
+            "& .MuiToggleButton-root": {
+              color: "white",
+              borderColor: "rgba(255,255,255,0.6)",
+              textTransform: "none",
               px: 1.5,
               py: 0.25,
             },
-            '& .Mui-selected': {
-              color: '#0077b6 !important',
-              backgroundColor: 'white !important',
+            "& .Mui-selected": {
+              color: "#0077b6 !important",
+              backgroundColor: "white !important",
             },
           }}
         >
@@ -110,18 +114,18 @@ function ForecastsSim() {
           <ToggleButton value="playground">Playground</ToggleButton>
         </ToggleButtonGroup>
       </GenericSubheader>
-      <div hidden={view !== 'playground'}>
+      <div hidden={view !== "playground"}>
         <Provider store={playgroundStore}>
           <ForecastsPlaygroundContent />
         </Provider>
       </div>
-      <div hidden={view !== 'errors'}>
+      <div hidden={view !== "errors"}>
         <Provider store={errorsStore}>
           <ForecastErrorsContent />
         </Provider>
       </div>
     </div>
-  )
+  );
 }
 
-export default ForecastsSim
+export default ForecastsSim;
