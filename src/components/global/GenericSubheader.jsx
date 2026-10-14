@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
 import { Typography } from "@mui/material"
 
-function GenericSubheader({ subheader, onOpenSidebar }) {
+function GenericSubheader({ subheader, onOpenSidebar, children }) {
 
   return (
     <Box>
@@ -26,6 +26,7 @@ function GenericSubheader({ subheader, onOpenSidebar }) {
             </div>
 
               <Typography variant="body2">{subheader}</Typography>
+              {children}
 
         </Toolbar>
       </AppBar>
