@@ -132,7 +132,7 @@ export const getResults = createSelector(
     const irr = getIRR(inflows, outflows, npv);
     const euac = getEUAC(outflows, discountRate, salvageValue);
 
-    const statistics = getStatistics(cashflows);
+    // const statistics = getStatistics(cashflows);
 
     return {
       breakEven,
@@ -140,7 +140,7 @@ export const getResults = createSelector(
       npv,
       irr,
       euac,
-      statistics,
+      // statistics,
     };
   },
 );
