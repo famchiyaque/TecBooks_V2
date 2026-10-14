@@ -10,6 +10,8 @@ import TimelineSliders from '@/components/sims/forecasts/TimelineSliders'
 import useBaseSalesData from '@/hooks/sims/forecasts/useBaseSalesData'
 import useSeriesData from '@/hooks/sims/forecasts/useSeriesData'
 import { createForecastStore } from '@/store/forecast.store'
+import SubheaderNav from '@/components/global/SubheaderNav'
+import PlaygroundPage from '@/components/sims/forecasts/playground/PlaygroundPage'
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -36,6 +38,17 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const DEFAULT_VIEW = 'sales_forecaster'
+const VIEWS = {
+  sales_forecaster: { label: 'Sales Forecaster', Component: ForecastsSimContent },
+  // Vista nueva/aislada (RF1-11: Historical Demand -> Autocorrelation ->
+  // Forecast Models -> Backtesting -> Forecast chart), separada del Sales
+  // Forecaster de siempre - ese sigue exactamente igual, sin tocar.
+  playground: { label: 'Demand / Playground', Component: PlaygroundPage },
+}
+
+const NAV_ITEMS = Object.entries(VIEWS).map(([key, { label }]) => ({ key, label }))
+
 function ForecastsSimContent() {
   const fontStyle = {
     fontFamily: 'Raleway, sans-serif',
@@ -48,8 +61,6 @@ function ForecastsSimContent() {
   return (
     <ErrorBoundary>
       <div style={fontStyle}>
-        <GenericHeader pageName={'Simulator'} />
-        <GenericSubheader subheader={'Sales Forecaster'} />
         <div className="w-screen flex">
           <MethodsSidebar />
           <div className="flex-1 h-screen min-h-[800]">
@@ -74,10 +85,20 @@ function ForecastsSimContent() {
  */
 function ForecastsSim() {
   const [store] = useState(() => createForecastStore())
+  const [view, setView] = useState(DEFAULT_VIEW)
+
+  const { Component: ActiveView } = VIEWS[view] ?? VIEWS[DEFAULT_VIEW]
 
   return (
     <Provider store={store}>
-      <ForecastsSimContent />
+      <GenericHeader pageName={'Simulator'} />
+      <GenericSubheader
+        subheader={VIEWS[view]?.label ?? 'Sales Forecaster'}
+        navigation={({ close }) => (
+          <SubheaderNav items={NAV_ITEMS} value={view} onChange={setView} onItemClick={close} />
+        )}
+      />
+      <ActiveView />
     </Provider>
   )
 }
