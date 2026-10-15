@@ -1,7 +1,6 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 import { INTERVAL_OPTIONS } from '@/config/sims/forecasts/options.config';
 import { differenceInDays, differenceInWeeks, differenceInMonths, differenceInYears } from 'date-fns';
-import { playgroundReducer } from './playground.slice.js';
 
 const forecasterSlice = createSlice({
     name: 'forecaster',
@@ -57,7 +56,7 @@ export const {
 } = forecasterSlice.actions
 
 export const createForecastStore = () => configureStore({
-    reducer: { forecaster: forecasterSlice.reducer, playground: playgroundReducer }
+    reducer: { forecaster: forecasterSlice.reducer }
 })
 
 export const getCurrentDataInfo = (state) => {
