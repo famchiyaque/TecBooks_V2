@@ -15,23 +15,6 @@ import {
   replaceProjEvalReducer,
 } from "@/store/project-evaluation.store";
 
-import SubheaderNav from "@/components/global/SubheaderNav";
-import PlaygroundPage from "@/components/sims/investments/playground/PlaygroundPage";
-
-const DEFAULT_VIEW = "simulator";
-const VIEWS = {
-  simulator: { label: "Simulador", Component: InvestmentsSimContent },
-  own_data: {
-    label: "Ingresar tus propios datos",
-    Component: PlaygroundPage,
-  },
-};
-
-const NAV_ITEMS = Object.entries(VIEWS).map(([key, { label }]) => ({
-  key,
-  label,
-}));
-
 function InvestmentsSimContent() {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -71,30 +54,17 @@ function InvestmentsSimContent() {
  */
 function InvestmentsSim() {
   const [store] = useState(() => createProjEvalStore());
-  const [view, setView] = useState(DEFAULT_VIEW);
 
   useEffect(() => {
     replaceProjEvalReducer(store);
   }, [store, replaceProjEvalReducer]);
 
-  const { Component: ActiveView } = VIEWS[view] ?? VIEWS[DEFAULT_VIEW];
-
   return (
     <Provider store={store}>
       <GenericHeader pageName={"Simulators"} />
-      <GenericSubheader
-        subheader={"Project Evaluation"}
-        navigation={({ close }) => (
-          <SubheaderNav
-            items={NAV_ITEMS}
-            value={view}
-            onChange={setView}
-            onItemClick={close}
-          />
-        )}
-      />
+      <GenericSubheader subheader={"Project Evaluation"} />
 
-      <ActiveView />
+      <InvestmentsSimContent />
     </Provider>
   );
 }
