@@ -33,13 +33,14 @@ const ForecastErrorsContent = () => {
   const minYears = useSelector(selectMinYears);
 
   return (
-    // 89vh = 100vh - GenericHeader (6vh) - GenericSubheader (5vh): llena la
-    // pantalla sin scroll de pagina. Las graficas se reparten 50%/50% del
-    // alto disponible via flex-1 en vez de una altura fija en px.
-    <div className="flex h-[89vh] flex-col gap-3 overflow-hidden p-4">
-      <div className="flex min-h-0 flex-1 flex-col items-stretch gap-3 lg:flex-row">
+    // 89vh = 100vh - GenericHeader (6vh) - GenericSubheader (5vh): intenta
+    // llenar la pantalla sin scroll, pero es un minimo, no un tope duro - si
+    // el contenido real necesita mas (ej. las graficas con su leyenda), la
+    // pagina crece y hace scroll en vez de recortar/ocultar contenido.
+    <div className="flex min-h-[89vh] flex-col gap-3 p-4">
+      <div className="flex flex-col items-stretch gap-3 lg:flex-row">
         {/* Columna izquierda: el único input (Historical Demand) */}
-        <div className="flex min-h-0 w-fit flex-none flex-col items-start gap-3 overflow-y-auto">
+        <div className="flex w-fit flex-none flex-col items-start gap-3">
           <HistoricalDemand
             value={demand}
             onChange={(next) => dispatch(setDemand(next))}
@@ -60,18 +61,19 @@ const ForecastErrorsContent = () => {
 
         {/* Columna derecha: todo lo que se deriva del demand, en dos
             sub-columnas (graficas | tablas) que llenan el alto disponible -
-            cada grafica/tabla toma 50% del alto, pareada con su contraparte
-            (Sales Data/Backtesting arriba, Autocorrelation abajo). */}
-        <div className="flex min-h-0 w-full flex-1 flex-col gap-3 2xl:flex-row">
-          <div className="flex min-h-0 w-full flex-1 flex-col gap-3">
-            <div className="min-h-0 flex-1">
+            cada grafica mide su propio contenedor con ResizeObserver
+            (useContainerHeight) y le pasa ese numero real a Highcharts, asi
+            que crecer/encoger via flex-1 nunca le recorta la leyenda. */}
+        <div className="flex w-full flex-1 flex-col gap-3 2xl:flex-row">
+          <div className="flex w-full flex-1 flex-col gap-3">
+            <div className="min-h-[280px] flex-1">
               <ForecastChart />
             </div>
-            <div className="min-h-0 flex-1">
+            <div className="min-h-[240px] flex-1">
               <AutocorrelationChart />
             </div>
           </div>
-          <div className="flex min-h-0 w-full flex-none flex-col gap-3 2xl:w-[500px]">
+          <div className="flex w-full flex-none flex-col gap-3 2xl:w-[500px]">
             {/* Backtesting and Error: alto natural (1 fila por metodo activo),
                 no fuerza 50% si no tiene contenido para llenarlo. */}
             <div className="flex-none overflow-y-auto">

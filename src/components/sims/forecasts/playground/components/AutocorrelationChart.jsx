@@ -2,26 +2,45 @@ import React, { useMemo } from "react";
 import { useSelector } from "react-redux";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
+import useContainerHeight from "@/hooks/sims/forecasts/useContainerHeight";
 import { selectAutocorrelationTable, selectFlatSeries } from "@/store/playground.slice.js";
+
+const MIN_CHART_HEIGHT = 200;
 
 /** RF4 - barras para ACF, lineas para LIGA/LSGA (bandas de confianza). */
 const AutocorrelationChart = () => {
   const rows = useSelector(selectAutocorrelationTable);
   const series = useSelector(selectFlatSeries);
+  const [chartBoxRef, measuredHeight] = useContainerHeight();
 
   const options = useMemo(
     () => ({
       chart: {
         type: "column",
         style: { fontFamily: "inherit" },
-        spacingTop: 4,
-        spacingBottom: 4,
+        height: Math.max(measuredHeight, MIN_CHART_HEIGHT),
+        spacingTop: 8,
+        spacingBottom: 10,
       },
-      title: { text: "Autocorrelation", margin: 8 },
-      xAxis: { categories: rows.map((row) => String(row.lag)), title: { text: "Lag", margin: 4 } },
-      yAxis: { title: { text: "" }, plotLines: [{ value: 0, width: 1, color: "#ccc" }] },
+      title: { text: "Autocorrelation", margin: 8, style: { color: "#0f172a" } },
+      xAxis: {
+        categories: rows.map((row) => String(row.lag)),
+        title: { text: "Lag", margin: 4, style: { color: "#334155" } },
+        labels: { style: { color: "#334155" } },
+        lineColor: "#cbd5e1",
+        tickColor: "#cbd5e1",
+      },
+      yAxis: {
+        title: { text: "" },
+        labels: { style: { color: "#334155" } },
+        plotLines: [{ value: 0, width: 1, color: "#ccc" }],
+      },
       tooltip: { shared: true, valueDecimals: 3 },
-      legend: { itemStyle: { fontSize: "11px" }, symbolHeight: 10, margin: 6 },
+      legend: {
+        itemStyle: { fontSize: "11px", color: "#334155" },
+        symbolHeight: 10,
+        margin: 6,
+      },
       series: [
         { name: "ACF", type: "column", color: "#1f6f8b", data: rows.map((row) => row.acf) },
         {
@@ -43,19 +62,15 @@ const AutocorrelationChart = () => {
       ],
       credits: { enabled: false },
     }),
-    [rows],
+    [rows, measuredHeight],
   );
 
   if (series.length < 2) return null;
 
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="min-h-0 flex-1">
-        <HighchartsReact
-          highcharts={Highcharts}
-          options={options}
-          containerProps={{ style: { height: "100%", width: "100%" } }}
-        />
+    <section className="flex h-full min-h-[240px] flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div ref={chartBoxRef} className="min-h-0 flex-1">
+        <HighchartsReact highcharts={Highcharts} options={options} />
       </div>
     </section>
   );
