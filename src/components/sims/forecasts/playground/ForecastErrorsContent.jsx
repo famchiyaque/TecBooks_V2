@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import HistoricalDemand from "./components/HistoricalDemand";
 import ForecastChart from "./components/ForecastChart";
 import ErrorMetricsTable from "./components/ErrorMetricsTable";
+import AutocorrelationTable from "./components/AutocorrelationTable";
+import AutocorrelationChart from "./components/AutocorrelationChart";
 import {
   selectDemand,
   selectMaxYears,
@@ -31,34 +33,56 @@ const ForecastErrorsContent = () => {
   const minYears = useSelector(selectMinYears);
 
   return (
-    <div className="flex flex-col items-start gap-4 p-6 lg:flex-row">
-      {/* Columna izquierda: el único input (Historical Demand) */}
-      <div className="flex w-fit flex-none flex-col items-start gap-4">
-        <HistoricalDemand
-          value={demand}
-          onChange={(next) => dispatch(setDemand(next))}
-          maxYears={maxYears}
-          minYears={minYears}
-          testMonths={3}
-          defaultValue={100}
-        />
+    // 89vh = 100vh - GenericHeader (6vh) - GenericSubheader (5vh): llena la
+    // pantalla sin scroll de pagina. Las graficas se reparten 50%/50% del
+    // alto disponible via flex-1 en vez de una altura fija en px.
+    <div className="flex h-[89vh] flex-col gap-3 overflow-hidden p-4">
+      <div className="flex min-h-0 flex-1 flex-col items-stretch gap-3 lg:flex-row">
+        {/* Columna izquierda: el único input (Historical Demand) */}
+        <div className="flex min-h-0 w-fit flex-none flex-col items-start gap-3 overflow-y-auto">
+          <HistoricalDemand
+            value={demand}
+            onChange={(next) => dispatch(setDemand(next))}
+            maxYears={maxYears}
+            minYears={minYears}
+            testMonths={3}
+            defaultValue={100}
+          />
 
-        <button
-          type="button"
-          onClick={() => dispatch(setDemand(INITIAL_DEMAND))}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
-        >
-          Set default values
-        </button>
-      </div>
-
-      {/* Columna derecha: lo que se deriva del demand - usa todo el espacio sobrante */}
-      <div className="flex w-full min-w-0 flex-1 flex-col items-start gap-4 2xl:flex-row">
-        <div className="min-w-0 w-full flex-1">
-          <ForecastChart />
+          <button
+            type="button"
+            onClick={() => dispatch(setDemand(INITIAL_DEMAND))}
+            className="flex-none rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
+          >
+            Set default values
+          </button>
         </div>
-        <div className="w-full flex-none 2xl:w-[380px]">
-          <ErrorMetricsTable />
+
+        {/* Columna derecha: todo lo que se deriva del demand, en dos
+            sub-columnas (graficas | tablas) que llenan el alto disponible -
+            cada grafica/tabla toma 50% del alto, pareada con su contraparte
+            (Sales Data/Backtesting arriba, Autocorrelation abajo). */}
+        <div className="flex min-h-0 w-full flex-1 flex-col gap-3 2xl:flex-row">
+          <div className="flex min-h-0 w-full flex-1 flex-col gap-3">
+            <div className="min-h-0 flex-1">
+              <ForecastChart />
+            </div>
+            <div className="min-h-0 flex-1">
+              <AutocorrelationChart />
+            </div>
+          </div>
+          <div className="flex min-h-0 w-full flex-none flex-col gap-3 2xl:w-[500px]">
+            {/* Backtesting and Error: alto natural (1 fila por metodo activo),
+                no fuerza 50% si no tiene contenido para llenarlo. */}
+            <div className="flex-none overflow-y-auto">
+              <ErrorMetricsTable />
+            </div>
+            {/* Autocorrelation table: se queda con todo el espacio restante -
+                hasta 12 filas (1-2 anios de demanda), por eso lo necesita. */}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <AutocorrelationTable />
+            </div>
+          </div>
         </div>
       </div>
     </div>

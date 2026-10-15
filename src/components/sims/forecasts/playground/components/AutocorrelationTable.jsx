@@ -13,7 +13,7 @@ const AutocorrelationTable = () => {
 
   if (series.length < 2) {
     return (
-      <section className="w-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900">Autocorrelation</h2>
         <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
           Not enough historical demand data to compute autocorrelation.
@@ -23,9 +23,9 @@ const AutocorrelationTable = () => {
   }
 
   return (
-    <section className="w-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-3 text-lg font-semibold text-slate-900">Autocorrelation</h2>
-      <table className="border-separate border-spacing-0 text-sm">
+    <section className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h2 className="mb-2 text-lg font-semibold text-slate-900">Autocorrelation</h2>
+      <table className="w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
             {["Lag", "SE", "t", "LIGA", "LSGA", "ACF"].map((label) => (

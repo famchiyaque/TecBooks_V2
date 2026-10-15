@@ -19,11 +19,17 @@ const ForecastChart = () => {
 
   const options = useMemo(
     () => ({
-      chart: { type: "line", style: { fontFamily: "inherit" }, height: 340 },
-      title: { text: "Sales Data" },
+      chart: {
+        type: "line",
+        style: { fontFamily: "inherit" },
+        spacingTop: 4,
+        spacingBottom: 4,
+      },
+      title: { text: "Sales Data", margin: 8 },
       xAxis: { title: { text: "Month" } },
       yAxis: { title: { text: "Sales in Dollars" } },
       tooltip: { shared: true },
+      legend: { itemStyle: { fontSize: "11px" }, symbolHeight: 10, margin: 6 },
       series: chartSeries.map((series) => ({ ...series, marker: { enabled: false } })),
       credits: { enabled: false },
     }),
@@ -31,8 +37,8 @@ const ForecastChart = () => {
   );
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-4">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex flex-none flex-wrap items-center justify-between gap-4">
         <label className="flex items-center gap-2 text-sm text-slate-600">
           <input
             type="checkbox"
@@ -55,7 +61,13 @@ const ForecastChart = () => {
           <span className="tabular-nums">{forecastYears}</span>
         </label>
       </div>
-      <HighchartsReact highcharts={Highcharts} options={options} />
+      <div className="min-h-0 flex-1">
+        <HighchartsReact
+          highcharts={Highcharts}
+          options={options}
+          containerProps={{ style: { height: "100%", width: "100%" } }}
+        />
+      </div>
     </section>
   );
 };

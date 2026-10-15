@@ -4,7 +4,6 @@ import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import { useSelector } from "react-redux";
 import { getProjectInfo, getResults } from "@/store/project-evaluation.store";
-import { fmt, StatItem } from "./StatItem";
 
 function Results() {
   const projectInfo = useSelector(getProjectInfo);
@@ -77,22 +76,6 @@ function Results() {
           <span className="text-3xl">${euac}</span>
         </div>
       </div>
-
-      {/* Statistics */}
-      {/* <div className="flex flex-col gap-2">
-        <p className="text-sm text-gray-500">Forecast statistics</p>
-        <div className="grid grid-cols-3 gap-2">
-          <StatItem label="R^2" value={fmt(stats.r, 4)} />
-          <StatItem label="Std. error" value={fmt(stats.se)} />
-          <StatItem label="t-value" value={fmt(stats.tValue)} />
-          <StatItem label="Adj. lag" value={fmt(stats.adjustedLag, 0)} />
-          <StatItem label="MAD" value={fmt(stats.mad)} />
-          <StatItem label="MSE" value={fmt(stats.mse)} />
-          <StatItem label="RMSE" value={fmt(stats.rmse)} />
-          <StatItem label="MAPE" value={fmt(stats.mape)} unit="%" />
-          <StatItem label="MPE" value={fmt(stats.mpe)} unit="%" />
-        </div>
-      </div> */}
 
       <div className="flex justify-center">
         <div className="flex w-full max-w-sm justify-around items-center">
