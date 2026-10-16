@@ -11,7 +11,7 @@ const METHODS = [
   { label: "Winter's", key: "w" },
 ];
 
-const Graph = () => {
+const MethodButtons = () => {
   const [selected, setSelected] = useState({
     slr: true,
     dlr: false,
@@ -30,7 +30,7 @@ const Graph = () => {
   };
 
   return (
-    <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       {METHODS.map((method) => (
         <MethodBtn
           key={method.key}
@@ -43,4 +43,4 @@ const Graph = () => {
   );
 };
 
-export default Graph;
+export default MethodButtons;

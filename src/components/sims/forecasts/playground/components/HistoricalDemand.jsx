@@ -99,7 +99,7 @@ const DemandCell = ({
  * @param {number}  [testMonths=3]      Últimos N meses marcados como prueba (0 = ninguno).
  * @param {boolean} [disabled=false]
  * @param {string}  [title]
- * @param {string}  [width="32rem"]     Ancho fijo del componente (cualquier valor CSS).
+ * @param {string}  [width="28rem"]     Ancho fijo del componente (cualquier valor CSS).
  */
 const HistoricalDemand = ({
   value,
@@ -111,7 +111,7 @@ const HistoricalDemand = ({
   testMonths = 3,
   disabled = false,
   title = "Historical Demand",
-  width = "24rem",
+  width = "22rem",
 }) => {
   const [error, setError] = useState(null); // { key, message }
   const scrollRef = useRef(null);
@@ -160,17 +160,15 @@ const HistoricalDemand = ({
       className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
     >
       {/* Encabezado */}
-      <header className="mb-4 flex items-start justify-between gap-4">
+      <header className="mb-4 grid items-start grid-rows-2 gap-4">
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold text-slate-900">
-            {title}
-          </h2>
+          <h2 className="font-semibold text-slate-900">{title}</h2>
           <p className="text-xs text-slate-500">
             {years.length} of {maxYears} years · {totalMonths} months
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 justify-center">
           <button
             type="button"
             onClick={removeYear}

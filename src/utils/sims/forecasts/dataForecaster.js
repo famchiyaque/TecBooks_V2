@@ -1,4 +1,4 @@
-function getNonNullRange(baseArray) {
+export function getNonNullRange(baseArray) {
     const firstNonNull = baseArray.findIndex(v => v !== null);
     const lastNonNull = baseArray.findLastIndex(v => v !== null);
 
@@ -16,7 +16,7 @@ function getNonNullRange(baseArray) {
     return { x, y, firstNonNull, lastNonNull };
 }
 
-function simpleLinear(baseArray, interval) {
+export function simpleLinear(baseArray, interval) {
     const result = [...baseArray];
 
     const { x, y, firstNonNull, lastNonNull } = getNonNullRange(baseArray);
@@ -70,7 +70,7 @@ function solveLinearSystem3x3(A, b) {
 }
 
 // Quadratic regression: y = b0 + b1*x + b2*x² (genuinely different from simple linear)
-function doubleLinear(baseArray, interval) {
+export function doubleLinear(baseArray, interval) {
     const result = [...baseArray];
     const { x, y, firstNonNull, lastNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1 || x.length < 3) return result;
@@ -99,7 +99,7 @@ function doubleLinear(baseArray, interval) {
 }
 
 
-function simpleMoving(baseArray, interval, params = {}) {
+export function simpleMoving(baseArray, interval, params = {}) {
     const compound = params.compound ?? 3;
     const result = [...baseArray];
 
@@ -124,7 +124,7 @@ function simpleMoving(baseArray, interval, params = {}) {
 }
 
 // DMA forecast: a = 2*SMA - DMA, b = (2/(m-1))*(SMA-DMA), F(h) = a + b*h
-function doubleMoving(baseArray, interval) {
+export function doubleMoving(baseArray, interval) {
     const result = [...baseArray];
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1) return result;
@@ -161,7 +161,7 @@ function doubleMoving(baseArray, interval) {
     return result;
 }
 
-function simpleExponential(baseArray, interval, params = {}) {
+export function simpleExponential(baseArray, interval, params = {}) {
     const alpha = params.alpha ?? 0.5;
     const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
     if (firstNonNull === -1) return null;
@@ -186,7 +186,7 @@ function simpleExponential(baseArray, interval, params = {}) {
 }
 
 
-function doubleExponential(baseArray, interval, params = {}) {
+export function doubleExponential(baseArray, interval, params = {}) {
     const alpha = params.alpha ?? 0.5;
     const gamma = params.beta  ?? 0.1; // trend smoothing (called β in UI, γ in Holt's notation)
     const result = [...baseArray];
@@ -222,7 +222,7 @@ function doubleExponential(baseArray, interval, params = {}) {
 }
 
 
-function winters(baseArray, interval, params = {}) {
+export function winters(baseArray, interval, params = {}) {
     const alpha        = params.alpha        ?? 0.5;
     const beta         = params.beta         ?? 0.3;
     const gamma        = params.gamma        ?? 0.2;
@@ -314,7 +314,7 @@ function getBaseArray(pastDate, futureDate, interval, salesData) {
 }
 
 
-const forecasts = {
+export const forecasts = {
     "Simple Linear Regression": { color: "red", func: simpleLinear },
     "Double Linear Regression": { color: "purple", func: doubleLinear },
     "Simple Moving Average": { color: "pink", func: simpleMoving },
