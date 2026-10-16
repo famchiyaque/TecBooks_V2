@@ -104,6 +104,7 @@ const DemandCell = ({
 const HistoricalDemand = ({
   value,
   onChange,
+  setDefault,
   maxYears = 5,
   minYears = 1,
   defaultValue = 100,
@@ -277,6 +278,14 @@ const HistoricalDemand = ({
           </span>
         </footer>
       )}
+      {/* Ejemplo de cambio desde el padre */}
+      <button
+        type="button"
+        onClick={setDefault}
+        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 mt-2"
+      >
+        Set deault values
+      </button>
     </section>
   );
 };
