@@ -324,6 +324,14 @@ export const forecasts = {
     "Winter's": { color: "skyblue", func: winters },    
 }
 
+export const forecastParams = {
+    compound: { label: "Window (compound)", min: 2, max: 12, step: 1 },
+    alpha: { label: "Alpha (level)", min: 0.01, max: 1, step: 0.01 },
+    beta: { label: "Beta (trend)", min: 0.01, max: 1, step: 0.01 },
+    gamma: { label: "Gamma (seasonal)", min: 0.01, max: 1, step: 0.01 },
+    seasonLength: { label: "Season length", min: 2, max: 24, step: 1 },
+}
+
 export default function getSeriesData(salesData, effectivePastDate, effectiveFutureDate, effectiveInterval, activeMethods, params = {}) {
     // console.log("salesData passed: ", !!salesData);
     // console.log("effectivePastDate: ", effectivePastDate);
