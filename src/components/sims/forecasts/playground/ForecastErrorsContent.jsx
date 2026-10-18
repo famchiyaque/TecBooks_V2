@@ -12,7 +12,6 @@ import {
   selectMinYears,
   setDemand,
 } from "@/store/playground.slice.js";
-import { useForecast } from "@/hooks/sims/forecasts/useForecast";
 import MethodButtons from "./components/MethodButtons";
 
 /**
@@ -26,7 +25,6 @@ const ForecastErrorsContent = () => {
   const demand = useSelector(selectDemand);
   const maxYears = useSelector(selectMaxYears);
   const minYears = useSelector(selectMinYears);
-  const forecast = useForecast(demand, { futurePeriods: 12 });
 
   return (
     // 89vh = 100vh - GenericHeader (6vh) - GenericSubheader (5vh): intenta

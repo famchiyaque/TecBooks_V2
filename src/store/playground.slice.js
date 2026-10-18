@@ -12,7 +12,7 @@ import { computeBacktestErrors } from "@/utils/sims/forecasts/backtestErrors.js"
 const MONTHS_PER_YEAR = 12;
 const DEFAULT_METHOD = "Simple Linear Regression";
 
-const DEFAULT_METHOD_PARAMS = {
+export const DEFAULT_METHOD_PARAMS = {
   "Simple Linear Regression": {},
   "Double Linear Regression": {},
   "Simple Moving Average": { compound: 3 },
