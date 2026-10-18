@@ -49,40 +49,52 @@ const MethodButtons = () => {
 
         return (
           <div key={method} className="relative flex grow basis-auto gap-1">
-            <div className="grow [&>button]:w-full">
-              <MethodBtn
-                label={method}
-                isSelected={selectedMethods.includes(method)}
-                onClick={() => dispatch(toggleMethod(method))}
-              />
-            </div>
-
-            {hasParams && (
-              <button
-                type="button"
-                aria-label={`Configurar ${method}`}
-                aria-expanded={isOpen}
-                onClick={() => setOpenMethod(isOpen ? null : method)}
-                className={`flex-none rounded-lg border px-2 text-sm transition-colors ${
-                  isOpen
-                    ? "border-slate-400 bg-slate-100"
-                    : "border-slate-200 hover:bg-slate-50"
+            <div
+              key={method}
+              className={`relative flex grow basis-auto items-stretch rounded-lg border transition-colors ${
+                isOpen ? "border-slate-400" : "border-slate-300"
+              }`}
+            >
+              {/* Quita borde y radio propios de MethodBtn; el contenedor los pone */}
+              <div
+                className={`grow [&>button]:h-full [&>button]:w-full [&>button]:border-0 ${
+                  hasParams
+                    ? "[&>button]:rounded-l-lg [&>button]:rounded-r-none"
+                    : "[&>button]:rounded-lg"
                 }`}
               >
-                ⚙
-              </button>
-            )}
+                <MethodBtn
+                  label={method}
+                  isSelected={selectedMethods.includes(method)}
+                  onClick={() => dispatch(toggleMethod(method))}
+                />
+              </div>
 
-            {isOpen && (
-              <ParamsPopover
-                method={method}
-                params={params}
-                onChange={(param, value) =>
-                  dispatch(setMethodParam({ method, param, value }))
-                }
-                onReset={() => resetMethod(method)}
-              />
-            )}
+              {hasParams && (
+                <button
+                  type="button"
+                  aria-label={`Configurar ${method}`}
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenMethod(isOpen ? null : method)}
+                  className={`flex-none rounded-r-lg border-l border-slate-300 px-2.5 text-sm transition-colors hover:bg-slate-100 ${
+                    isOpen ? "bg-slate-100" : "bg-transparent"
+                  }`}
+                >
+                  ⚙
+                </button>
+              )}
+
+              {isOpen && (
+                <ParamsPopover
+                  method={method}
+                  params={params}
+                  onChange={(param, value) =>
+                    dispatch(setMethodParam({ method, param, value }))
+                  }
+                  onReset={() => resetMethod(method)}
+                />
+              )}
+            </div>
           </div>
         );
       })}
