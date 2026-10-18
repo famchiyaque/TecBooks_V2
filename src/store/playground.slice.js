@@ -13,13 +13,16 @@ const MONTHS_PER_YEAR = 12;
 const DEFAULT_METHOD = "Simple Linear Regression";
 
 const DEFAULT_METHOD_PARAMS = {
+  "Simple Linear Regression": {},
+  "Double Linear Regression": {},
   "Simple Moving Average": { compound: 3 },
+  "Double Moving Average": { compound: 3 },
   "Simple Exponential Smoothing": { alpha: 0.5 },
   "Double Exponential Smoothing": { alpha: 0.5, beta: 0.1 },
   "Winter's": { alpha: 0.5, beta: 0.3, gamma: 0.2, seasonLength: 12 },
 };
 
-const INITIAL_DEMAND = {
+export const INITIAL_DEMAND = {
   2024: [81, 84, 92, 90, 88, 96, 105, 102, 109, 111, 115, 114],
   2025: [123, 130, 125, 138, 145, 142, 141, 146, 147, 157, 150, 160],
 };
@@ -47,16 +50,21 @@ const playgroundSlice = createSlice({
     },
     setErrorBacktestCount: (state, action) => {
       const parsed = Number(action.payload);
-      state.errorBacktestCount = Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : 0;
+      state.errorBacktestCount = Number.isFinite(parsed)
+        ? Math.max(0, Math.trunc(parsed))
+        : 0;
     },
     setForecastYears: (state, action) => {
       const parsed = Number(action.payload);
-      state.forecastYears = Number.isFinite(parsed) ? Math.min(10, Math.max(1, Math.trunc(parsed))) : 1;
+      state.forecastYears = Number.isFinite(parsed)
+        ? Math.min(10, Math.max(1, Math.trunc(parsed)))
+        : 1;
     },
     setForecastVisible: (state, action) => {
       state.forecastVisible = action.payload;
     },
     toggleMethod: (state, action) => {
+      console.log(action);
       const method = action.payload;
       state.selectedMethods = state.selectedMethods.includes(method)
         ? state.selectedMethods.filter((m) => m !== method)
@@ -64,7 +72,10 @@ const playgroundSlice = createSlice({
     },
     setMethodParam: (state, action) => {
       const { method, param, value } = action.payload;
-      state.methodParams[method] = { ...(state.methodParams[method] ?? {}), [param]: value };
+      state.methodParams[method] = {
+        ...(state.methodParams[method] ?? {}),
+        [param]: value,
+      };
     },
   },
 });
@@ -85,10 +96,13 @@ export const playgroundReducer = playgroundSlice.reducer;
 export const selectDemand = (state) => state.playground.demand;
 export const selectMaxYears = (state) => state.playground.maxYears;
 export const selectMinYears = (state) => state.playground.minYears;
-export const selectErrorBacktestCount = (state) => state.playground.errorBacktestCount;
+export const selectErrorBacktestCount = (state) =>
+  state.playground.errorBacktestCount;
 export const selectForecastYears = (state) => state.playground.forecastYears;
-export const selectForecastVisible = (state) => state.playground.forecastVisible;
-export const selectSelectedMethods = (state) => state.playground.selectedMethods;
+export const selectForecastVisible = (state) =>
+  state.playground.forecastVisible;
+export const selectSelectedMethods = (state) =>
+  state.playground.selectedMethods;
 export const selectMethodParams = (state) => state.playground.methodParams;
 
 export const selectDemandYears = createSelector([selectDemand], (demand) =>
@@ -138,7 +152,12 @@ function predictedWindow(result, totalLength, testCount) {
 
 /** RF7/8: una fila por metodo activo, ordenadas de menor a mayor error (MSE). */
 export const selectBacktestTable = createSelector(
-  [selectFlatSeries, selectTrainTestSplit, selectSelectedMethods, selectMethodParams],
+  [
+    selectFlatSeries,
+    selectTrainTestSplit,
+    selectSelectedMethods,
+    selectMethodParams,
+  ],
   (series, { train, test, testCount }, methods, methodParams) => {
     if (testCount === 0) return [];
     const baseArray = [...train, ...Array(testCount).fill(null)];
@@ -147,9 +166,17 @@ export const selectBacktestTable = createSelector(
       .map((method) => {
         const config = FORECAST_METHODS[method];
         if (!config) return null;
-        const result = config.func(baseArray, "monthly", methodParams[method] ?? {});
+        const result = config.func(
+          baseArray,
+          "monthly",
+          methodParams[method] ?? {},
+        );
         const predicted = predictedWindow(result, baseArray.length, testCount);
-        return { model: method, color: config.color, ...computeBacktestErrors(test, predicted) };
+        return {
+          model: method,
+          color: config.color,
+          ...computeBacktestErrors(test, predicted),
+        };
       })
       .filter(Boolean);
 
@@ -159,9 +186,17 @@ export const selectBacktestTable = createSelector(
 
 /** RF9-11: linea base (historico completo) + una linea por metodo activo, extendida forecastYears al futuro. */
 export const selectForecastChartSeries = createSelector(
-  [selectFlatSeries, selectSelectedMethods, selectMethodParams, selectForecastYears, selectForecastVisible],
+  [
+    selectFlatSeries,
+    selectSelectedMethods,
+    selectMethodParams,
+    selectForecastYears,
+    selectForecastVisible,
+  ],
   (series, methods, methodParams, forecastYears, forecastVisible) => {
-    const chartSeries = [{ name: "sales", color: "#eab308", data: [...series] }];
+    const chartSeries = [
+      { name: "sales", color: "#eab308", data: [...series] },
+    ];
     if (!forecastVisible) return chartSeries;
 
     const futureMonths = forecastYears * MONTHS_PER_YEAR;
@@ -170,10 +205,19 @@ export const selectForecastChartSeries = createSelector(
     methods.forEach((method) => {
       const config = FORECAST_METHODS[method];
       if (!config) return;
-      const result = config.func(baseArray, "monthly", methodParams[method] ?? {});
+      const result = config.func(
+        baseArray,
+        "monthly",
+        methodParams[method] ?? {},
+      );
 
       if (Array.isArray(result)) {
-        chartSeries.push({ name: method, color: config.color, data: result, dashStyle: "Dash" });
+        chartSeries.push({
+          name: method,
+          color: config.color,
+          data: result,
+          dashStyle: "Dash",
+        });
       } else if (result?.historical && result?.forecast) {
         chartSeries.push({
           name: `${method} (smoothed)`,

@@ -6,19 +6,14 @@ import ErrorMetricsTable from "./components/ErrorMetricsTable";
 import AutocorrelationTable from "./components/AutocorrelationTable";
 import AutocorrelationChart from "./components/AutocorrelationChart";
 import {
+  INITIAL_DEMAND,
   selectDemand,
   selectMaxYears,
   selectMinYears,
   setDemand,
 } from "@/store/playground.slice.js";
-
-// Same default demand playground.slice.js already seeds its initial state
-// with - reused here only so "Set default values" has something to reset
-// back to after the user edits cells.
-const INITIAL_DEMAND = {
-  2024: [81, 84, 92, 90, 88, 96, 105, 102, 109, 111, 115, 114],
-  2025: [123, 130, 125, 138, 145, 142, 141, 146, 147, 157, 150, 160],
-};
+import { useForecast } from "@/hooks/sims/forecasts/useForecast";
+import MethodButtons from "./components/MethodButtons";
 
 /**
  * RF1-11 "Demand / Playground": Historical Demand is the one input - the
@@ -31,6 +26,7 @@ const ForecastErrorsContent = () => {
   const demand = useSelector(selectDemand);
   const maxYears = useSelector(selectMaxYears);
   const minYears = useSelector(selectMinYears);
+  const forecast = useForecast(demand, { futurePeriods: 12 });
 
   return (
     // 89vh = 100vh - GenericHeader (6vh) - GenericSubheader (5vh): intenta
@@ -44,19 +40,12 @@ const ForecastErrorsContent = () => {
           <HistoricalDemand
             value={demand}
             onChange={(next) => dispatch(setDemand(next))}
+            setDefault={() => dispatch(setDemand(INITIAL_DEMAND))}
             maxYears={maxYears}
             minYears={minYears}
             testMonths={3}
             defaultValue={100}
           />
-
-          <button
-            type="button"
-            onClick={() => dispatch(setDemand(INITIAL_DEMAND))}
-            className="flex-none rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
-          >
-            Set default values
-          </button>
         </div>
 
         {/* Columna derecha: todo lo que se deriva del demand, en dos
@@ -66,6 +55,9 @@ const ForecastErrorsContent = () => {
             que crecer/encoger via flex-1 nunca le recorta la leyenda. */}
         <div className="flex w-full flex-1 flex-col gap-3 2xl:flex-row">
           <div className="flex w-full flex-1 flex-col gap-3">
+            <div className="flex-1">
+              <MethodButtons />
+            </div>
             <div className="min-h-[280px] flex-1">
               <ForecastChart />
             </div>
