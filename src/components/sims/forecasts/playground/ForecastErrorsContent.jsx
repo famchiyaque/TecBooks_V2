@@ -6,6 +6,7 @@ import ErrorMetricsTable from "./components/ErrorMetricsTable";
 import AutocorrelationTable from "./components/AutocorrelationTable";
 import AutocorrelationChart from "./components/AutocorrelationChart";
 import {
+  INITIAL_DEMAND,
   selectDemand,
   selectMaxYears,
   selectMinYears,
@@ -13,14 +14,6 @@ import {
 } from "@/store/playground.slice.js";
 import { useForecast } from "@/hooks/sims/forecasts/useForecast";
 import MethodButtons from "./components/MethodButtons";
-
-// Same default demand playground.slice.js already seeds its initial state
-// with - reused here only so "Set default values" has something to reset
-// back to after the user edits cells.
-const INITIAL_DEMAND = {
-  2024: [81, 84, 92, 90, 88, 96, 105, 102, 109, 111, 115, 114],
-  2025: [123, 130, 125, 138, 145, 142, 141, 146, 147, 157, 150, 160],
-};
 
 /**
  * RF1-11 "Demand / Playground": Historical Demand is the one input - the

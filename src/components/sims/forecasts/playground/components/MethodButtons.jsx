@@ -1,43 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import MethodBtn from "./MethodBtn";
-
-const METHODS = [
-  { label: "Simple Linear Regression", key: "slr" },
-  { label: "Double Linear Regression", key: "dlr" },
-  { label: "Simple Moving Average", key: "sma" },
-  { label: "Double Moving Average", key: "dma" },
-  { label: "Simple Exponential Smoothing", key: "se" },
-  { label: "Double Exponential Smoothing", key: "de" },
-  { label: "Winter's", key: "w" },
-];
+import {
+  selectSelectedMethods,
+  toggleMethod,
+} from "@/store/playground.slice.js";
+import { forecasts as FORECAST_METHODS } from "@/utils/sims/forecasts/dataForecaster.js";
 
 const MethodButtons = () => {
-  const [selected, setSelected] = useState({
-    slr: true,
-    dlr: false,
-    sma: false,
-    dma: false,
-    se: false,
-    de: false,
-    w: false,
-  });
-
-  const toggleSelect = (key) => {
-    setSelected((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
+  const dispatch = useDispatch();
+  const selectedMethods = useSelector(selectSelectedMethods);
 
   return (
-    <div className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      {METHODS.map((method) => (
-        <MethodBtn
-          key={method.key}
-          label={method.label}
-          isSelected={selected[method.key]}
-          onClick={() => toggleSelect(method.key)}
-        />
+    <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      {Object.keys(FORECAST_METHODS).map((method) => (
+        <div key={method} className="grow basis-auto [&>button]:w-full">
+          <MethodBtn
+            key={method}
+            label={method}
+            isSelected={selectedMethods.includes(method)}
+            onClick={() => dispatch(toggleMethod(method))}
+          />
+        </div>
       ))}
     </div>
   );
