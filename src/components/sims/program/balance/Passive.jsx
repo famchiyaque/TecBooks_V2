@@ -1,15 +1,22 @@
 import React from "react";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
-import { currentPassiveSlice, longTermPassiveSlice } from "@/store/balance.store";
+import {
+  currentPassiveSlice,
+  longTermPassiveSlice,
+} from "@/store/balance.store";
 import EditableTable from "@/components/global/EditableTable";
 import GrandTotalTable from "@/components/global/GrandTotalTable";
+import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
 
 // No fixed rows - Current Passives (Documentos por pagar / Proveedores) has
 // no source field anywhere in InputNovus (confirmed - only two orphaned
 // policy premises exist, never wired into any formula, not even in the
-// reference Template Financiero). Rather than show rows seeded with made-up
-// numbers, leave it empty and let the user add their own rows for whatever
-// short-term debt their business actually has.
+// reference Template Financiero). No fixed row here (those can't be
+// deleted) - instead a default CUSTOM row gets seeded once per session, the
+// user is free to edit or delete like any other custom row. That seed (and
+// this slice's hydrate/save sync) lives in useEffectiveBalanceTotals.js now,
+// not here - Ratios/Equity/Balance all need it and used to go blank if
+// opened before this component ever mounted (see that file's BUG FIX note).
 export const CURRENT_PASSIVES = [];
 
 export const LONG_TERM_PASSIVES = [
@@ -24,7 +31,8 @@ export const LONG_TERM_PASSIVES = [
 // (currentPassiveSlice / longTermPassiveSlice) - they used to share one
 // "passives" slice, which meant a custom row added to either table leaked
 // into both totals (they read the same underlying customRows array).
-function Passive({ passives }) {
+function Passive({ passives, gameId, currency }) {
+  useTableRowsSync(gameId, longTermPassiveSlice, "longTermPassives");
   const columns = Object.keys(passives.currentPassives).map((year) => ({
     key: year,
     label: year,
@@ -44,6 +52,7 @@ function Passive({ passives }) {
         rows={CURRENT_PASSIVES}
         getValue={getCurrentPassiveValue}
         totalLabel="Total Current Passives"
+        currency={currency}
       />
       <EditableTable
         title="Long term passives"
@@ -52,6 +61,7 @@ function Passive({ passives }) {
         rows={LONG_TERM_PASSIVES}
         getValue={getLongTermPassivesValue}
         totalLabel="Total Long Term Passives"
+        currency={currency}
       />
       <GrandTotalTable
         title="Total Passives"
@@ -68,6 +78,7 @@ function Passive({ passives }) {
             getValue: getLongTermPassivesValue,
           },
         ]}
+        currency={currency}
       />
     </CollapsibleSection>
   );

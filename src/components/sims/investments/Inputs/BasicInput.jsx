@@ -9,7 +9,7 @@ function BasicInput({ func, value, name }) {
             case 'Project':
                 func(newValue.trim());
                 break
-            case 'Lifetime':
+            case 'Lifetime (yrs)':
                 if (newValue === '') {
                     func(''); // keep input empty temporarily
                     break;
@@ -35,6 +35,12 @@ function BasicInput({ func, value, name }) {
                 {
                     const parsedFloat = parseFloat(newValue);
                     func(isNaN(parsedFloat) ? 0 : parsedFloat);
+                }
+                break
+            case 'Salvage Value':
+                {
+                    const parsedInt = parseInt(newValue, 10);
+                    func(isNaN(parsedInt) ? 0 : parsedInt);
                 }
                 break
             default:

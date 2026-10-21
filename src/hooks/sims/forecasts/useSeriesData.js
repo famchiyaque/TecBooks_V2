@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import getSeriesData from '@/utils/sims/forecasts/dataForecaster';
-import { setSeriesData } from '@/store/forecast.store';
+import { setSeriesData } from '@/store/forecast-playground.store';
 
 
 export default function useSeriesData() {

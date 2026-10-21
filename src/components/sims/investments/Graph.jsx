@@ -6,25 +6,22 @@ function Graph() {
   const canvasRef = useRef(null)
 
   const project = useSelector((state) => state.projEval.project)
-  const lifetime = useSelector((state) => state.projEval.lifetime)
   const inflows = useSelector((state) => state.projEval.inflows)
   const outflows = useSelector((state) => state.projEval.outflows)
-  const initialInvestment = useSelector((state) => state.projEval.initialInvestment)
   const order = useSelector((state) => state.projEval.order)
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext('2d')
-    const year = new Date().getFullYear()
+    const year = new Date().getFullYear() - 1
     const firstYear = year.toString()
     let labels = [firstYear]
-    for (let i = 1; i < lifetime; i++) {
+    for (let i = 1; i < inflows.length; i++) {
       labels.push((year + i).toString())
     }
 
     // Calculate cash flow per year (bar dataset)
     const cashflows = inflows.map((inflow, index) => {
-      if (index === 0) return inflow - outflows[index] - initialInvestment
-      else return inflow - outflows[index]
+      return inflow - outflows[index]
     })
 
     // Calculate cumulative cash flow (line dataset) - You can adjust this if you need a different metric
@@ -74,7 +71,7 @@ function Graph() {
       data: data,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             position: 'top',
@@ -95,10 +92,10 @@ function Graph() {
     const chart = new Chart(ctx, config)
 
     return () => chart.destroy()
-  }, [lifetime, project, inflows, outflows, initialInvestment, order])
+  }, [project, inflows, outflows, order])
 
   return (
-    <div style={{ width: "90%", margin: "0 auto", minHeight: '60vh' }}>
+    <div style={{ width: "90%", height: "100%", margin: "0 auto" }}>
       <canvas ref={canvasRef} ></canvas>
     </div>
   )

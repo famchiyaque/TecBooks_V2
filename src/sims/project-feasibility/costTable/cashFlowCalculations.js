@@ -1,32 +1,41 @@
-import { buildCostOfSales } from './buildCostOfSales'
-import { buildOutflowRows, computeCapexByYear, outflowBaseValue } from './outflowCalculations'
-import { Logger } from '../utils/logger.js'
+import { buildCostOfSales } from "./buildCostOfSales";
+import {
+  buildOutflowRows,
+  computeCapexByYear,
+  outflowBaseValue,
+} from "./outflowCalculations";
+import { Logger } from "../utils/logger.js";
 
-const logger = new Logger('CashFlowCalculations')
+const logger = new Logger("CashFlowCalculations");
 
 export const ENTRADA_ROWS = [
-  { key: 'saldoInicial', label: 'Beginning Balance' },
-  { key: 'ventas', label: 'Sales' },
-  { key: 'prestamoLargoPlazo', label: 'Long-term Loan' },
-  { key: 'prestamoCortoPlazo', label: 'Short-term Loans' },
-  { key: 'otrosIngresos', label: 'Other Income' },
-]
+  { key: "saldoInicial", label: "Beginning Balance" },
+  { key: "ventas", label: "Sales" },
+  { key: "prestamoLargoPlazo", label: "Long-term Loan" },
+  { key: "prestamoCortoPlazo", label: "Short-term Loans" },
+  { key: "otrosIngresos", label: "Other Income" },
+];
 
 /** Opening cash from Premisas (`startingMoney` → `premises.starting_money`). Missing → 0. */
 export function startingMoneyFromCbm(cbm) {
-  const value = cbm?.premises?.startingMoney
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+  const value = cbm?.premises?.startingMoney;
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 /** rowByYear: costOfSalesByYear keyed by year (buildCostOfSales output). */
 export function baseEntradaValue(rowKey, year, rowByYear) {
-  const row = rowByYear[year]
+  const row = rowByYear[year];
   switch (rowKey) {
-    case 'ventas': return row?.netSales ?? 0
-    case 'prestamoLargoPlazo': return row?.financingAmount ?? 0
-    case 'prestamoCortoPlazo': return 0
-    case 'otrosIngresos': return 0
-    default: return 0
+    case "ventas":
+      return row?.netSales ?? 0;
+    case "prestamoLargoPlazo":
+      return row?.financingAmount ?? 0;
+    case "prestamoCortoPlazo":
+      return 0;
+    case "otrosIngresos":
+      return 0;
+    default:
+      return 0;
   }
 }
 
@@ -42,40 +51,63 @@ export function baseEntradaValue(rowKey, year, rowByYear) {
  * this for the final year since it only ever looks one year back).
  */
 export function computeCashBalanceByYear(cbm) {
-  const result = buildCostOfSales(cbm)
+  const result = buildCostOfSales(cbm);
   if (result.error) {
-    logger.warn('computeCashBalanceByYear: buildCostOfSales errored', { error: result.error })
-    return { saldoInicialByYear: {}, endingBalanceByYear: {}, years: [] }
+    logger.warn("computeCashBalanceByYear: buildCostOfSales errored", {
+      error: result.error,
+    });
+    return { saldoInicialByYear: {}, endingBalanceByYear: {}, years: [] };
   }
 
-  const rowByYear = Object.fromEntries(result.costOfSalesByYear.map((row) => [row.year, row]))
-  const years = result.costOfSalesByYear.map((row) => row.year)
-  const capexByYear = computeCapexByYear(cbm, years)
-  const outflowRows = buildOutflowRows(cbm)
-  const openingCash = startingMoneyFromCbm(cbm)
+  const rowByYear = Object.fromEntries(
+    result.costOfSalesByYear.map((row) => [row.year, row]),
+  );
+  const years = result.costOfSalesByYear.map((row) => row.year);
+  const capexByYear = computeCapexByYear(cbm, years);
+  const outflowRows = buildOutflowRows(cbm);
+  const openingCash = startingMoneyFromCbm(cbm);
 
   const totalEntradasSalidas = (year, saldoInicial) => {
-    const totalEntradas = ENTRADA_ROWS.reduce((sum, row) => sum + (
-      row.key === 'saldoInicial' ? saldoInicial : baseEntradaValue(row.key, year, rowByYear)
-    ), 0)
+    const totalEntradas = ENTRADA_ROWS.reduce(
+      (sum, row) =>
+        sum +
+        (row.key === "saldoInicial"
+          ? saldoInicial
+          : baseEntradaValue(row.key, year, rowByYear)),
+      0,
+    );
     const totalSalidas = outflowRows.reduce(
-      (sum, row) => sum + outflowBaseValue(row.key, year, rowByYear, capexByYear), 0
-    )
-    return totalEntradas - totalSalidas
-  }
+      (sum, row) =>
+        sum + outflowBaseValue(row.key, year, rowByYear, capexByYear),
+      0,
+    );
+    return totalEntradas - totalSalidas;
+  };
 
-  const saldoInicialByYear = {}
+  const saldoInicialByYear = {};
   years.forEach((year, index) => {
-    saldoInicialByYear[year] = index === 0
-      ? openingCash
-      : totalEntradasSalidas(years[index - 1], saldoInicialByYear[years[index - 1]])
-  })
+    saldoInicialByYear[year] =
+      index === 0
+        ? openingCash
+        : totalEntradasSalidas(
+            years[index - 1],
+            saldoInicialByYear[years[index - 1]],
+          );
+  });
 
-  const endingBalanceByYear = {}
+  const endingBalanceByYear = {};
   years.forEach((year) => {
-    endingBalanceByYear[year] = totalEntradasSalidas(year, saldoInicialByYear[year])
-  })
+    endingBalanceByYear[year] = totalEntradasSalidas(
+      year,
+      saldoInicialByYear[year],
+    );
+  });
 
-  logger.debug('computeCashBalanceByYear', { openingCash, years, saldoInicialByYear, endingBalanceByYear })
-  return { saldoInicialByYear, endingBalanceByYear, years }
+  logger.debug("computeCashBalanceByYear", {
+    openingCash,
+    years,
+    saldoInicialByYear,
+    endingBalanceByYear,
+  });
+  return { saldoInicialByYear, endingBalanceByYear, years };
 }

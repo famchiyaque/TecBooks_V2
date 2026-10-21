@@ -7,7 +7,7 @@ import AmortizationInterestTable from "./income/AmortizationInterestTable";
 import FinancialExpensesTable from "./income/FinancialExpensesTable";
 import CollapsibleSection from "@/components/global/CollapsibleSection";
 
-function Outflows({ project }) {
+function Outflows({ project, currency }) {
   const investmentRef = useRef(null);
   const [investmentHeight, setInvestmentHeight] = useState(null);
 
@@ -37,20 +37,20 @@ function Outflows({ project }) {
   return (
     <div className="flex flex-col mt-3 p-3">
       <CollapsibleSection title="Administrative Expenses" defaultExpanded>
-        <AdminExpensesTable years={years} expenses={adminExpenses} />
+        <AdminExpensesTable years={years} expenses={adminExpenses} currency={currency}/>
       </CollapsibleSection>
 
       <CollapsibleSection title="Investment & Services">
         <div className="flex items-start gap-3">
           <div ref={investmentRef}>
-            <InvestmentTable items={investment} />
+            <InvestmentTable items={investment} currency={currency}/>
           </div>
 
           <div
             className="min-w-0 flex-1"
             style={investmentHeight ? { height: investmentHeight } : undefined}
           >
-            <ServicesTable services={services} />
+            <ServicesTable services={services} currency={currency}/>
           </div>
         </div>
       </CollapsibleSection>
@@ -59,6 +59,7 @@ function Outflows({ project }) {
         <AmortizationInterestTable
           amortizationInterests={amortizationInterests}
           baseYear={years[0]}
+          currency={currency}
         />
       </CollapsibleSection>
 
@@ -66,6 +67,7 @@ function Outflows({ project }) {
         <FinancialExpensesTable
           totalFinancialExpenses={totalFinancialExpenses}
           baseYear={years[0]}
+          currency={currency}
         />
       </CollapsibleSection>
     </div>

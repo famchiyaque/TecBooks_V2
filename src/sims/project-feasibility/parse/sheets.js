@@ -303,7 +303,25 @@ export function readInversion(rows, project) {
       continue
     }
 
-    const asset = { name, acquisitionByYear: seriesFromRow(row, yearMap) }
+    // BUG FIX: an asset's acquisition value is the SAME book value repeated
+    // across every year column (see assetSchedule.js's own documented
+    // convention) - if one year's header cell doesn't match a HORIZON_YEARS
+    // number (e.g. it's formatted as a date in the Excel, not a plain
+    // number - `raw: true` then reads its date serial instead of the year),
+    // yearColumnMap never maps that column, and seriesFromRow leaves that
+    // year `undefined` - which mapAssetsToYears/yearMapFromSeries defaults
+    // to 0, wiping out the asset's whole gross value for that year alone
+    // (e.g. 2035 dropping straight to $0 while every other year stayed
+    // correct). Forward-fill from the last real value found instead of
+    // trusting every column's header cell individually.
+    const rawSeries = seriesFromRow(row, yearMap)
+    let lastKnownValue
+    const acquisitionByYear = rawSeries.map((value) => {
+      if (value !== undefined) lastKnownValue = value
+      return value !== undefined ? value : lastKnownValue
+    })
+
+    const asset = { name, acquisitionByYear }
     project.assets.byCategory[currentCategory].push(asset)
     if (currentKey) project.assets[currentKey].push(asset)
   }

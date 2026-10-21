@@ -7,19 +7,16 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 const CELL_PAD = "px-2 py-2";
-
-function defaultFormat(value) {
-  const num = value || 0;
-  return `$${num.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 export default function GrandTotalTable({
   title = "Grand Total",
   columns = [],
   sources = [],
-  formatValue = defaultFormat,
+  formatValue = formatCurrency,
+  currency,
 }) {
   const sourcesData = sources.map((source) => ({
     ...source,
@@ -45,12 +42,12 @@ export default function GrandTotalTable({
   return (
     <section className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
       <div className="overflow-x-auto">
-        <Table size="small" className="w-full border-collapse text-xs">
+        <Table size="small" className="w-full border-collapse text-[15px]">
           <TableHead>
             <TableRow className="border-b border-slate-200 bg-slate-50/60">
               <TableCell sx={{ width: 64 }} />
               <TableCell
-                className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}
+                className={`${CELL_PAD} whitespace-nowrap text-[14px] font-medium text-slate-500`}
               >
                 Concept
               </TableCell>
@@ -58,7 +55,7 @@ export default function GrandTotalTable({
                 <TableCell
                   key={columnKey}
                   align="right"
-                  className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}
+                  className={`${CELL_PAD} whitespace-nowrap text-[14px] font-medium text-slate-500`}
                 >
                   {label || columnKey}
                 </TableCell>
@@ -80,7 +77,7 @@ export default function GrandTotalTable({
                   align="right"
                   className={`${CELL_PAD} whitespace-nowrap font-bold text-slate-900`}
                 >
-                  {formatValue(totalsByColumn[index])}
+                  {formatValue(totalsByColumn[index], currency)}
                 </TableCell>
               ))}
             </TableRow>

@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow, IconButton, TextField
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutline from '@mui/icons-material/DeleteOutline'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
 
 // Same Tailwind look as components/global/TableContainer.jsx (the shared
 // card+table shell for financial data) - kept as its own component here
@@ -11,11 +12,15 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 // TableContainer doesn't support.
 const CELL_PAD = 'px-2 py-2'
 
+// Kill switch for the add-row/edit-value UI across every table that uses
+// EditableTable. Flip back to true to restore - no other change needed,
+// Redux slice / useTableRowsSync / row_table persistence are untouched.
+const ROWS_EDITABLE = false
+
 // Full figure, rounded only to cents (2 decimals) - no K/M abbreviation,
 // that throws away real precision on values like 1996263.45414.
-function defaultFormat(value) {
-  const num = value || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function defaultFormat(value, currency) {
+  return formatCurrency(value, currency, 2);
 }
 
 function parseCellInput(raw) {
@@ -31,7 +36,7 @@ function valueColorClass(value) {
 }
 
 /** Double-click a value to edit it inline; Enter/blur commits, Escape cancels. */
-function EditableValueCell({ value, onCommit, formatValue }) {
+function EditableValueCell({ value, onCommit, formatValue, currency }) {
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState('')
 
@@ -68,10 +73,10 @@ function EditableValueCell({ value, onCommit, formatValue }) {
   return (
     <TableCell
       align="right"
-      onDoubleClick={startEditing}
-      className={`${CELL_PAD} whitespace-nowrap cursor-text`}
+      onDoubleClick={ROWS_EDITABLE ? startEditing : undefined}
+      className={`${CELL_PAD} whitespace-nowrap ${ROWS_EDITABLE ? 'cursor-text' : ''}`}
     >
-      <span className={`tabular-nums ${valueColorClass(value)}`}>{formatValue(value)}</span>
+      <span className={`tabular-nums ${valueColorClass(value)}`}>{formatValue(value, currency)}</span>
     </TableCell>
   )
 }
@@ -110,8 +115,8 @@ function EditableLabelCell({ label, onCommit }) {
 
   return (
     <TableCell
-      onDoubleClick={startEditing}
-      className={`${CELL_PAD} whitespace-nowrap cursor-text font-medium text-slate-700`}
+      onDoubleClick={ROWS_EDITABLE ? startEditing : undefined}
+      className={`${CELL_PAD} whitespace-nowrap ${ROWS_EDITABLE ? 'cursor-text' : ''} font-medium text-slate-700`}
     >
       {label}
     </TableCell>
@@ -142,7 +147,7 @@ function EditableLabelCell({ label, onCommit }) {
  *   already override-aware column total so they stay in sync with edits.
  */
 function EditableTable({
-  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat, summaryRows = [],
+  title, slice, columns, rows, getValue, totalLabel = 'Total', formatValue = defaultFormat, summaryRows = [], currency,
 }) {
   const dispatch = useDispatch()
   const overrides = useSelector(slice.selectOverrides)
@@ -164,23 +169,23 @@ function EditableTable({
     <section className="mt-3 rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]">
       {title && (
         <div className="border-b border-slate-100 px-6 py-4">
-          <h3 className="text-[15px] font-semibold text-slate-900">{title}</h3>
+          <h3 className="text-[19px] font-semibold text-slate-900">{title}</h3>
         </div>
       )}
 
       <div className="overflow-x-auto">
-        <Table size="small" className="w-full border-collapse text-xs">
+        <Table size="small" className="w-full border-collapse text-[15px]">
           <TableHead>
             <TableRow className="border-b border-slate-200 bg-slate-50/60">
               <TableCell sx={{ width: 64 }} />
-              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}>
+              <TableCell className={`${CELL_PAD} whitespace-nowrap text-[14px] font-medium text-slate-500`}>
                 Concept
               </TableCell>
               {columns.map(({ key, label }) => (
                 <TableCell
                   key={key}
                   align="right"
-                  className={`${CELL_PAD} whitespace-nowrap text-[11px] font-medium text-slate-500`}
+                  className={`${CELL_PAD} whitespace-nowrap text-[14px] font-medium text-slate-500`}
                 >
                   {label}
                 </TableCell>
@@ -194,14 +199,16 @@ function EditableTable({
                 className={`group transition-colors hover:bg-slate-50/60 ${rowIndex % 2 === 1 ? 'bg-slate-50/30' : ''}`}
               >
                 <TableCell align="right" className={CELL_PAD}>
-                  <IconButton
-                    size="small"
-                    aria-label="add row"
-                    onClick={() => dispatch(slice.actions.addCustomRow())}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
+                  {ROWS_EDITABLE && (
+                    <IconButton
+                      size="small"
+                      aria-label="add row"
+                      onClick={() => dispatch(slice.actions.addCustomRow())}
+                      className="opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </TableCell>
                 <TableCell className={`${CELL_PAD} whitespace-nowrap text-slate-700`}>{row.label}</TableCell>
                 {columns.map(({ key: columnKey }) => (
@@ -210,6 +217,7 @@ function EditableTable({
                     value={effectiveValue(row.key, columnKey, getValue(row.key, columnKey))}
                     onCommit={(value) => dispatch(slice.actions.setOverride({ rowKey: row.key, columnKey, value }))}
                     formatValue={formatValue}
+                    currency={currency}
                   />
                 ))}
               </TableRow>
@@ -218,22 +226,26 @@ function EditableTable({
             {customRows.map((customRow) => (
               <TableRow key={customRow.id} className="group transition-colors hover:bg-slate-50/60">
                 <TableCell align="right" className={`${CELL_PAD} whitespace-nowrap`}>
-                  <IconButton
-                    size="small"
-                    aria-label="add row"
-                    onClick={() => dispatch(slice.actions.addCustomRow())}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    aria-label="delete row"
-                    onClick={() => dispatch(slice.actions.removeCustomRow(customRow.id))}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <DeleteOutline fontSize="small" />
-                  </IconButton>
+                  {ROWS_EDITABLE && (
+                    <>
+                      <IconButton
+                        size="small"
+                        aria-label="add row"
+                        onClick={() => dispatch(slice.actions.addCustomRow())}
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <AddIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        aria-label="delete row"
+                        onClick={() => dispatch(slice.actions.removeCustomRow(customRow.id))}
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <DeleteOutline fontSize="small" />
+                      </IconButton>
+                    </>
+                  )}
                 </TableCell>
                 <EditableLabelCell
                   label={customRow.label}
@@ -247,6 +259,7 @@ function EditableTable({
                       slice.actions.setCustomRowValue({ id: customRow.id, columnKey, value })
                     )}
                     formatValue={formatValue}
+                    currency={currency}
                   />
                 ))}
               </TableRow>
@@ -255,13 +268,15 @@ function EditableTable({
             {rows.length === 0 && customRows.length === 0 && (
               <TableRow>
                 <TableCell align="right" className={CELL_PAD}>
-                  <IconButton
-                    size="small"
-                    aria-label="add row"
-                    onClick={() => dispatch(slice.actions.addCustomRow())}
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
+                  {ROWS_EDITABLE && (
+                    <IconButton
+                      size="small"
+                      aria-label="add row"
+                      onClick={() => dispatch(slice.actions.addCustomRow())}
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </TableCell>
                 <TableCell colSpan={columns.length + 1} className={`${CELL_PAD} whitespace-nowrap italic text-slate-400`}>
                   No rows yet
@@ -293,7 +308,7 @@ function EditableTable({
                   align="right"
                   className={`${CELL_PAD} whitespace-nowrap border-t border-slate-300 font-semibold text-slate-900`}
                 >
-                  {formatValue(totalsByColumn[index])}
+                  {formatValue(totalsByColumn[index], currency)}
                 </TableCell>
               ))}
             </TableRow>
@@ -314,7 +329,7 @@ function EditableTable({
                   const value = compute(totalsByColumn[index], columnKey)
                   return (
                     <TableCell key={columnKey} align="right" className={`${CELL_PAD} whitespace-nowrap`}>
-                      <span className={`tabular-nums font-medium ${valueColorClass(value)}`}>{formatValue(value)}</span>
+                      <span className={`tabular-nums font-medium ${valueColorClass(value)}`}>{formatValue(value, currency)}</span>
                     </TableCell>
                   )
                 })}

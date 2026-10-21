@@ -12,6 +12,8 @@ import {
 } from '@/utils/dashboard/costCalculations'
 import { COST_ROWS } from './CostOfSalesTable'
 import { OPERATING_EXPENSE_ROWS } from './OperatingExpensesTable'
+import formatCurrency from '@/utils/sims/program/formatCurrency.util'
+import useTableRowsSync from '@/hooks/sims/project/useTableRowsSync.js'
 
 // RF-57: no separate Taxes table - ISR/PTU are simple enough (2 rows) to
 // live directly in this table's "Total Taxes" breakdown, editable in place.
@@ -43,12 +45,6 @@ const ROWS = [
   { key: 'netIncome', label: 'Net Income', emphasize: true, formula: 'Income Before Taxes − Total Taxes' },
 ]
 
-// Full figure, rounded only to cents - matches EditableTable's formatter.
-function formatCurrency(value) {
-  const num = value || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
 function valueColorClass(value) {
   if (value === undefined || value === null) return 'text-slate-300'
   return value < 0 ? 'text-rose-600' : 'text-emerald-700'
@@ -61,7 +57,7 @@ function parseCellInput(raw) {
 }
 
 /** Double-click a breakdown line's value to edit it - same mechanic as EditableTable's cells. */
-function EditableBreakdownValue({ value, onCommit }) {
+function EditableBreakdownValue({ value, onCommit, currency }) {
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState('')
 
@@ -88,7 +84,7 @@ function EditableBreakdownValue({ value, onCommit }) {
       onDoubleClick={() => { setDraft(String(value ?? '')); setEditing(true) }}
       className={`tabular-nums cursor-text ${valueColorClass(value)}`}
     >
-      {formatCurrency(value)}
+      {formatCurrency(value, currency)}
     </span>
   )
 }
@@ -141,7 +137,8 @@ function EditableBreakdownLabel({ label, onCommit }) {
  * editable in place (double-click, add/delete row) instead of just
  * displaying values, since 2 rows don't justify a whole extra card.
  */
-function ProfitSummaryTable({ costOfSalesByYear }) {
+function ProfitSummaryTable({ costOfSalesByYear, gameId, currency }) {
+  useTableRowsSync(gameId, taxesEditsSlice, 'taxesEdits')
   const dispatch = useDispatch()
   const [expandedRows, setExpandedRows] = React.useState(() => new Set())
 
@@ -232,16 +229,16 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
   return (
     <section className="mt-3 rounded-2xl border-2 border-sky-200 bg-sky-50/30 shadow-sm">
       <div className="border-b border-sky-200 bg-sky-100/60 px-6 py-4">
-        <h3 className="text-[15px] font-semibold text-sky-900">Profit Summary</h3>
+        <h3 className="text-[19px] font-semibold text-sky-900">Profit Summary</h3>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-xs">
+        <table className="w-full border-collapse text-[15px]">
           <thead>
             <tr className="border-b border-sky-200 bg-sky-100/40">
-              <th className="whitespace-nowrap px-2 py-2 text-left text-[11px] font-medium text-sky-700">Concept</th>
+              <th className="whitespace-nowrap px-2 py-2 text-left text-[14px] font-medium text-sky-700">Concept</th>
               {rows.map((row) => (
-                <th key={row.year} className="whitespace-nowrap px-2 py-2 text-right text-[11px] font-medium text-sky-700">
+                <th key={row.year} className="whitespace-nowrap px-2 py-2 text-right text-[14px] font-medium text-sky-700">
                   {row.year}
                 </th>
               ))}
@@ -283,7 +280,7 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
                     {rows.map((row) => (
                       <td key={row.year} className="whitespace-nowrap px-2 py-2 text-right">
                         <span className={`tabular-nums ${emphasize ? 'font-bold' : ''} ${valueColorClass(row[key])}`}>
-                          {formatCurrency(row[key])}
+                          {formatCurrency(row[key], currency)}
                         </span>
                       </td>
                     ))}
@@ -330,10 +327,11 @@ function ProfitSummaryTable({ costOfSalesByYear }) {
                               onCommit={(value) => dispatch(line.custom
                                 ? slice.actions.setCustomRowValue({ id: line.id, columnKey: row.year, value })
                                 : slice.actions.setOverride({ rowKey: line.id, columnKey: row.year, value }))}
+                              currency={currency}
                             />
                           ) : (
                             <span className={`tabular-nums ${valueColorClass(line.valueForYear(row.year))}`}>
-                              {formatCurrency(line.valueForYear(row.year))}
+                              {formatCurrency(line.valueForYear(row.year), currency)}
                             </span>
                           )}
                         </td>

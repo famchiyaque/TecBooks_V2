@@ -10,6 +10,78 @@ function pushIfNegative(errors, label, value) {
   }
 }
 
+// Mirrors computeFixedAssets.js's KNOWN_RATE_FIELD_BY_MATCH - a category
+// matching one of these reads one of the 4 fixed depreciationX fields
+// instead of a generic Premisas row. Matching the NAME is not enough though -
+// see hasUsableSeries below, the field itself still has to carry real values
+// (deleting the Premisas row leaves the field as an all-undefined default
+// series, not a missing one, so presence alone doesn't prove a rate exists).
+const KNOWN_DEPRECIATION_FIELD_BY_MATCH = [
+  { match: 'equipo de transporte', field: 'depreciationTransport' },
+  { match: 'transport equipment', field: 'depreciationTransport' },
+  { match: 'edificios', field: 'depreciationBuildings' },
+  { match: 'buildings', field: 'depreciationBuildings' },
+  { match: 'equipo de computo', field: 'depreciationCompute' },
+  { match: 'computer equipment', field: 'depreciationCompute' },
+  { match: 'maquinaria', field: 'depreciationMachinery' },
+  { match: 'machinery', field: 'depreciationMachinery' },
+]
+
+function normalizeLabel(text) {
+  return String(text ?? '').toLowerCase().replace(/[.]/g, '').trim()
+}
+
+// BUG FIX: used to only check whether the category's NAME matched a known
+// pattern (e.g. "Equipo de Transporte") and call that "has a rate" - true
+// even after deleting the Premisas row for it, since the field still exists
+// as a default series of `undefined`s. Must check the series actually has a
+// real number somewhere, not just that the array exists.
+function hasUsableSeries(series) {
+  return Array.isArray(series) && series.some((value) => isFiniteNumber(value))
+}
+
+function knownDepreciationFieldForCategory(category) {
+  const normalized = normalizeLabel(category)
+  return KNOWN_DEPRECIATION_FIELD_BY_MATCH.find((item) => normalized.includes(item.match))?.field ?? null
+}
+
+function hasGenericDepreciationRate(depreciationByCategory, label) {
+  const normalizedLabel = normalizeLabel(label)
+  return Object.entries(depreciationByCategory ?? {}).some(([key, series]) => {
+    const normalizedKey = normalizeLabel(key)
+    const nameMatches = normalizedKey === normalizedLabel
+      || normalizedLabel.includes(normalizedKey)
+      || normalizedKey.includes(normalizedLabel)
+    return nameMatches && hasUsableSeries(series)
+  })
+}
+
+/**
+ * RF-?? gate: an Inversion category that ends up depreciating at a silent
+ * 0% (computeFixedAssets.js's rateSeriesForItem/rateSeriesForCategory
+ * cascade finds nothing at any level - no item-level rate, no category-level
+ * rate, no known fixed field) is a real Excel gap, not an acceptable
+ * default - block the upload instead of letting Fixed Assets quietly never
+ * depreciate that category.
+ */
+function checkInvestmentCategoriesHaveDepreciation(errors, project) {
+  const byCategory = project.assets?.byCategory ?? {}
+  const depreciationByCategory = project.premises?.depreciationByCategory ?? {}
+
+  Object.entries(byCategory).forEach(([category, assets]) => {
+    const knownField = knownDepreciationFieldForCategory(category)
+    const categoryHasRate = (knownField && hasUsableSeries(project.premises?.[knownField]))
+      || hasGenericDepreciationRate(depreciationByCategory, category)
+    const anyItemHasOwnRate = (assets ?? []).some((asset) => hasGenericDepreciationRate(depreciationByCategory, asset.name))
+
+    if (!categoryHasRate && !anyItemHasOwnRate) {
+      errors.push(
+        `Investment category "${category}" has no depreciation rate in Premisas - add a "Porcentaje Depreciacion ${category}" row (or one per item) before uploading`
+      )
+    }
+  })
+}
+
 function checkYearSeries(errors, warnings, label, series, { rates = false } = {}) {
   if (!Array.isArray(series) || series.length !== HORIZON_LENGTH) {
     errors.push(`${label} must have ${HORIZON_LENGTH} years (2025-2035)`)
@@ -129,6 +201,7 @@ export function validateProjectClass(project) {
       checkYearSeries(errors, warnings, `${group} ${asset.name}`, asset.acquisitionByYear)
     })
   }
+  checkInvestmentCategoriesHaveDepreciation(errors, project)
 
   project.employees?.forEach((employee) => {
     pushIfNegative(errors, `Gross pay ${employee.name}`, employee.percepcion)

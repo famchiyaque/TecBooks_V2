@@ -57,6 +57,9 @@ import InfoTooltip from "@/components/global/InfoTooltip";
  * Total row: pass `rowVariant: "total"` on any row object.
  * Mixed units: pass `valueType: "units" | "currency"` on a row to override the
  * column's `type` for that row only (the label column is never affected).
+ * `currency`: pass an ISO code down from the project's own currency setting -
+ * every money cell (any row/column resolving to type "currency") formats
+ * with it, falling back to formatCurrency's own default when omitted.
  * ------------------------------------------------------------------------
  */
 
@@ -68,7 +71,7 @@ function formatUnits(value) {
   return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
-function CellValue({ column, value, valueType }) {
+function CellValue({ column, value, valueType, currency }) {
   // Row-level `valueType` wins over the column's `type` so one table can mix
   // units and money across the same year columns (Sales: Customer Orders is a
   // unit count, Unit Price and Total Income are currency).
@@ -93,7 +96,7 @@ function CellValue({ column, value, valueType }) {
               : "text-emerald-700")
         }
       >
-        {formatCurrency(value)}
+        {formatCurrency(value, currency)}
       </span>
     );
   }
@@ -181,7 +184,7 @@ function TableHeader({ columns, cellPad, scrollBody, applyColWidth }) {
             scope="col"
             className={
               cellPad +
-              " whitespace-nowrap text-[13px] font-medium text-slate-500 " +
+              " whitespace-nowrap text-[16px] font-medium text-slate-500 " +
               (col.align === "right" ? "text-right" : "text-left")
             }
             style={
@@ -204,6 +207,7 @@ function DataRows({
   isFixed,
   labelKey,
   emptyLabel,
+  currency,
   rowKeyPrefix = "",
   applyColWidth = true,
   endBorder = false,
@@ -275,7 +279,7 @@ function DataRows({
             >
               {col.key === labelKey && row.tooltip ? (
                 <span className="inline-flex items-center">
-                  <CellValue column={col} value={row[col.key]} />
+                  <CellValue column={col} value={row[col.key]} currency={currency} />
                   <InfoTooltip title={row.tooltip} />
                 </span>
               ) : (
@@ -285,6 +289,7 @@ function DataRows({
                   // never on the label column - that cell holds
                   // the concept text, not a number to format
                   valueType={col.key === labelKey ? undefined : row.valueType}
+                  currency={currency}
                 />
               )}
             </td>
@@ -308,6 +313,7 @@ export default function TableContainer({
   className = "",
   layout = "auto",
   scrollBody = false,
+  currency,
 }) {
   const groupColumn = columns.find((c) => c.group);
   const cellPad = dense ? "px-4 py-2" : "px-5 py-3";
@@ -337,6 +343,7 @@ export default function TableContainer({
     isFixed,
     labelKey,
     emptyLabel,
+    currency,
   };
 
   useLayoutEffect(() => {
@@ -401,13 +408,13 @@ export default function TableContainer({
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
           <div>
             {title && (
-              <h3 className="inline-flex items-center text-[15px] font-semibold text-slate-900">
+              <h3 className="inline-flex items-center text-[19px] font-semibold text-slate-900">
                 {title}
                 <InfoTooltip title={titleTooltip} />
               </h3>
             )}
             {subtitle && (
-              <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>
+              <p className="mt-0.5 text-[17.5px] text-slate-500">{subtitle}</p>
             )}
           </div>
           {actions && (
@@ -424,7 +431,7 @@ export default function TableContainer({
         >
           <table
             ref={measureRef}
-            className="min-w-max border-collapse text-sm"
+            className="min-w-max border-collapse text-[17.5px]"
           >
             <TableHeader
               columns={columns}
@@ -457,7 +464,7 @@ export default function TableContainer({
       >
         <table
           className={
-            "border-collapse text-sm " +
+            "border-collapse text-[17.5px] " +
             (isFixed || colWidths ? "table-fixed " : "min-w-max ") +
             (tableWidth ? "" : "w-full")
           }
@@ -499,7 +506,7 @@ export default function TableContainer({
                           " flex w-full items-center justify-between gap-4 bg-slate-50/80 text-left hover:bg-slate-50"
                         }
                       >
-                        <span className="inline-flex items-center text-[15px] font-semibold text-slate-900">
+                        <span className="inline-flex items-center text-[19px] font-semibold text-slate-900">
                           {section.title}
                           <InfoTooltip title={section.titleTooltip} />
                         </span>
@@ -535,7 +542,7 @@ function emptyRows(emptyLabel, columns, cellPad, endBorder = false) {
     <tr className={endBorder ? "border-b-[3px] border-slate-400" : ""}>
       <td
         colSpan={columns.length}
-        className={cellPad + " text-center text-sm text-slate-400"}
+        className={cellPad + " text-center text-[17.5px] text-slate-400"}
       >
         {emptyLabel}
       </td>

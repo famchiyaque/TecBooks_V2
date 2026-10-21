@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react'
-// import Inflows from './Inputs/Inflows'
-// import Outflows from './Inputs/Outflows'
 import BasicInput from './Inputs/BasicInput'
 import TableInput from './Inputs/TableInput'
-// import axios from 'axios'
-import { getProjectInfo, setDiscountRate, setInflows, setInitialInvestment, setLifetime, setOutflows, setProject } from '@/store/project-evaluation.store'
+import { getProjectInfo, setDiscountRate, setInflows, setInitialInvestment, setLifetime, setOutflows, setProject, setSalvageValue } from '@/store/project-evaluation.store'
 import { useDispatch, useSelector } from 'react-redux'
 import IconButton from '@mui/material/IconButton'
 import CopyAllIcon from '@mui/icons-material/CopyAll'
@@ -17,28 +14,21 @@ function InputSection() {
 
   const { 
     project, lifetime, initialInvestment,
-    discountRate, inflows, outflows
+    discountRate, salvageValue, inflows, outflows
    } = useSelector(getProjectInfo)
 
   const setProjectCallback = (val) => dispatch(setProject(val))
   const setLifetimeCallback = (val) => {
-    // ensure val is a number
     const newLifetime = typeof val === 'string' && val === '' ? 0 : Number(val);
-  
     dispatch(setLifetime(newLifetime));
-  
-    const resizeArray = (arr, length) => {
-      if (arr.length > length) return arr.slice(0, length); // truncate
-      else return [...arr, ...Array(length - arr.length).fill(0)]; // append zeros
-    };
-  
-    dispatch(setInflows(resizeArray(inflows, newLifetime)));
-    dispatch(setOutflows(resizeArray(outflows, newLifetime)));
   };  
   const setInitialInvCallback = (val) => dispatch(setInitialInvestment(val))
   const setDiscountRateCallback = (val) => dispatch(setDiscountRate(val))
   const setInflowsCallback = (val) => dispatch(setInflows(val))
   const setOutflowsCallback = (val) => dispatch(setOutflows(val))
+  const setSalvageValueCallback = (val) => dispatch(setSalvageValue(val))
+
+  const futureYear = new Date().getFullYear() - 1 + lifetime
 
   const basicInputs = [
     {
@@ -48,8 +38,8 @@ function InputSection() {
       value: project
     },
     {
-      name: 'Lifetime',
-      size: 10,
+      name: 'Lifetime (yrs)',
+      size: 12,
       func: setLifetimeCallback,
       value: lifetime
     },
@@ -60,11 +50,17 @@ function InputSection() {
       value: initialInvestment
     },
     {
-      name: 'Discount Rate',
-      size: 13,
+      name: 'Discount Rate (%)',
+      size: 16,
       func: setDiscountRateCallback,
       value: discountRate
     },
+    {
+      name: `Salvage Value in ${futureYear}`,
+      size: 22,
+      func: setSalvageValueCallback,
+      value: salvageValue
+    }
   ]
 
   const tableInputs = [
@@ -84,7 +80,6 @@ function InputSection() {
     try {
       const data = JSON.stringify({ inflows, outflows });
       await navigator.clipboard.writeText(data);
-      console.log("Flows copied to clipboard:", data);
     } catch (err) {
       console.error("Failed to copy flows:", err);
     }
@@ -97,6 +92,7 @@ function InputSection() {
       if (parsed.inflows && parsed.outflows) {
         dispatch(setInflows(parsed.inflows));
         dispatch(setOutflows(parsed.outflows));
+        dispatch(setLifetime(parsed.inflows.length - 1));
       }
     } catch (err) {
       console.error("Failed to paste flows:", err);
@@ -104,66 +100,25 @@ function InputSection() {
   };
 
   const addFlowColumn = () => {
-    const newLifetime = lifetime + 1 <= 20 ? lifetime + 1 : 20;
-    const newInflows = [...inflows, 0];
-    const newOutflows = [...outflows, 0];
-
-    dispatch(setLifetime(newLifetime));
-    dispatch(setInflows(newInflows));
-    dispatch(setOutflows(newOutflows));
+    dispatch(setLifetime(lifetime + 1));
   };
 
   const removeFlowColumn = () => {
-    const newLifetime = lifetime - 1 >= 0 ? lifetime - 1 : 0
-    const newInflows = inflows.slice(0, -1);
-    const newOutflows = outflows.slice(0, -1);
-
-    dispatch(setLifetime(newLifetime));
-    dispatch(setInflows(newInflows));
-    dispatch(setOutflows(newOutflows));
+    dispatch(setLifetime(lifetime - 1));
   }
 
-    // const api_key = 'b86afe5666msh410c2ed2d3d8a1fp150b79jsnfcad51eb0f9d'
-    const [monthInflation, setMonthInflation] = useState(0.06)
-    const [yearInflation, setYearInflation] = useState(4.54)
-    const [cetes, setCetes] = useState(11)
-
-    // useEffect(() => {
-    //     const fetchInflationData = async () => {
-    //       const country = 'mexico'
-    //       const api_url = `https://api.api-ninjas.com/v1/inflation?country=${country}`
-    
-    //       try {
-    //         const response = await axios.get(api_url, {
-    //           headers: {
-    //             'X-RapidAPI-Key': api_key,
-    //             'X-RapidAPI-Host': 'city-by-api-ninjas.p.rapidapi.com'
-    //           }
-    //         })
-    //         console.log(response.data)
-    //         const data = response.data
-    //         setMonthInflation(data.monthly_rate_pct)
-    //         setYearInflation(data.yearly_rate_pct)
-    //       } catch (error) {
-    //         console.error('Error fetching inflation data:', error)
-    //       }
-    //     }
-    
-    //     // fetchInflationData()
-    //   }, [])
-
   return (
-    <div className='w-[100%] flex flex-col justify-start items-start all-inputs-container'>
+    <div className='w-[100%] p-[0.5rem] flex flex-col justify-start items-start all-inputs-container'>
 
         <div className='w-[98%] pl-[2%] flex justify-start items-start gap-[0.6rem] text-sm'>
             {basicInputs.map((input, idx) => (
-              <div className='flex flex-col items-start' style={{ flexBasis: `${input.size}%` }}>
+              <div className='flex flex-col items-start' style={{ flexBasis: `${input.size}%` }} key={idx}>
                 <p>{input.name}</p>
                 <BasicInput func={input.func} value={input.value} name={input.name} />
               </div>
             ))}
 
-            <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
+            {/* <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
               <p>Inflation</p>
               <div style={{ width: '100%' }}>
                 <p style={{ width: '100%', borderBottom: 'solid rgb(50, 50, 80) 1px' }}>
@@ -173,14 +128,14 @@ function InputSection() {
                     {monthInflation}</span>    
                 </p>
               </div>
-            </div>
+            </div> */}
 
-            <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
+            {/* <div className='flex flex-col items-start justify-between h-[100%]' style={{ flexBasis: '10%' }}>
               <p>Cetes</p>
               <div style={{ width: '100%', borderBottom: 'solid rgb(50, 50, 80) 1px' }}>
                 {cetes}%
               </div>
-            </div>
+            </div> */}
                 
         </div>
 
@@ -208,12 +163,12 @@ function InputSection() {
           <div className="overflow-x-auto min-w-0 flex flex-col mt-2">
             <div className='min-w-max'>
 
-              <div className='flex'>
-                {Array.from({ length: lifetime }, (_, i) => {
-                  const year = new Date().getFullYear() + i;
+              <div className='flex pl-[1rem]'>
+                {Array.from({ length: inflows.length }, (_, i) => {
+                  const year = new Date().getFullYear() - 1 + i;
                   return (
-                    <div key={i} className="italic text-gray-500 text-sm w-[5.6rem] flex-shrink-0">
-                      {year}
+                    <div key={i} className="italic text-gray-500 text-sm w-[6.1rem] flex-shrink-0">
+                      {i == 0 ? `${year} (yr 0)` : year}
                     </div>
                   );
                 })}
@@ -221,7 +176,7 @@ function InputSection() {
 
                 <div className='w-[100%] flex flex-col'>
                   {tableInputs.map((input, idx) => (
-                    <TableInput func={input.func} flows={input.value} name={input.name} />
+                    <TableInput func={input.func} flows={input.value} name={input.name} key={idx} />
                   ))}
                 </div>
 

@@ -4,17 +4,17 @@ import ProjectCostSummary from "@/sims/project-feasibility/costTable/ProjectCost
 import ProfitSummary from "@/sims/project-feasibility/costTable/ProfitSummary.jsx";
 import BreakEvenSummary from "@/sims/project-feasibility/costTable/BreakEvenSummary.jsx";
 
-function Ratios({ project }) {
+function Ratios({ project, currency }) {
   return (
     <>
       <CollapsibleSection title="Cost Table" defaultExpanded>
-        <ProjectCostSummary project={project} />
+        <ProjectCostSummary project={project} currency={currency}/>
       </CollapsibleSection>
       <CollapsibleSection title="Profit Summary" defaultExpanded>
-        <ProfitSummary project={project} />
+        <ProfitSummary project={project} currency={currency}/>
       </CollapsibleSection>
       <CollapsibleSection title="Break-even Point">
-        <BreakEvenSummary project={project} />
+        <BreakEvenSummary project={project} currency={currency}/>
       </CollapsibleSection>
     </>
   );
