@@ -56,7 +56,7 @@ const ForecastErrorsContent = () => {
             <div className="">
               <MethodButtons />
             </div>
-            <div className="min-h-[280px] flex-1">
+            <div className="min-h-[550px] flex-1">
               <ForecastChart />
             </div>
             <div className="min-h-[550px] flex-1">
