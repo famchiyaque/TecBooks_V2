@@ -3,7 +3,10 @@ import { useSelector } from "react-redux";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import useContainerHeight from "@/hooks/sims/forecasts/useContainerHeight";
-import { selectAutocorrelationTable, selectFlatSeries } from "@/store/playground.slice.js";
+import {
+  selectAutocorrelationTable,
+  selectFlatSeries,
+} from "@/store/playground.slice.js";
 
 const MIN_CHART_HEIGHT = 200;
 
@@ -22,7 +25,11 @@ const AutocorrelationChart = () => {
         spacingTop: 8,
         spacingBottom: 10,
       },
-      title: { text: "Autocorrelation", margin: 8, style: { color: "#0f172a" } },
+      title: {
+        text: "Autocorrelation",
+        margin: 8,
+        style: { color: "#0f172a" },
+      },
       xAxis: {
         categories: rows.map((row) => String(row.lag)),
         title: { text: "Lag", margin: 4, style: { color: "#334155" } },
@@ -42,7 +49,12 @@ const AutocorrelationChart = () => {
         margin: 6,
       },
       series: [
-        { name: "ACF", type: "column", color: "#1f6f8b", data: rows.map((row) => row.acf) },
+        {
+          name: "ACF",
+          type: "column",
+          color: "#1f6f8b",
+          data: rows.map((row) => row.acf),
+        },
         {
           name: "LSGA",
           type: "line",
@@ -68,9 +80,11 @@ const AutocorrelationChart = () => {
   if (series.length < 2) return null;
 
   return (
-    <section className="flex h-full min-h-[240px] flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div ref={chartBoxRef} className="min-h-0 flex-1">
-        <HighchartsReact highcharts={Highcharts} options={options} />
+    <section className="flex h-full min-h-[340px] flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div ref={chartBoxRef} className="relative min-h-0 flex-1">
+        <div className="absolute inset-0">
+          <HighchartsReact highcharts={Highcharts} options={options} />
+        </div>
       </div>
     </section>
   );

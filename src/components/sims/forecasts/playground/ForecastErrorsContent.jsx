@@ -53,13 +53,13 @@ const ForecastErrorsContent = () => {
             que crecer/encoger via flex-1 nunca le recorta la leyenda. */}
         <div className="flex w-full flex-1 flex-col gap-3 2xl:flex-row">
           <div className="flex w-full flex-1 flex-col gap-3">
-            <div className="flex-1">
+            <div className="">
               <MethodButtons />
             </div>
             <div className="min-h-[280px] flex-1">
               <ForecastChart />
             </div>
-            <div className="min-h-[240px] flex-1">
+            <div className="min-h-[550px] flex-1">
               <AutocorrelationChart />
             </div>
           </div>
