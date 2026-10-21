@@ -39,7 +39,7 @@ const ParamsPopover = ({ method, params, onChange, onReset }) => (
       onClick={onReset}
       className="mt-3 text-xs text-slate-500 underline hover:text-slate-800"
     >
-      Restablecer
+      Reset
     </button>
   </div>
 );
