@@ -1,35 +1,36 @@
-import React, { useMemo } from 'react';
-import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
-import { useSelector } from 'react-redux';
-import Paper from '@mui/material/Paper';
-
+import React, { useMemo } from "react";
+import Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
+import { useSelector } from "react-redux";
+import Paper from "@mui/material/Paper";
 
 function Graph() {
   const seriesData = useSelector((state) => state.forecaster.seriesData);
   console.log("series data in the graph component: ", seriesData);
   const pastDate = useSelector((state) => state.forecaster.effectivePastDate);
-  const futureDate = useSelector((state) => state.forecaster.effectiveFutureDate);
+  const futureDate = useSelector(
+    (state) => state.forecaster.effectiveFutureDate,
+  );
   const interval = useSelector((state) => state.forecaster.effectiveInterval);
 
   // Helper to add intervals
   const addInterval = (date, interval) => {
     const newDate = new Date(date);
     switch (interval) {
-      case 'daily':
+      case "daily":
         newDate.setDate(newDate.getDate() + 1);
         break;
-      case 'weekly':
+      case "weekly":
         newDate.setDate(newDate.getDate() + 7);
         break;
-      case 'monthly':
+      case "monthly":
         newDate.setMonth(newDate.getMonth() + 1);
         break;
-      case 'yearly':
+      case "yearly":
         newDate.setFullYear(newDate.getFullYear() + 1);
         break;
       default:
-        throw new Error('Unsupported interval');
+        throw new Error("Unsupported interval");
     }
     return newDate;
   };
@@ -37,12 +38,19 @@ function Graph() {
   const formatLabel = (date, interval) => {
     const d = new Date(date);
     switch (interval) {
-      case 'daily':
-      case 'weekly':
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      case 'monthly':
-        return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      case 'yearly':
+      case "daily":
+      case "weekly":
+        return d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+      case "monthly":
+        return d.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        });
+      case "yearly":
         return d.getFullYear().toString();
       default:
         return d.toDateString();
@@ -64,36 +72,45 @@ function Graph() {
 
   const options = useMemo(() => {
     if (!seriesData || !pastDate || !futureDate || !interval) return null; // guard
-    console.log("inside useMemo")
-  
+    console.log("inside useMemo");
+
     const categories = getCategories(pastDate, futureDate, interval);
     // console.log("categories returned: ", categories);
-  
+
     return {
       chart: {
-        type: 'line',
+        type: "line",
         borderRadius: 5,
-        zooming: { type: 'x' },
+        zooming: { type: "x" },
       },
-      title: { text: 'Sales Data' },
+      title: { text: "Sales Data" },
       subtitle: {
-        text: '🔍 Click and drag to zoom in. Right-click to reset zoom.',
-        style: { fontSize: '11px', color: '#888' },
+        text: "🔍 Click and drag to zoom in. Right-click to reset zoom.",
+        style: { fontSize: "11px", color: "#888" },
       },
       xAxis: {
-        title: { text: `From: ${formatLabel(pastDate, interval)} to ${formatLabel(futureDate, interval)}` },
+        title: {
+          text: `From: ${formatLabel(pastDate, interval)} to ${formatLabel(futureDate, interval)}`,
+        },
         categories,
       },
-      yAxis: { title: { text: 'Sales in Dollars' } },
-      tooltip: { valueDecimals: 2 },
-      series: seriesData ? seriesData.map(s => ({ ...s, data: [...s.data] })) : [],
+      yAxis: { title: { text: "Sales in Dollars" } },
+      tooltip: { valueDecimals: 0 },
+      series: seriesData
+        ? seriesData.map((s) => ({ ...s, data: [...s.data] }))
+        : [],
     };
   }, [seriesData, pastDate, futureDate, interval]);
 
   return (
-    <Paper elevation={1} className='min-w-[600] p-1'>
-      <div id="forecast-chart-container" style={{ maxHeight: '100%', width: '700px' }}>
-        {options && <HighchartsReact highcharts={Highcharts} options={options} />}
+    <Paper elevation={1} className="min-w-[600] p-1">
+      <div
+        id="forecast-chart-container"
+        style={{ maxHeight: "100%", width: "700px" }}
+      >
+        {options && (
+          <HighchartsReact highcharts={Highcharts} options={options} />
+        )}
       </div>
     </Paper>
   );
