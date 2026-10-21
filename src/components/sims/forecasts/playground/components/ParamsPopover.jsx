@@ -11,6 +11,23 @@ const ParamsPopover = ({ method, params, onChange, onReset }) => (
           max: 1,
           step: 0.01,
         };
+
+        if (meta.type === "boolean") {
+          return (
+            <label
+              key={param}
+              className="flex items-center gap-2 text-xs text-slate-600"
+            >
+              <input
+                type="checkbox"
+                checked={!!value}
+                onChange={(e) => onChange(param, e.target.checked)}
+              />
+              {meta.label}
+            </label>
+          );
+        }
+
         return (
           <label
             key={param}

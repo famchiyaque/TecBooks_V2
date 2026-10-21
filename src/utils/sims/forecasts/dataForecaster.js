@@ -333,6 +333,11 @@ export const forecastParams = {
   beta: { label: "Beta (trend)", min: 0.01, max: 1, step: 0.01 },
   gamma: { label: "Gamma (seasonal)", min: 0.01, max: 1, step: 0.01 },
   seasonLength: { label: "Season length", min: 2, max: 24, step: 1 },
+  showSmoothed: {
+    label: "Mostrar línea suavizada",
+    type: "boolean",
+    default: true,
+  },
 };
 
 export default function getSeriesData(
@@ -391,13 +396,17 @@ export default function getSeriesData(
       result.forecast
     ) {
       // Split series: historical smoothed (solid) + forecast (dashed)
-      seriesData.push({
-        name: method + " (smoothed)",
-        color: methodConfig.color,
-        data: result.historical,
-        dashStyle: "Solid",
-        lineWidth: 1.5,
-      });
+      const showSmoothed = params.showSmoothed ?? true;
+
+      if (showSmoothed) {
+        seriesData.push({
+          name: method + " (smoothed)",
+          color: methodConfig.color,
+          data: result.historical,
+          dashStyle: "Solid",
+          lineWidth: 1.5,
+        });
+      }
       seriesData.push({
         name: method + " (forecast)",
         color: methodConfig.color,

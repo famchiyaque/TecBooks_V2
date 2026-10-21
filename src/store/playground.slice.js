@@ -17,8 +17,8 @@ export const DEFAULT_METHOD_PARAMS = {
   "Double Linear Regression": {},
   "Simple Moving Average": { compound: 3 },
   "Double Moving Average": { compound: 3 },
-  "Simple Exponential Smoothing": { alpha: 0.5 },
-  "Double Exponential Smoothing": { alpha: 0.5, beta: 0.1 },
+  "Simple Exponential Smoothing": { alpha: 0.5, showSmoothed: true },
+  "Double Exponential Smoothing": { alpha: 0.5, beta: 0.1, showSmoothed: true },
   "Winter's": { alpha: 0.5, beta: 0.3, gamma: 0.2, seasonLength: 12 },
 };
 
@@ -219,12 +219,16 @@ export const selectForecastChartSeries = createSelector(
           dashStyle: "Dash",
         });
       } else if (result?.historical && result?.forecast) {
-        chartSeries.push({
-          name: `${method} (smoothed)`,
-          color: config.color,
-          data: result.historical,
-          dashStyle: "Solid",
-        });
+        const showSmoothed = methodParams[method]?.showSmoothed ?? true;
+
+        if (showSmoothed) {
+          chartSeries.push({
+            name: `${method} (smoothed)`,
+            color: config.color,
+            data: result.historical,
+            dashStyle: "Solid",
+          });
+        }
         chartSeries.push({
           name: `${method} (forecast)`,
           color: config.color,
