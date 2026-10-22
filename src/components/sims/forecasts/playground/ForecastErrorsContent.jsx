@@ -8,6 +8,7 @@ import AutocorrelationChart from "./components/AutocorrelationChart";
 import {
   INITIAL_DEMAND,
   selectDemand,
+  selectErrorBacktestCount,
   selectMaxYears,
   selectMinYears,
   setDemand,
@@ -25,6 +26,7 @@ const ForecastErrorsContent = () => {
   const demand = useSelector(selectDemand);
   const maxYears = useSelector(selectMaxYears);
   const minYears = useSelector(selectMinYears);
+  const errorBacktestCount = useSelector(selectErrorBacktestCount);
 
   return (
     // 89vh = 100vh - GenericHeader (6vh) - GenericSubheader (5vh): intenta
@@ -41,7 +43,7 @@ const ForecastErrorsContent = () => {
             setDefault={() => dispatch(setDemand(INITIAL_DEMAND))}
             maxYears={maxYears}
             minYears={minYears}
-            testMonths={3}
+            testMonths={errorBacktestCount}
             defaultValue={100}
           />
         </div>
