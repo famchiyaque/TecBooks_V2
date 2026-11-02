@@ -29,6 +29,8 @@ jobs:
 
       - run: pnpm run lint
 
+      - run: pnpm run test
+
       - name: Build only (PR validation)
         if: github.event_name == 'pull_request'
         run: npx vite build --mode develop
