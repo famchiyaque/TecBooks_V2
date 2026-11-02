@@ -1,0 +1,73 @@
+name: Deploy to Development (develop2)
+
+on:
+  push:
+    branches:
+      - develop2
+  pull_request:
+    branches:
+      - develop2
+
+jobs:
+  deploy-frontend-develop:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint
+
+      - name: Build only (PR validation)
+        if: github.event_name == 'pull_request'
+        run: npx vite build --mode develop
+
+      - name: Build and deploy
+        if: github.event_name == 'push'
+        run: pnpm run deploy:develop
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-worker-develop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: worker/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Dry-run deploy (PR validation)
+        if: github.event_name == 'pull_request'
+        run: npx wrangler deploy --dry-run --env develop
+
+      - name: Deploy
+        if: github.event_name == 'push'
+        run: pnpm run deploy:develop
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
