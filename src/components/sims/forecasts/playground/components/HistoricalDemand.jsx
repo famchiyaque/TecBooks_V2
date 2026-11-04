@@ -282,7 +282,7 @@ const HistoricalDemand = ({
         onClick={setDefault}
         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 mt-2"
       >
-        Set deault values
+        Set default values
       </button>
     </section>
   );
