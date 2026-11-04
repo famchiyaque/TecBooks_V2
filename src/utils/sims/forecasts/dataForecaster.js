@@ -26,6 +26,8 @@ export function simpleLinear(baseArray, interval) {
   // linear regression coefficients
   const X = x.reduce((a, b) => a + b, 0) / x.length;
   const Y = y.reduce((a, b) => a + b, 0) / y.length;
+  console.log("X: ", X)
+  console.log("Y: ", Y)
 
   const topSum = x
     .map((xi, i) => (xi - X) * (y[i] - Y))
@@ -34,10 +36,13 @@ export function simpleLinear(baseArray, interval) {
 
   const b1 = topSum / bottomSum;
   const b0 = Y - b1 * X;
+  console.log("b1: ", b1)
+  console.log("b0: ", b0)
 
   // forecast future points
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
     result[i] = b0 + b1 * (i + 1);
+    console.log("I result: ", result[i])
   }
 
   // clear original past points

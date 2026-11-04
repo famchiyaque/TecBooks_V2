@@ -28,7 +28,7 @@ export const INITIAL_DEMAND = {
 };
 
 const playgroundSlice = createSlice({
-  name: "playground",
+  name: "errors",
   initialState: {
     demand: INITIAL_DEMAND,
     maxYears: 5,
