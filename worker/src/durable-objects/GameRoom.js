@@ -1,14 +1,4 @@
 import { DurableObject } from "cloudflare:workers";
-import { data } from "jquery";
-
-// Handle batches: To be defined
-function sendBatch(ws, messages) {
-  const batch = {
-    messages,
-    timestamp: Date.now(),
-  };
-  ws.send(JSON.stringify(batch));
-}
 
 export class GameRoom extends DurableObject {
   students = new Map();
@@ -23,7 +13,7 @@ export class GameRoom extends DurableObject {
 
     // Hibernation API
     this.ctx.acceptWebSocket(server, [role]);
-    server.serializeAttachment({ role, uerId, name });
+    server.serializeAttachment({ role, userId, name });
 
     this.broadcast({ type: "presence", event: "join", name, role });
     server.send(
@@ -39,7 +29,7 @@ export class GameRoom extends DurableObject {
   }
   async webSocketMessage(ws, message) {
     const who = ws.deserializeAttachment();
-    const msg = JSON.parse(raw);
+    const msg = JSON.parse(message);
 
     switch (msg.type) {
       case "start_game":
@@ -55,13 +45,13 @@ export class GameRoom extends DurableObject {
     }
   }
 
-  async webSocketClose(ws, code, reason) {
+  async webSocketClose(ws, code, _reason) {
     const who = ws.deserializeAttachment();
     ws.close(code, "closing");
     this.broadcast({ type: "presence", event: "leave", name: who?.name });
   }
 
-  async webSocketError(ws) {
+  async webSocketError(_ws) {
     /* Optional logging */
   }
 
@@ -70,7 +60,9 @@ export class GameRoom extends DurableObject {
     for (const ws of this.ctx.getWebSockets(only)) {
       try {
         ws.send(data);
-      } catch {}
+      } catch {
+        console.log(`Error Broadcasting to: ${ws}`);
+      }
     }
   }
 }

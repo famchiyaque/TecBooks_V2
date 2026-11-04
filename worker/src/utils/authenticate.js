@@ -24,3 +24,5 @@ async function authenticate(c, gameId) {
     return null;
   }
 }
+
+export default authenticate;

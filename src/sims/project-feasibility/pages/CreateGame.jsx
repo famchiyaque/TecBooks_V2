@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import {
+  Alert,
   Box,
   Paper,
   Typography,
@@ -9,32 +10,17 @@ import {
   Button,
   Chip,
   FormControl,
+  FormHelperText,
   InputLabel,
   OutlinedInput,
   Divider,
   Stack,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
-
-// Opciones disponibles para la selección múltiple
-const AVAILABLE_TAGS = ["Dron", "F1", "Dron Militar"];
+import { AVAILABLE_TAGS, useCreateGame } from "../hooks/useCreateGame";
 
 export default function CreateGame() {
-  const [form, setForm] = useState({
-    name: "",
-    selectedTags: [],
-    numTeams: 2,
-    timePerRound: 60,
-  });
-
-  const handleChange = (event, field) => {
-    let value = event.target.value;
-    if (field == "tags") {
-      value = typeof value === "string" ? value.split(",") : value;
-    }
-
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const { form, errors, submitting, submitError, handleChange, handleSubmit } =
+    useCreateGame();
 
   return (
     <Box
@@ -49,12 +35,7 @@ export default function CreateGame() {
     >
       <Paper
         elevation={4}
-        sx={{
-          p: 4,
-          width: "100%",
-          maxWidth: 450,
-          borderRadius: 4, // Margen redondo / Bordes redondeados
-        }}
+        sx={{ p: 4, width: "100%", maxWidth: 450, borderRadius: 4 }}
       >
         <Typography
           variant="h5"
@@ -68,96 +49,111 @@ export default function CreateGame() {
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={2.5}>
-          {/* Nombre del juego */}
-          <TextField
-            fullWidth
-            label="Game Name"
-            variant="outlined"
-            size="small"
-            value={form.name}
-            onChange={(e) => handleChange(e, "name")}
-          />
+        <form onSubmit={handleSubmit} noValidate>
+          <Stack spacing={2.5}>
+            <TextField
+              fullWidth
+              name="name"
+              label="Game Name"
+              variant="outlined"
+              size="small"
+              value={form.name}
+              onChange={handleChange}
+              error={Boolean(errors.name)}
+              helperText={errors.name}
+            />
 
-          {/* Select Múltiple que renderiza cada elemento como un Chip/Tag */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="tags-select-label">Categories / Tags</InputLabel>
-            <Select
-              labelId="tags-select-label"
-              multiple
-              value={form.selectedTags}
-              onChange={(e) => handleChange(e, "tags")}
-              input={<OutlinedInput label="Categories / Tags" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip
-                      key={value}
-                      label={value}
-                      size="small"
-                      color="primary"
-                    />
-                  ))}
-                </Box>
-              )}
+            <FormControl
+              fullWidth
+              size="small"
+              error={Boolean(errors.selectedTags)}
             >
-              {AVAILABLE_TAGS.map((tag) => (
-                <MenuItem key={tag} value={tag}>
-                  {tag}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <InputLabel id="tags-select-label">Select project</InputLabel>
+              <Select
+                labelId="tags-select-label"
+                multiple
+                name="selectedTags"
+                value={form.selectedTags}
+                onChange={handleChange}
+                input={<OutlinedInput label="Select project" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip
+                        key={value}
+                        label={value}
+                        size="small"
+                        color="primary"
+                      />
+                    ))}
+                  </Box>
+                )}
+              >
+                {AVAILABLE_TAGS.map((tag) => (
+                  <MenuItem key={tag} value={tag}>
+                    {tag}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.selectedTags && (
+                <FormHelperText>{errors.selectedTags}</FormHelperText>
+              )}
+            </FormControl>
 
-          <Divider />
+            <Divider />
 
-          <Typography variant="subtitle1" fontWeight="bold">
-            Settings
-          </Typography>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Settings
+            </Typography>
 
-          {/* Ajustes de partida */}
-          <TextField
-            fullWidth
-            type="number"
-            label="Number of teams"
-            variant="outlined"
-            size="small"
-            value={form.numTeams}
-            onChange={(e) => setForm(e.target.value, "numTeams")}
-          />
+            <TextField
+              fullWidth
+              type="number"
+              name="numTeams"
+              label="Number of teams"
+              variant="outlined"
+              size="small"
+              value={form.numTeams}
+              onChange={handleChange}
+              error={Boolean(errors.numTeams)}
+              helperText={errors.numTeams}
+            />
 
-          <TextField
-            fullWidth
-            type="number"
-            label="Time per round (seconds)"
-            variant="outlined"
-            size="small"
-            value={form.timePerRound}
-            onChange={(e) => setForm(e.target.value, "timePerRound")}
-          />
+            <TextField
+              fullWidth
+              type="number"
+              name="timePerRound"
+              label="Time per round (seconds)"
+              variant="outlined"
+              size="small"
+              value={form.timePerRound}
+              onChange={handleChange}
+              error={Boolean(errors.timePerRound)}
+              helperText={errors.timePerRound}
+            />
 
-          {/* Botón de acción */}
-          <Button
-            id="add-project-btn"
-            component={RouterLink}
-            to="newGame"
-            variant="contained"
-            fullWidth
-            sx={{
-              mt: 1,
-              bgcolor: "#1e90ff",
-              fontWeight: 600,
-              fontSize: 16,
-              borderRadius: 2,
-              py: 1.2,
-              "&:hover": {
-                bgcolor: "#1c86ee",
-              },
-            }}
-          >
-            Create
-          </Button>
-        </Stack>
+            {submitError && <Alert severity="error">{submitError}</Alert>}
+
+            <Button
+              id="add-project-btn"
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={submitting}
+              sx={{
+                mt: 1,
+                bgcolor: "#1e90ff",
+                fontWeight: 600,
+                fontSize: 16,
+                borderRadius: 2,
+                py: 1.2,
+                "&:hover": { bgcolor: "#1c86ee" },
+              }}
+            >
+              {submitting ? "Creating..." : "Create"}
+            </Button>
+          </Stack>
+        </form>
       </Paper>
     </Box>
   );

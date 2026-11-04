@@ -1,6 +1,4 @@
-import { request } from "node:http";
-import { env } from "node:process";
-import { date } from "zod";
+import authenticate from "../utils/authenticate";
 
 const ALPHABET =
   "ABCDFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
@@ -12,8 +10,10 @@ function makeCode(len = 6) {
 
 export async function createGame(c) {
   const gameId = Number(c.req.param("gameId"));
-  const user = c.get("user") ?? { id: 0 };
+  const body = await c.req.json();
+  const { game_name, n_teams, time_round } = body;
 
+  return c.json(body, 200);
   // Possibly delete
   const existing = await c.env.DB.prepare(
     "SELECT code FROM game_rooms WHERE game_id = ? AND closed_at IS NULL",
@@ -27,9 +27,17 @@ export async function createGame(c) {
     const code = makeCode();
     try {
       await c.env.DB.prepare(
-        "INSERT INTO game_rooms (game_id, code, created_by, creted_at) VALUES (?,?,?,?)",
+        "INSERT INTO game_rooms (game_id, code, game_name, created_by, created_at, n_teams, time_round) VALUES (?,?,?,?,?,?,?)",
       )
-        .bind(gameId, code, user.id, new Date().toISOString())
+        .bind(
+          gameId,
+          code,
+          game_name,
+          user.id,
+          new Date().toISOString(),
+          n_teams,
+          time_round,
+        )
         .run();
       return c.json({ code }, 201);
     } catch {
@@ -71,7 +79,7 @@ export async function connectCode(c) {
   if (c.req.header("Upgrade") !== "websocket")
     return c.text("Expected WebSocket", 426);
 
-  const [code, room] = await getRoom(c);
+  const [_code, room] = await getRoom(c);
 
   const identity = await authenticate(c, room.game_id);
   if (!identity) return c.text("Unauthorized", 401);
