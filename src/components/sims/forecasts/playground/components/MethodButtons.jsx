@@ -11,6 +11,11 @@ import {
 import { forecasts as FORECAST_METHODS } from "@/utils/sims/forecasts/dataForecaster.js";
 import ParamsPopover from "./ParamsPopover";
 
+const HIDDEN_IN_ERRORS = new Set([
+  "Double Linear Regression",
+  "Winter's",
+]);
+
 const MethodButtons = () => {
   const dispatch = useDispatch();
   const selectedMethods = useSelector(selectSelectedMethods);
@@ -44,7 +49,9 @@ const MethodButtons = () => {
 
   return (
     <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      {Object.keys(FORECAST_METHODS).map((method) => {
+      {Object.keys(FORECAST_METHODS)
+        .filter((method) => !HIDDEN_IN_ERRORS.has(method))
+        .map((method) => {
         const params = methodParams[method] ?? {};
         const hasParams = Object.keys(params).length > 0;
         const isOpen = openMethod === method;

@@ -18,7 +18,7 @@ export const DEFAULT_METHOD_PARAMS = {
   "Simple Moving Average": { compound: 3 },
   "Double Moving Average": { compound: 3 },
   "Simple Exponential Smoothing": { alpha: 0.5, showSmoothed: true },
-  "Double Exponential Smoothing": { alpha: 0.5, beta: 0.1, showSmoothed: true },
+  "Double Exponential Smoothing": { alpha: 0.5, beta: 0.5, showSmoothed: true },
   "Winter's": { alpha: 0.5, beta: 0.3, gamma: 0.2, seasonLength: 12 },
 };
 
