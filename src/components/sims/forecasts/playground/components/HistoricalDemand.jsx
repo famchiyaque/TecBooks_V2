@@ -268,11 +268,11 @@ const HistoricalDemand = ({
         <footer className="mt-4 flex items-center justify-center gap-6 border-t border-slate-100 pt-3 text-xs text-slate-500">
           <span className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-sm bg-emerald-400" />
-            Training data
+            Earlier months
           </span>
           <span className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-sm bg-amber-400" />
-            Test data
+            Last {testMonths} months compared
           </span>
         </footer>
       )}

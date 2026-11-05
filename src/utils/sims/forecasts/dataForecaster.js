@@ -22,10 +22,8 @@ function round2(value) {
 }
 
 export function simpleLinear(baseArray, interval) {
-  const result = [...baseArray];
-
-  const { x, y, firstNonNull, lastNonNull } = getNonNullRange(baseArray);
-  if (firstNonNull === -1) return result; // no data at all
+  const { x, y, firstNonNull } = getNonNullRange(baseArray);
+  if (firstNonNull === -1) return baseArray.map((value) => value);
 
   // linear regression coefficients
   const X = x.reduce((a, b) => a + b, 0) / x.length;
@@ -43,15 +41,12 @@ export function simpleLinear(baseArray, interval) {
   console.log("b1: ", b1)
   console.log("b0: ", b0)
 
-  // forecast future points
-  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    result[i] = b0 + b1 * (i + 1);
+  // Fitted values on the sample and the future use the same line.
+  const result = baseArray.map(() => null);
+  for (let i = firstNonNull; i < baseArray.length; i++) {
+    result[i] = round2(b0 + b1 * (i + 1));
   }
-
-  // clear original past points
-  for (let i = 0; i <= lastNonNull; i++) result[i] = null;
-
-  return result.map((v) => (typeof v === "number" ? round2(v) : null));
+  return result;
 }
 
 // Gaussian elimination for 3x3 system — used by doubleLinear quadratic regression
@@ -114,28 +109,37 @@ export function doubleLinear(baseArray, interval) {
 
 export function simpleMoving(baseArray, interval, params = {}) {
   const compound = Math.max(2, params.compound ?? 3);
-  const result = [...baseArray];
+  const { lastNonNull, firstNonNull } = getNonNullRange(baseArray);
+  if (firstNonNull === -1) return baseArray.map(() => null);
 
-  const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-  if (firstNonNull === -1) return result; // no data at all
+  const predicted = baseArray.map(() => null);
+  // Future months keep averaging this copy, which still holds the actuals.
+  const extended = baseArray.slice();
 
-  // SMA for future points
-  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    // get last `compound` points
-    const startIdx = Math.max(0, i - compound);
-    const dataWindow = result.slice(startIdx, i).filter((v) => v !== null);
-
-    // calculate average
-    const avg = dataWindow.length
-      ? round2(dataWindow.reduce((a, b) => a + b, 0) / dataWindow.length)
-      : 0;
-    result[i] = avg;
+  for (let i = firstNonNull + compound; i <= lastNonNull; i++) {
+    const sample = [];
+    for (let k = i - compound; k < i; k++) {
+      if (extended[k] == null) {
+        sample.length = 0;
+        break;
+      }
+      sample.push(extended[k]);
+    }
+    if (sample.length !== compound) continue;
+    predicted[i] = round2(sample.reduce((sum, value) => sum + value, 0) / compound);
   }
 
-  // clear past points
-  for (let i = 0; i <= lastNonNull; i++) result[i] = null;
+  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
+    const startIdx = Math.max(0, i - compound);
+    const dataWindow = extended.slice(startIdx, i).filter((value) => value !== null);
+    const avg = dataWindow.length
+      ? round2(dataWindow.reduce((sum, value) => sum + value, 0) / dataWindow.length)
+      : 0;
+    extended[i] = avg;
+    predicted[i] = avg;
+  }
 
-  return result;
+  return predicted;
 }
 
 // DMA: average of the previous `window` actuals, then the same average of those
@@ -420,10 +424,17 @@ export default function getSeriesData(
         dashStyle: "Dash",
       });
     } else if (Array.isArray(result)) {
+      const data = result.slice();
+      // The errors module keeps in-sample fits. This screen draws the future only.
+      if (method === "Simple Linear Regression" || method === "Simple Moving Average") {
+        for (let i = 0; i < baseArray.length; i++) {
+          if (baseArray[i] != null) data[i] = null;
+        }
+      }
       seriesData.push({
         name: method,
         color: methodConfig.color,
-        data: result,
+        data,
         dashStyle: "Dash",
       });
     }

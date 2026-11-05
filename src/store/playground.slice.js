@@ -33,10 +33,6 @@ const playgroundSlice = createSlice({
     demand: INITIAL_DEMAND,
     maxYears: 5,
     minYears: 1,
-    // RF7/8 "Errors N" - cuantos meses finales se separan como prueba para
-    // el backtesting. Mismo numero alimenta el tono verde/naranja (train/
-    // test) de HistoricalDemand - un solo dial para ambas cosas.
-    errorBacktestCount: 3,
     // RF9-11
     forecastYears: 5,
     forecastVisible: true,
@@ -47,12 +43,6 @@ const playgroundSlice = createSlice({
   reducers: {
     setDemand: (state, action) => {
       state.demand = action.payload;
-    },
-    setErrorBacktestCount: (state, action) => {
-      const parsed = Number(action.payload);
-      state.errorBacktestCount = Number.isFinite(parsed)
-        ? Math.max(0, Math.trunc(parsed))
-        : 0;
     },
     setForecastYears: (state, action) => {
       const parsed = Number(action.payload);
@@ -84,7 +74,6 @@ const playgroundSlice = createSlice({
 
 export const {
   setDemand,
-  setErrorBacktestCount,
   setForecastYears,
   setForecastVisible,
   toggleMethod,
@@ -98,8 +87,6 @@ export const playgroundReducer = playgroundSlice.reducer;
 export const selectDemand = (state) => state.playground.demand;
 export const selectMaxYears = (state) => state.playground.maxYears;
 export const selectMinYears = (state) => state.playground.minYears;
-export const selectErrorBacktestCount = (state) =>
-  state.playground.errorBacktestCount;
 export const selectForecastYears = (state) => state.playground.forecastYears;
 export const selectForecastVisible = (state) =>
   state.playground.forecastVisible;
@@ -133,107 +120,115 @@ export const selectAutocorrelationTable = createSelector(
   (series, maxLag) => buildAutocorrelationTable(series, maxLag),
 );
 
-export const selectTrainTestSplit = createSelector(
-  [selectFlatSeries, selectErrorBacktestCount],
-  (series, testCount) => {
-    const count = Math.min(testCount, Math.max(series.length - 1, 0));
-    return {
-      train: series.slice(0, series.length - count),
-      test: series.slice(series.length - count),
-      testCount: count,
-    };
-  },
-);
+const CHART_FUTURE_ONLY = new Set([
+  "Simple Linear Regression",
+  "Simple Moving Average",
+]);
 
-function predictedWindow(result, totalLength, testCount) {
-  const startIdx = totalLength - testCount;
-  if (Array.isArray(result)) return result.slice(startIdx, totalLength);
-  if (result?.forecast) return result.forecast.slice(startIdx, totalLength);
-  return Array(testCount).fill(null);
+function firstForecastIndex(method, params) {
+  const window = Math.max(2, Math.trunc(Number(params?.compound)) || 3);
+  if (method === "Simple Moving Average") return window;
+  if (method === "Double Moving Average") return window * 2;
+  if (method === "Simple Exponential Smoothing") return 2;
+  if (method === "Double Exponential Smoothing") return 1;
+  return 0;
 }
 
-/** RF7/8: una fila por metodo activo, ordenadas de menor a mayor error (MSE). */
-export const selectBacktestTable = createSelector(
-  [
-    selectFlatSeries,
-    selectTrainTestSplit,
-    selectSelectedMethods,
-    selectMethodParams,
-  ],
-  (series, { train, test, testCount }, methods, methodParams) => {
-    if (testCount === 0) return [];
-    const baseArray = [...train, ...Array(testCount).fill(null)];
+function inSamplePredictions(result, historyLength) {
+  if (Array.isArray(result)) return result.slice(0, historyLength);
+  if (result?.historical) return result.historical.slice(0, historyLength);
+  return Array(historyLength).fill(null);
+}
 
-    const rows = methods
-      .map((method) => {
-        const config = FORECAST_METHODS[method];
-        if (!config) return null;
-        const result = config.func(
-          baseArray,
-          "monthly",
-          methodParams[method] ?? {},
-        );
-        const predicted = predictedWindow(result, baseArray.length, testCount);
-        return {
-          model: method,
+/** One run per active method. The chart and the error table both read this. */
+export const selectMethodForecasts = createSelector(
+  [selectFlatSeries, selectSelectedMethods, selectMethodParams, selectForecastYears],
+  (series, methods, methodParams, forecastYears) => {
+    const futureMonths = forecastYears * MONTHS_PER_YEAR;
+    const baseArray = [...series, ...Array(futureMonths).fill(null)];
+    const historyLength = series.length;
+
+    return methods.flatMap((method) => {
+      const config = FORECAST_METHODS[method];
+      if (!config) return [];
+      const params = methodParams[method] ?? {};
+      const result = config.func(baseArray, "monthly", params);
+      const first = firstForecastIndex(method, params);
+      return [
+        {
+          method,
           color: config.color,
-          ...computeBacktestErrors(test, predicted),
-        };
-      })
-      .filter(Boolean);
-
-    return rows.sort((a, b) => a.mse - b.mse);
+          params,
+          result,
+          predicted: inSamplePredictions(result, historyLength),
+          validCount: Math.max(0, historyLength - first),
+        },
+      ];
+    });
   },
 );
 
-/** RF9-11: linea base (historico completo) + una linea por metodo activo, extendida forecastYears al futuro. */
+/** Shortest in-sample stretch among the active methods. */
+export const selectComparisonCount = createSelector(
+  [selectMethodForecasts],
+  (forecasts) => {
+    if (!forecasts.length) return 0;
+    return forecasts.reduce((count, row) => Math.min(count, row.validCount), Infinity);
+  },
+);
+
+/** RF7/8: one row per active method, scored on the same last m months. */
+export const selectBacktestTable = createSelector(
+  [selectMethodForecasts, selectFlatSeries, selectComparisonCount],
+  (forecasts, series, count) => {
+    if (count === 0) return [];
+    const actual = series.slice(series.length - count);
+    return forecasts
+      .map((row) => ({
+        model: row.method,
+        color: row.color,
+        ...computeBacktestErrors(actual, row.predicted.slice(series.length - count)),
+      }))
+      .sort((a, b) => a.mse - b.mse);
+  },
+);
+
+/** RF9-11: sales line plus one line per active method, extended forecastYears ahead. */
 export const selectForecastChartSeries = createSelector(
-  [
-    selectFlatSeries,
-    selectSelectedMethods,
-    selectMethodParams,
-    selectForecastYears,
-    selectForecastVisible,
-  ],
-  (series, methods, methodParams, forecastYears, forecastVisible) => {
-    const chartSeries = [
-      { name: "sales", color: "#eab308", data: [...series] },
-    ];
+  [selectMethodForecasts, selectFlatSeries, selectForecastVisible],
+  (forecasts, series, forecastVisible) => {
+    const chartSeries = [{ name: "sales", color: "#eab308", data: [...series] }];
     if (!forecastVisible) return chartSeries;
 
-    const futureMonths = forecastYears * MONTHS_PER_YEAR;
-    const baseArray = [...series, ...Array(futureMonths).fill(null)];
-
-    methods.forEach((method) => {
-      const config = FORECAST_METHODS[method];
-      if (!config) return;
-      const result = config.func(
-        baseArray,
-        "monthly",
-        methodParams[method] ?? {},
-      );
-
+    const historyLength = series.length;
+    forecasts.forEach(({ method, color, params, result }) => {
       if (Array.isArray(result)) {
+        const data = result.slice();
+        if (CHART_FUTURE_ONLY.has(method)) {
+          for (let i = 0; i < historyLength; i++) data[i] = null;
+        }
         chartSeries.push({
           name: method,
-          color: config.color,
-          data: result,
+          color,
+          data,
           dashStyle: "Dash",
         });
-      } else if (result?.historical && result?.forecast) {
-        const showSmoothed = methodParams[method]?.showSmoothed ?? true;
+        return;
+      }
 
+      if (result?.historical && result?.forecast) {
+        const showSmoothed = params?.showSmoothed ?? true;
         if (showSmoothed) {
           chartSeries.push({
             name: `${method} (smoothed)`,
-            color: config.color,
+            color,
             data: result.historical,
             dashStyle: "Solid",
           });
         }
         chartSeries.push({
           name: `${method} (forecast)`,
-          color: config.color,
+          color,
           data: result.forecast,
           dashStyle: "Dash",
         });
