@@ -41,7 +41,7 @@ const ForecastChart = () => {
         title: { text: "Sales in Dollars", style: { color: "#334155" }, margin: 16 },
         labels: { style: { color: "#334155" } },
       },
-      tooltip: { shared: true },
+      tooltip: { shared: true, valueDecimals: 2 },
       legend: {
         itemStyle: { fontSize: "11px", color: "#334155" },
         symbolHeight: 10,

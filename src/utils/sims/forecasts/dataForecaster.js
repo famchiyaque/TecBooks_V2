@@ -17,6 +17,10 @@ export function getNonNullRange(baseArray) {
   return { x, y, firstNonNull, lastNonNull };
 }
 
+function round2(value) {
+  return Number(value.toFixed(2));
+}
+
 export function simpleLinear(baseArray, interval) {
   const result = [...baseArray];
 
@@ -42,13 +46,12 @@ export function simpleLinear(baseArray, interval) {
   // forecast future points
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
     result[i] = b0 + b1 * (i + 1);
-    console.log("I result: ", result[i])
   }
 
   // clear original past points
   for (let i = 0; i <= lastNonNull; i++) result[i] = null;
 
-  return result.map((v) => (typeof v === "number" ? Math.round(v) : null));
+  return result.map((v) => (typeof v === "number" ? round2(v) : null));
 }
 
 // Gaussian elimination for 3x3 system — used by doubleLinear quadratic regression
@@ -103,7 +106,7 @@ export function doubleLinear(baseArray, interval) {
   const [b0, b1, b2] = coeffs;
 
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    result[i] = Math.round(b0 + b1 * (i + 1) + b2 * (i + 1) ** 2);
+    result[i] = round2(b0 + b1 * (i + 1) + b2 * (i + 1) ** 2);
   }
   for (let i = 0; i <= lastNonNull; i++) result[i] = null;
   return result;
@@ -124,7 +127,7 @@ export function simpleMoving(baseArray, interval, params = {}) {
 
     // calculate average
     const avg = dataWindow.length
-      ? Math.round(dataWindow.reduce((a, b) => a + b, 0) / dataWindow.length)
+      ? round2(dataWindow.reduce((a, b) => a + b, 0) / dataWindow.length)
       : 0;
     result[i] = avg;
   }
@@ -167,7 +170,7 @@ export function doubleMoving(baseArray, interval) {
 
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
     const h = i - lastNonNull;
-    result[i] = Math.round(a + b * h);
+    result[i] = round2(a + b * h);
   }
   for (let i = 0; i <= lastNonNull; i++) result[i] = null;
   return result;
@@ -177,21 +180,26 @@ export function simpleExponential(baseArray, interval, params = {}) {
   const alpha = params.alpha ?? 0.5;
   const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
   if (firstNonNull === -1) return null;
+  console.log("y: ", y)
 
   // Historical: smoothed S values
   const historical = baseArray.map(() => null);
+  console.log("initialize historical: ", historical)
   let S = y[0];
-  historical[firstNonNull] = Math.round(S);
+  console.log("first S: ", S)
+  historical[firstNonNull] = round2(S);
+  console.log("historical after placing first S ", historical)
   for (let t = 1; t < y.length; t++) {
     S = alpha * y[t] + (1 - alpha) * S;
-    historical[firstNonNull + t] = Math.round(S);
+    historical[firstNonNull + t] = round2(S);
+    console.log("historical after adding S: ", historical)
   }
 
   // Future: flat forecast
   const forecast = baseArray.map(() => null);
-  forecast[lastNonNull] = Math.round(S); // connect from last historical point
+  forecast[lastNonNull] = round2(S); // connect from last historical point
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    forecast[i] = Math.round(S);
+    forecast[i] = round2(S);
   }
 
   return { historical, forecast };
@@ -212,21 +220,21 @@ export function doubleExponential(baseArray, interval, params = {}) {
 
   // Historical: smoothed S values
   const historical = baseArray.map(() => null);
-  historical[firstNonNull] = Math.round(S);
+  historical[firstNonNull] = round2(S);
 
   for (let t = 1; t < n; t++) {
     const prevS = S;
     S = alpha * y[t] + (1 - alpha) * (S + b);
     b = gamma * (S - prevS) + (1 - gamma) * b;
-    historical[firstNonNull + t] = Math.round(S);
+    historical[firstNonNull + t] = round2(S);
   }
 
   // Future: linear forecast
   const forecast = baseArray.map(() => null);
-  forecast[lastNonNull] = Math.round(S); // connect from last historical point
+  forecast[lastNonNull] = round2(S); // connect from last historical point
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
     const h = i - lastNonNull;
-    forecast[i] = Math.round(S + h * b);
+    forecast[i] = round2(S + h * b);
   }
 
   return { historical, forecast };
@@ -262,7 +270,7 @@ export function winters(baseArray, interval, params = {}) {
 
   // Forecast future points
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    result[i] = Math.round(L + T + S[i % m]);
+    result[i] = round2(L + T + S[i % m]);
     L = L + T;
   }
 
