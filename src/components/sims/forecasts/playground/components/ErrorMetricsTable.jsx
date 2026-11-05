@@ -1,9 +1,9 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   selectBacktestTable,
-  selectErrorBacktestCount,
-  setErrorBacktestCount,
+  selectComparisonCount,
+  selectSelectedMethods,
 } from "@/store/playground.slice.js";
 
 function formatNumber(value, digits = 2) {
@@ -11,37 +11,29 @@ function formatNumber(value, digits = 2) {
 }
 
 /**
- * RF7/8 - Backtesting and Error: una fila por metodo activo, de menor a
- * mayor error (MSE). "Errors N" controla cuantos meses finales se separan
- * como prueba - el mismo numero que colorea verde/naranja en Historical
- * Demand (son el mismo dial, no dos independientes).
+ * RF7/8 - Backtesting and Error: one row per active method, lowest MSE first.
+ * Every row uses the last m months, where m is the shortest in-sample stretch
+ * among the methods that are on.
  */
 const ErrorMetricsTable = () => {
-  const dispatch = useDispatch();
   const rows = useSelector(selectBacktestTable);
-  const errorCount = useSelector(selectErrorBacktestCount);
+  const comparedMonths = useSelector(selectComparisonCount);
+  const selectedMethods = useSelector(selectSelectedMethods);
+  const monthLabel = comparedMonths === 1 ? "month" : "months";
+  const summary = selectedMethods.length === 0
+    ? "Select at least one model to compare errors."
+    : comparedMonths === 0
+      ? "These methods have no shared months to compare."
+      : `Metrics use the last ${comparedMonths} ${monthLabel}.`;
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between gap-4">
+      <div className="mb-3 flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-slate-900">Backtesting and Error</h2>
-        <label className="flex items-center gap-2 text-sm text-slate-600">
-          Errors
-          <input
-            type="number"
-            min={0}
-            value={errorCount}
-            onChange={(event) => dispatch(setErrorBacktestCount(event.target.value))}
-            className="w-16 rounded-lg border border-slate-200 px-2 py-1 text-right text-sm tabular-nums"
-          />
-        </label>
+        <p className="text-sm text-slate-500">{summary}</p>
       </div>
 
-      {rows.length === 0 ? (
-        <p className="text-sm text-slate-400">
-          Select at least one model and set Errors &gt; 0 to backtest.
-        </p>
-      ) : (
+      {rows.length === 0 ? null : (
         <table className="w-full border-separate border-spacing-0 text-sm">
           <thead>
             <tr>

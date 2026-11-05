@@ -17,15 +17,19 @@ export function getNonNullRange(baseArray) {
   return { x, y, firstNonNull, lastNonNull };
 }
 
-export function simpleLinear(baseArray, interval) {
-  const result = [...baseArray];
+function round2(value) {
+  return Number(value.toFixed(2));
+}
 
-  const { x, y, firstNonNull, lastNonNull } = getNonNullRange(baseArray);
-  if (firstNonNull === -1) return result; // no data at all
+export function simpleLinear(baseArray, interval) {
+  const { x, y, firstNonNull } = getNonNullRange(baseArray);
+  if (firstNonNull === -1) return baseArray.map((value) => value);
 
   // linear regression coefficients
   const X = x.reduce((a, b) => a + b, 0) / x.length;
   const Y = y.reduce((a, b) => a + b, 0) / y.length;
+  console.log("X: ", X)
+  console.log("Y: ", Y)
 
   const topSum = x
     .map((xi, i) => (xi - X) * (y[i] - Y))
@@ -34,16 +38,15 @@ export function simpleLinear(baseArray, interval) {
 
   const b1 = topSum / bottomSum;
   const b0 = Y - b1 * X;
+  console.log("b1: ", b1)
+  console.log("b0: ", b0)
 
-  // forecast future points
-  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    result[i] = b0 + b1 * (i + 1);
+  // Fitted values on the sample and the future use the same line.
+  const result = baseArray.map(() => null);
+  for (let i = firstNonNull; i < baseArray.length; i++) {
+    result[i] = round2(b0 + b1 * (i + 1));
   }
-
-  // clear original past points
-  for (let i = 0; i <= lastNonNull; i++) result[i] = null;
-
-  return result.map((v) => (typeof v === "number" ? Math.round(v) : null));
+  return result;
 }
 
 // Gaussian elimination for 3x3 system — used by doubleLinear quadratic regression
@@ -98,73 +101,84 @@ export function doubleLinear(baseArray, interval) {
   const [b0, b1, b2] = coeffs;
 
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    result[i] = Math.round(b0 + b1 * (i + 1) + b2 * (i + 1) ** 2);
+    result[i] = round2(b0 + b1 * (i + 1) + b2 * (i + 1) ** 2);
   }
   for (let i = 0; i <= lastNonNull; i++) result[i] = null;
   return result;
 }
 
 export function simpleMoving(baseArray, interval, params = {}) {
-  const compound = params.compound ?? 3;
-  const result = [...baseArray];
+  const compound = Math.max(2, params.compound ?? 3);
+  const { lastNonNull, firstNonNull } = getNonNullRange(baseArray);
+  if (firstNonNull === -1) return baseArray.map(() => null);
 
-  const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-  if (firstNonNull === -1) return result; // no data at all
+  const predicted = baseArray.map(() => null);
+  // Future months keep averaging this copy, which still holds the actuals.
+  const extended = baseArray.slice();
 
-  // SMA for future points
-  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    // get last `compound` points
-    const startIdx = Math.max(0, i - compound);
-    const dataWindow = result.slice(startIdx, i).filter((v) => v !== null);
-
-    // calculate average
-    const avg = dataWindow.length
-      ? Math.round(dataWindow.reduce((a, b) => a + b, 0) / dataWindow.length)
-      : 0;
-    result[i] = avg;
+  for (let i = firstNonNull + compound; i <= lastNonNull; i++) {
+    const sample = [];
+    for (let k = i - compound; k < i; k++) {
+      if (extended[k] == null) {
+        sample.length = 0;
+        break;
+      }
+      sample.push(extended[k]);
+    }
+    if (sample.length !== compound) continue;
+    predicted[i] = round2(sample.reduce((sum, value) => sum + value, 0) / compound);
   }
 
-  // clear past points
-  for (let i = 0; i <= lastNonNull; i++) result[i] = null;
+  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
+    const startIdx = Math.max(0, i - compound);
+    const dataWindow = extended.slice(startIdx, i).filter((value) => value !== null);
+    const avg = dataWindow.length
+      ? round2(dataWindow.reduce((sum, value) => sum + value, 0) / dataWindow.length)
+      : 0;
+    extended[i] = avg;
+    predicted[i] = avg;
+  }
 
-  return result;
+  return predicted;
 }
 
-// DMA forecast: a = 2*SMA - DMA, b = (2/(m-1))*(SMA-DMA), F(h) = a + b*h
-export function doubleMoving(baseArray, interval) {
-  const result = [...baseArray];
-  const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
+// DMA: average of the previous `window` actuals, then the same average of those
+// averages. Each value sits on the month being forecast. In-sample points stay
+// in the series; the second average continues one step at a time into the future.
+export function doubleMoving(baseArray, interval, params = {}) {
+  const window = Math.max(2, params.compound ?? 3);
+  const result = baseArray.map(() => null);
+  const { lastNonNull, firstNonNull } = getNonNullRange(baseArray);
   if (firstNonNull === -1) return result;
 
-  const n = y.length;
-  const m = Math.max(2, Math.floor(n / 3)); // dynamic: ~1/3 of data length
-
-  // SMA on historical points
-  const sma = y.map((_, i) => {
-    if (i < m - 1) return null;
-    const w = y.slice(i - m + 1, i + 1);
-    return w.reduce((a, b) => a + b, 0) / m;
-  });
-
-  // DMA on sma values
-  const dma = sma.map((_, i) => {
-    if (i < 2 * m - 2) return null;
-    const w = sma.slice(i - m + 1, i + 1).filter((v) => v !== null);
-    return w.length === m ? w.reduce((a, b) => a + b, 0) / m : null;
-  });
-
-  const lastSMA = sma[n - 1];
-  const lastDMA = dma[n - 1];
-  if (lastSMA === null || lastDMA === null) return result;
-
-  const a = 2 * lastSMA - lastDMA;
-  const b = m > 1 ? (2 / (m - 1)) * (lastSMA - lastDMA) : 0;
-
-  for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    const h = i - lastNonNull;
-    result[i] = Math.round(a + b * h);
+  const ma1 = Array(baseArray.length).fill(null);
+  for (let i = firstNonNull + window; i < baseArray.length; i++) {
+    const sample = [];
+    for (let k = i - window; k < i; k++) {
+      const value = k <= lastNonNull ? baseArray[k] : ma1[k];
+      if (value == null) {
+        sample.length = 0;
+        break;
+      }
+      sample.push(value);
+    }
+    if (sample.length !== window) continue;
+    ma1[i] = sample.reduce((sum, value) => sum + value, 0) / window;
   }
-  for (let i = 0; i <= lastNonNull; i++) result[i] = null;
+
+  for (let i = firstNonNull + window * 2; i < baseArray.length; i++) {
+    const sample = [];
+    for (let k = i - window; k < i; k++) {
+      if (ma1[k] == null) {
+        sample.length = 0;
+        break;
+      }
+      sample.push(ma1[k]);
+    }
+    if (sample.length !== window) continue;
+    result[i] = round2(sample.reduce((sum, value) => sum + value, 0) / window);
+  }
+
   return result;
 }
 
@@ -173,20 +187,18 @@ export function simpleExponential(baseArray, interval, params = {}) {
   const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
   if (firstNonNull === -1) return null;
 
-  // Historical: smoothed S values
+  // One-step forecast for month t is the level from month t-1.
+  // January has no prior level, so it stays null. February is seeded with January's actual.
   const historical = baseArray.map(() => null);
-  let S = y[0];
-  historical[firstNonNull] = Math.round(S);
+  let level = y[0];
   for (let t = 1; t < y.length; t++) {
-    S = alpha * y[t] + (1 - alpha) * S;
-    historical[firstNonNull + t] = Math.round(S);
+    historical[firstNonNull + t] = round2(level);
+    level = alpha * y[t] + (1 - alpha) * level;
   }
 
-  // Future: flat forecast
   const forecast = baseArray.map(() => null);
-  forecast[lastNonNull] = Math.round(S); // connect from last historical point
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    forecast[i] = Math.round(S);
+    forecast[i] = round2(level);
   }
 
   return { historical, forecast };
@@ -194,34 +206,32 @@ export function simpleExponential(baseArray, interval, params = {}) {
 
 export function doubleExponential(baseArray, interval, params = {}) {
   const alpha = params.alpha ?? 0.5;
-  const gamma = params.beta ?? 0.1; // trend smoothing (called β in UI, γ in Holt's notation)
+  const beta = params.beta ?? 0.5;
   const result = [...baseArray];
   const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
   if (firstNonNull === -1 || y.length < 2) return result;
 
   const n = y.length;
 
-  // Init: S_1 = y_1,  b_1 = (y_n - y_1) / (n-1)  — stable slope across full history
-  let S = y[0];
-  let b = (y[n - 1] - y[0]) / (n - 1);
+  // January's level is the January actual. The first trend is February minus January.
+  // The level and trend updates start at February.
+  let level = y[0];
+  let trend = y[1] - y[0];
 
-  // Historical: smoothed S values
   const historical = baseArray.map(() => null);
-  historical[firstNonNull] = Math.round(S);
+  historical[firstNonNull] = round2(level);
 
   for (let t = 1; t < n; t++) {
-    const prevS = S;
-    S = alpha * y[t] + (1 - alpha) * (S + b);
-    b = gamma * (S - prevS) + (1 - gamma) * b;
-    historical[firstNonNull + t] = Math.round(S);
+    const previousLevel = level;
+    level = alpha * y[t] + (1 - alpha) * (level + trend);
+    trend = beta * (level - previousLevel) + (1 - beta) * trend;
+    historical[firstNonNull + t] = round2(level);
   }
 
-  // Future: linear forecast
   const forecast = baseArray.map(() => null);
-  forecast[lastNonNull] = Math.round(S); // connect from last historical point
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
     const h = i - lastNonNull;
-    forecast[i] = Math.round(S + h * b);
+    forecast[i] = round2(level + h * trend);
   }
 
   return { historical, forecast };
@@ -257,7 +267,7 @@ export function winters(baseArray, interval, params = {}) {
 
   // Forecast future points
   for (let i = lastNonNull + 1; i < baseArray.length; i++) {
-    result[i] = Math.round(L + T + S[i % m]);
+    result[i] = round2(L + T + S[i % m]);
     L = L + T;
   }
 
@@ -414,10 +424,17 @@ export default function getSeriesData(
         dashStyle: "Dash",
       });
     } else if (Array.isArray(result)) {
+      const data = result.slice();
+      // The errors module keeps in-sample fits. This screen draws the future only.
+      if (method === "Simple Linear Regression" || method === "Simple Moving Average") {
+        for (let i = 0; i < baseArray.length; i++) {
+          if (baseArray[i] != null) data[i] = null;
+        }
+      }
       seriesData.push({
         name: method,
         color: methodConfig.color,
-        data: result,
+        data,
         dashStyle: "Dash",
       });
     }

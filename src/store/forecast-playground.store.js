@@ -148,11 +148,11 @@ export const getCompoundRange = (state) => {
   }
   if (!possiblePoints) return { min: null, max: null };
 
-  // Apply your 70% rule, max 100, min 3
-  const maxCompound = Math.max(3, Math.min(Math.floor(possiblePoints * 0.7), 100));
+  // Apply your 70% rule, max 100. Window size cannot go below 2.
+  const maxCompound = Math.max(2, Math.min(Math.floor(possiblePoints * 0.7), 100));
 
   return {
-    min: 3,
+    min: 2,
     max: maxCompound,
   };
 };

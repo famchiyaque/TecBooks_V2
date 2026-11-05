@@ -10,7 +10,7 @@ import {
   selectDemand,
   selectMaxYears,
   selectMinYears,
-  selectErrorBacktestCount,
+  selectComparisonCount,
   setDemand,
 } from "@/store/playground.slice.js";
 
@@ -32,7 +32,7 @@ const PlaygroundPage = () => {
   const demand = useSelector(selectDemand);
   const maxYears = useSelector(selectMaxYears);
   const minYears = useSelector(selectMinYears);
-  const errorBacktestCount = useSelector(selectErrorBacktestCount);
+  const comparedMonths = useSelector(selectComparisonCount);
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -56,7 +56,7 @@ const PlaygroundPage = () => {
         onChange={(next) => dispatch(setDemand(next))}
         maxYears={maxYears}
         minYears={minYears}
-        testMonths={errorBacktestCount}
+        testMonths={comparedMonths}
         defaultValue={100}
       />
 

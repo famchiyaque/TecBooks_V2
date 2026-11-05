@@ -74,16 +74,21 @@ function ForecastsPlaygroundContent() {
 
 /**
  * Owns both Redux stores so App.jsx stays provider-free.
- * Stores are created once per mount. Both trees stay mounted so a toggle
- * does not recreate a store or re-run the playground hooks.
+ * The errors store is created on entry. The playground store and tree
+ * are created on the first switch to Playground, then kept mounted so
+ * later toggles preserve that state.
  */
 function ForecastsSim() {
-  const [view, setView] = useState("playground");
-  const [playgroundStore] = useState(() => createForecastStore());
+  const [view, setView] = useState("errors");
+  const [playgroundStore, setPlaygroundStore] = useState(null);
   const [errorsStore] = useState(() => createErrorsStore());
 
   const handleViewChange = (_, next) => {
-    if (next) setView(next);
+    if (!next) return;
+    if (next === "playground") {
+      setPlaygroundStore((current) => current ?? createForecastStore());
+    }
+    setView(next);
   };
 
   return (
@@ -114,11 +119,13 @@ function ForecastsSim() {
           <ToggleButton value="playground">Playground</ToggleButton>
         </ToggleButtonGroup>
       </GenericSubheader>
-      <div hidden={view !== "playground"}>
-        <Provider store={playgroundStore}>
-          <ForecastsPlaygroundContent />
-        </Provider>
-      </div>
+      {playgroundStore && (
+        <div hidden={view !== "playground"}>
+          <Provider store={playgroundStore}>
+            <ForecastsPlaygroundContent />
+          </Provider>
+        </div>
+      )}
       <div hidden={view !== "errors"}>
         <Provider store={errorsStore}>
           <ForecastErrorsContent />
