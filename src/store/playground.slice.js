@@ -72,9 +72,11 @@ const playgroundSlice = createSlice({
     },
     setMethodParam: (state, action) => {
       const { method, param, value } = action.payload;
+      const nextValue =
+        param === "compound" ? Math.max(2, Math.trunc(Number(value)) || 2) : value;
       state.methodParams[method] = {
         ...(state.methodParams[method] ?? {}),
-        [param]: value,
+        [param]: nextValue,
       };
     },
   },

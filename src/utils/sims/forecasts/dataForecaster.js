@@ -113,7 +113,7 @@ export function doubleLinear(baseArray, interval) {
 }
 
 export function simpleMoving(baseArray, interval, params = {}) {
-  const compound = params.compound ?? 3;
+  const compound = Math.max(2, params.compound ?? 3);
   const result = [...baseArray];
 
   const { y, lastNonNull, firstNonNull } = getNonNullRange(baseArray);
@@ -142,10 +142,10 @@ export function simpleMoving(baseArray, interval, params = {}) {
 // averages. Each value sits on the month being forecast. In-sample points stay
 // in the series; the second average continues one step at a time into the future.
 export function doubleMoving(baseArray, interval, params = {}) {
-  const window = params.compound ?? 3;
+  const window = Math.max(2, params.compound ?? 3);
   const result = baseArray.map(() => null);
   const { lastNonNull, firstNonNull } = getNonNullRange(baseArray);
-  if (firstNonNull === -1 || window < 2) return result;
+  if (firstNonNull === -1) return result;
 
   const ma1 = Array(baseArray.length).fill(null);
   for (let i = firstNonNull + window; i < baseArray.length; i++) {
