@@ -98,7 +98,7 @@ export function useCreateGame() {
     try {
       setSubmitting(true);
       const { code } = await createGame(form); // ver nota abajo
-      navigate(`/game/${code}`);
+      navigate(`/sims/project-feasibility/game/${code}`);
     } catch (err) {
       setSubmitError(
         err?.response?.data?.error || "Could not create the game. Try again.",

@@ -9,6 +9,7 @@ import CreateGame from "@/sims/project-feasibility/pages/CreateGame.jsx";
 import NewProgram from "@/sims/project-feasibility/pages/NewProgram.jsx";
 import { StagingProvider } from "@/sims/project-feasibility/staging/StagingContext.jsx";
 import { Route, Routes, Navigate } from "react-router-dom";
+import GameLobby from "@/sims/project-feasibility/pages/GameLobby";
 
 function ProjectFeasibility() {
   return (
@@ -43,6 +44,7 @@ function ProjectFeasibility() {
                 element={<ProjectDashboard />}
               />
               <Route path="programs/newGame" element={<CreateGame />} />
+              <Route path="games/:gameId" element={<GameLobby />} />
             </Route>
 
             <Route
