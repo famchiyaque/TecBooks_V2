@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { createGame } from "../api/createGame.api";
-
-export const AVAILABLE_TAGS = ["Dron", "F1", "Dron Militar"];
+import { useState, useEffect } from "react";
+import { createGame, getProjects } from "../api/game.api";
+import { useNavigate } from "react-router-dom";
 
 const INITIAL_FORM = {
   name: "",
@@ -11,10 +10,35 @@ const INITIAL_FORM = {
 };
 
 export function useCreateGame() {
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [projectsError, setProjectsError] = useState("");
+
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getProjects()
+      .then((data) => {
+        if (!cancelled) setProjects(data);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectsError("Could not load projects");
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingProjects(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Returns an object like { name: "message" } (empty object = valid)
   function validate(form) {
@@ -73,15 +97,26 @@ export function useCreateGame() {
 
     try {
       setSubmitting(true);
-      const res = await createGame(form);
-      console.log(res);
-      // TODO: navigate somewhere or reset the form, e.g.
+      const { code } = await createGame(form); // ver nota abajo
+      navigate(`/game/${code}`);
     } catch (err) {
-      setSubmitError(err?.message || "Could not create the game. Try again.");
+      setSubmitError(
+        err?.response?.data?.error || "Could not create the game. Try again.",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  return { form, errors, submitting, submitError, handleChange, handleSubmit };
+  return {
+    form,
+    errors,
+    submitting,
+    submitError,
+    projects,
+    loadingProjects,
+    projectsError,
+    handleChange,
+    handleSubmit,
+  };
 }

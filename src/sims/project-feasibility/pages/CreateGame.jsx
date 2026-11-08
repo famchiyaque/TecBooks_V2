@@ -16,11 +16,20 @@ import {
   Divider,
   Stack,
 } from "@mui/material";
-import { AVAILABLE_TAGS, useCreateGame } from "../hooks/useCreateGame";
+import { useCreateGame } from "../hooks/useCreateGame";
 
 export default function CreateGame() {
-  const { form, errors, submitting, submitError, handleChange, handleSubmit } =
-    useCreateGame();
+  const {
+    form,
+    errors,
+    submitting,
+    submitError,
+    projects,
+    loadingProjects,
+    projectsError,
+    handleChange,
+    handleSubmit,
+  } = useCreateGame();
 
   return (
     <Box
@@ -70,18 +79,18 @@ export default function CreateGame() {
             >
               <InputLabel id="tags-select-label">Select project</InputLabel>
               <Select
-                labelId="tags-select-label"
                 multiple
                 name="selectedTags"
                 value={form.selectedTags}
                 onChange={handleChange}
+                disabled={loadingProjects}
                 input={<OutlinedInput label="Select project" />}
                 renderValue={(selected) => (
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => (
                       <Chip
                         key={value}
-                        label={value}
+                        label={projects[value - 1].name}
                         size="small"
                         color="primary"
                       />
@@ -89,14 +98,14 @@ export default function CreateGame() {
                   </Box>
                 )}
               >
-                {AVAILABLE_TAGS.map((tag) => (
-                  <MenuItem key={tag} value={tag}>
-                    {tag}
+                {projects.map((p) => (
+                  <MenuItem key={p.id} value={p.id}>
+                    {p.name}
                   </MenuItem>
                 ))}
               </Select>
-              {errors.selectedTags && (
-                <FormHelperText>{errors.selectedTags}</FormHelperText>
+              {projectsError && (
+                <FormHelperText error>{projectsError}</FormHelperText>
               )}
             </FormControl>
 

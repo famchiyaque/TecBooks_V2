@@ -1,47 +1,58 @@
 import authenticate from "../utils/authenticate";
+import {
+  createGameRoom,
+  validateProjects,
+} from "../services/game-room.service";
 
 const ALPHABET =
   "ABCDFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 function makeCode(len = 6) {
-  [...crypto.getRandomValues(new Uint8Array(len))]
+  return [...crypto.getRandomValues(new Uint8Array(len))]
     .map((b) => ALPHABET[b % ALPHABET.length])
     .join("");
 }
 
 export async function createGame(c) {
-  const gameId = Number(c.req.param("gameId"));
-  const body = await c.req.json();
-  const { game_name, n_teams, time_round } = body;
+  const userId = c.get("userId");
+  const { name, numTeams, timePerRound, selectedTags } = await c.req.json();
 
-  return c.json(body, 200);
-  // Possibly delete
-  const existing = await c.env.DB.prepare(
-    "SELECT code FROM game_rooms WHERE game_id = ? AND closed_at IS NULL",
-  )
-    .bind(gameId)
-    .first();
-  if (existing) return c.json({ code: existing.code });
+  // Validación básica
+  if (!name || !Array.isArray(selectedTags) || selectedTags.length === 0) {
+    return c.json({ error: "Invalid payload" }, 400);
+  }
 
-  // Retry if collision on code ID
+  // Solo enteros, sin duplicados
+  const projectIds = [...new Set(selectedTags.map(Number))];
+  if (!projectIds.every(Number.isInteger)) {
+    return c.json({ error: "Invalid project ids" }, 400);
+  }
+
+  // Verificar que todos existan
+  const placeholders = projectIds.map(() => "?").join(",");
+  const { results } = await validateProjects(c, placeholders, projectIds);
+
+  if (results[0].n !== projectIds.length) {
+    return c.json({ error: "Some projects do not exist" }, 400);
+  }
+
+  // Reintentar si hay colisión en el código
   for (let i = 0; i < 5; i++) {
     const code = makeCode();
     try {
-      await c.env.DB.prepare(
-        "INSERT INTO game_rooms (game_id, code, game_name, created_by, created_at, n_teams, time_round) VALUES (?,?,?,?,?,?,?)",
-      )
-        .bind(
-          gameId,
-          code,
-          game_name,
-          user.id,
-          new Date().toISOString(),
-          n_teams,
-          time_round,
-        )
-        .run();
+      await createGameRoom(
+        c,
+        { code, name, userId, numTeams, timePerRound },
+        projectIds,
+      );
+
       return c.json({ code }, 201);
-    } catch {
-      // UNIQUE collision, retry
+    } catch (error) {
+      if (String(error).includes("UNIQUE")) {
+        console.warn(`Code collision (${code}), retrying`);
+        continue;
+      }
+      console.error("createGame failed:", error);
+      return c.json({ error: "Could not create game" }, 500);
     }
   }
 
