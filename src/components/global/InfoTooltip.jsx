@@ -10,7 +10,7 @@ function InfoTooltip({ title }) {
       title={title}
       arrow
       placement="top"
-      slotProps={{ tooltip: { sx: { maxWidth: 360, fontSize: 12 } } }}
+      slotProps={{ tooltip: { sx: { maxWidth: 450, fontSize: 15 } } }}
     >
       <span
         aria-label="More information"
@@ -18,7 +18,7 @@ function InfoTooltip({ title }) {
         onClick={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <InfoOutlined sx={{ fontSize: 16 }} />
+        <InfoOutlined sx={{ fontSize: 20 }} />
       </span>
     </Tooltip>
   );

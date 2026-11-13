@@ -35,11 +35,11 @@ function GenericHeader({ pageName }) {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" component="div" sx={{ cursor: 'pointer' }} onClick={() => navigate('/home')}>
+            <Typography variant="h6" component="div" sx={{ cursor: 'pointer', fontSize: 28 }} onClick={() => navigate('/home')}>
               <b>TECBooks</b>
             </Typography>
           </Box>
-          <Typography variant="subtitle1">{pageName}</Typography>
+          <Typography variant="subtitle1" sx={{ fontSize: 23 }}>{pageName}</Typography>
           {isAuthenticated && (
             <IconButton
               aria-label="log out"

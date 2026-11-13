@@ -13,11 +13,17 @@ function computeCurrentActives(project) {
     return acc;
   }, {});
 
-  // TODO: Inventary, pending accounts, deposits, stocks
+  // TODO: Inventary, pending accounts, deposits, stocks - these are still a
+  // placeholder, not real Excel-sourced data, so they can't flow through
+  // feasibilityProjectCurrencyChange like everything else. Scale by the same
+  // rate that conversion already applied to the rest of the model
+  // (project.currencyRate, stamped there - defaults to 1, same currency)
+  // so this mock stays at least numerically consistent after a currency switch.
+  const rate = project.currencyRate ?? 1;
   const inventary = mockFills(years);
   const deposits = mockFills(years);
   const stocks = mockFills(years);
-  stocks[years[0]] = 2000000;
+  stocks[years[0]] = 2000000 * rate;
 
   const total = years.reduce((acc, year) => {
     acc[year] = cashAndBank[year] + inventary[year] + deposits[year] + stocks[year];

@@ -60,7 +60,7 @@ function ProgramsSidebar() {
           component={NavLink}
           to="/sims/project-feasibility/programs"
           variant="overline"
-          sx={{ color: '#073a5a', letterSpacing: 1, textDecoration: 'none' }}
+          sx={{ color: '#073a5a', fontSize: 15, letterSpacing: 1, textDecoration: 'none' }}
         >
           Programs
         </Typography>
@@ -74,13 +74,13 @@ function ProgramsSidebar() {
         )}
 
         {status === 'error' && (
-          <Typography sx={{ px: 2, fontSize: 14, color: 'error.main' }}>
+          <Typography sx={{ px: 2, fontSize: 18, color: 'error.main' }}>
             Couldn't load the programs.
           </Typography>
         )}
 
         {status === 'ready' && sidebarPrograms.length === 0 && (
-          <Typography sx={{ px: 2, fontSize: 14, opacity: 0.7 }}>
+          <Typography sx={{ px: 2, fontSize: 18, opacity: 0.7 }}>
             No programs yet.
           </Typography>
         )}
@@ -94,7 +94,7 @@ function ProgramsSidebar() {
                   <ListItemButton onClick={() => toggleProgram(program.id)} sx={{ px: 2 }}>
                     <ListItemText
                       primary={program.name}
-                      primaryTypographyProps={{ fontWeight: 600, color: '#073a5a' }}
+                      primaryTypographyProps={{ fontWeight: 600, fontSize: 20, color: '#073a5a' }}
                     />
                     {isOpen ? <ExpandLess /> : <ExpandMore />}
                   </ListItemButton>
@@ -112,7 +112,7 @@ function ProgramsSidebar() {
                             selected={selected}
                             sx={{ pl: 4, '&.active, &.Mui-selected': { bgcolor: 'rgba(30, 144, 255, 0.12)' } }}
                           >
-                            <ListItemText primary={project.name} />
+                            <ListItemText primary={project.name} primaryTypographyProps={{ fontSize: 18 }} />
                           </ListItemButton>
                         )
                       })}

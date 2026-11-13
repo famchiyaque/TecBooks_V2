@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
 import useIncome from "@/hooks/sims/project/useIncome";
 import TableContainer from "@/components/global/TableContainer";
+import CollapsibleSection from "@/components/global/CollapsibleSection";
 import { buildProductionCostRows } from "./income/ProductionCostTable";
 import { buildUtilityCostRows } from "./income/UtilityCostTable";
 import { buildCompetitivePriceRows } from "./income/CompetitivePriceTable";
 import { buildSalesRows } from "./income/SalesTable";
 import { INFLOWS_TOOLTIPS } from "./income/inflowsTooltips";
 
-function Income({ project }) {
+function Income({ project, currency }) {
   const income = useIncome(project);
 
   const years = useMemo(
@@ -31,7 +32,7 @@ function Income({ project }) {
     [years],
   );
 
-  const sections = useMemo(
+  const costSections = useMemo(
     () => [
       {
         id: "unit-costs",
@@ -47,6 +48,12 @@ function Income({ project }) {
         defaultExpanded: true,
         rows: buildCompetitivePriceRows(income.competitivaPrice, years),
       },
+    ],
+    [income, years],
+  );
+
+  const salesSections = useMemo(
+    () => [
       {
         id: "sales",
         title: "Sales",
@@ -72,12 +79,18 @@ function Income({ project }) {
 
   return (
     <div className="flex flex-col mt-3 p-3">
-      <p className="mb-3 text-sm text-slate-500">
+      <p className="mb-3 text-[17.5px] text-slate-500">
         This tab describes inflows by unit: the numbers break down sales
         and how they relate to the unit price of each BOM.
       </p>
 
-      <TableContainer columns={columns} sections={sections} layout="fixed" />
+      <CollapsibleSection title="Sales & Unit Profit Margen" defaultExpanded>
+        <TableContainer columns={columns} sections={salesSections} layout="fixed" currency={currency} />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Unit Costs & Unit Price" defaultExpanded>
+        <TableContainer columns={columns} sections={costSections} layout="fixed" currency={currency} />
+      </CollapsibleSection>
     </div>
   );
 }

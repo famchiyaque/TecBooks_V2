@@ -4,6 +4,7 @@ import { errorHandler } from "./middleware/error-handler.middleware.js";
 import { healthRoute } from "./routes/health.route.js";
 import apiRoutes from "./routes/router.js";
 import { websocketRoute } from "./routes/websocket.route.js";
+import { GameRoom } from "./durable-objects/GameRoom.js";
 
 const app = new Hono();
 
@@ -20,4 +21,5 @@ app.route("/health", healthRoute);
 app.route("/api", apiRoutes);
 app.route("/ws", websocketRoute);
 
+export { GameRoom };
 export default app;

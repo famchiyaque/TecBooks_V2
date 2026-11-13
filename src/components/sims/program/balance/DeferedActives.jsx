@@ -1,6 +1,7 @@
 import React from "react";
 import EditableTable from "@/components/global/EditableTable";
 import { deferedActivesSlice } from "@/store/balance.store";
+import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
 
 // No fixed rows - Activo Diferido (Seguros / Pago de Seguros) has no source
 // field anywhere in InputNovus (confirmed - not even the reference Template
@@ -12,7 +13,8 @@ export const DEFERED_ACTIVES_ROWS = [];
 // No own store/Provider - relies on the shared editsStore ProjectDashboard
 // mounts, so this table's overrides/custom rows are readable from anywhere
 // else in the tab, e.g. Shareholder's Equity recomputing Total Assets live.
-function DeferedActives({ deferedActives }) {
+function DeferedActives({ deferedActives, gameId, currency }) {
+  useTableRowsSync(gameId, deferedActivesSlice, "deferedActives");
   deferedActives = { ...deferedActives };
   delete deferedActives["total"];
   deferedActives = flipObject(deferedActives);
@@ -31,6 +33,7 @@ function DeferedActives({ deferedActives }) {
       rows={DEFERED_ACTIVES_ROWS}
       getValue={getValue}
       totalLabel="Total Defered Actives"
+      currency={currency}
     />
   );
 }

@@ -9,7 +9,7 @@ import TableContainer from "@/components/global/TableContainer";
  *  - years:    number[]                e.g. [2025, 2026, ...]
  *  - expenses: { [year]: number }      amount per year
  */
-export default function AdminExpensesTable({ years, expenses }) {
+export default function AdminExpensesTable({ years, expenses, currency }) {
   const columns = useMemo(
     () => [
       { key: "concept", label: "" },
@@ -36,6 +36,7 @@ export default function AdminExpensesTable({ years, expenses }) {
       title="Administrative Expenses"
       columns={columns}
       rows={rows}
+      currency={currency}
     />
   );
 }

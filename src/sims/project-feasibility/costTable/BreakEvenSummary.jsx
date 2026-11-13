@@ -1,35 +1,30 @@
-import React from 'react'
-import { Alert, Box, Grid, TextField, Typography } from '@mui/material'
-import { buildCostOfSales } from './buildCostOfSales'
-import { cbmToCostTableInputs } from './cbmToCostTableInputs'
-import BreakEvenChart from './BreakEvenChart'
-
-function formatCurrency(value) {
-  const num = Number(value) || 0
-  return `$${num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
+import React from "react";
+import { Alert, Box, Grid, TextField } from "@mui/material";
+import { buildCostOfSales } from "./buildCostOfSales";
+import { cbmToCostTableInputs } from "./cbmToCostTableInputs";
+import { computeBreakEven } from "./computeBreakEven.js";
+import BreakEvenChart from "./BreakEvenChart";
+import formatCurrency from "@/utils/sims/program/formatCurrency.util";
 
 function formatUnits(value) {
-  const num = Number(value) || 0
-  return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const num = Number(value) || 0;
+  return num.toLocaleString("es-MX", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function Stat({ label, value, highlight }) {
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        height: '100%',
-        bgcolor: highlight ? '#fff4d6' : 'rgba(7, 58, 90, 0.04)',
-        border: '1px solid',
-        borderColor: highlight ? '#f0c419' : 'rgba(7, 58, 90, 0.1)',
-      }}
+    <div
+      className={`h-full rounded-xl border p-3 ${
+        highlight ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50/60"
+      }`}
     >
-      <Typography variant="caption" sx={{ opacity: 0.7 }}>{label}</Typography>
-      <Typography sx={{ fontWeight: 700, color: '#073a5a' }}>{value}</Typography>
-    </Box>
-  )
+      <p className="text-[15px] text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[19px] font-semibold text-slate-900 tabular-nums">{value}</p>
+    </div>
+  );
 }
 
 /**
@@ -48,70 +43,90 @@ function Stat({ label, value, highlight }) {
  * ramp-up year's low order count would badly distort a per-unit labor cost
  * (matches the template's own Capacidad!E17 divisor, row 59).
  */
-function BreakEvenSummary({ project }) {
-  const [desiredProfit, setDesiredProfit] = React.useState(0)
+function BreakEvenSummary({ project, currency }) {
+  const [desiredProfit, setDesiredProfit] = React.useState(500000);
 
-  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
+  const result = React.useMemo(() => buildCostOfSales(project.cbm), [project]);
   const { production } = React.useMemo(
-    () => (project.cbm ? cbmToCostTableInputs(project.cbm) : { production: {} }),
-    [project]
-  )
+    () =>
+      project.cbm ? cbmToCostTableInputs(project.cbm) : { production: {} },
+    [project],
+  );
 
   if (result.error) {
-    return <Alert severity="warning">{result.error}</Alert>
+    return <Alert severity="warning">{result.error}</Alert>;
   }
 
-  const row = result.costOfSalesByYear[0]
-  const annualCapacity = project.cbm.derivedBase?.annualCapacity || 0
-  const salePrice = production.salesPricePerUnit?.[row.year] || 0
-
-  const fixedCosts = row.administrativeExpenses + row.indirectManufacturing
-    + row.engineeringSalaries + row.creditPayment
-  const variableCostPerUnit = (production.materialCostPerUnit || 0)
-    + (annualCapacity > 0 ? row.directLabour / annualCapacity : 0)
-  const contributionMargin = salePrice - variableCostPerUnit
+  const row = result.costOfSalesByYear[0];
+  const {
+    fixedCosts,
+    variableCostPerUnit,
+    salePrice,
+    contributionMargin,
+    breakEvenUnits,
+    breakEvenRevenue,
+    unitsForProfit,
+    revenueForProfit,
+  } = computeBreakEven(row, production, desiredProfit);
 
   if (contributionMargin <= 0) {
     return (
       <Alert severity="warning">
-        Sale price ({formatCurrency(salePrice)}) must be higher than the variable cost
-        per unit ({formatCurrency(variableCostPerUnit)}) to compute a break-even point.
+        Sale price ({formatCurrency(salePrice, currency)}) must be higher than the
+        variable cost per unit ({formatCurrency(variableCostPerUnit, currency)}) to
+        compute a break-even point.
       </Alert>
-    )
+    );
   }
-
-  const breakEvenUnits = fixedCosts / contributionMargin
-  const breakEvenRevenue = breakEvenUnits * salePrice
-  const unitsForProfit = (fixedCosts + desiredProfit) / contributionMargin
-  const revenueForProfit = unitsForProfit * salePrice
 
   return (
     <Box>
-      <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 2 }}>
-        Based on {row.year}, this project's first year
-      </Typography>
+      <p className="mb-3 text-[17.5px] text-slate-500">
+        Break-even for {row.year}, this project's first year: fixed costs,
+        variable cost per unit and the sales volume/revenue needed to cover
+        them (plus your desired profit target).
+      </p>
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3}>
-          <Stat label="Annual Fixed Costs" value={formatCurrency(fixedCosts)} />
+          <Stat label="Annual Fixed Costs" value={formatCurrency(fixedCosts, currency)} />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Variable Cost / Unit" value={formatCurrency(variableCostPerUnit)} />
+          <Stat
+            label="Variable Cost / Unit"
+            value={formatCurrency(variableCostPerUnit, currency)}
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Sale Price" value={formatCurrency(salePrice)} />
+          <Stat label="Sale Price" value={formatCurrency(salePrice, currency)} />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Break-even Units" value={formatUnits(breakEvenUnits)} highlight />
+          <Stat
+            label="Break-even Units"
+            value={formatUnits(breakEvenUnits)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Break-even Revenue" value={formatCurrency(breakEvenRevenue)} highlight />
+          <Stat
+            label="Break-even Revenue"
+            value={formatCurrency(breakEvenRevenue, currency)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Units for Desired Profit" value={formatUnits(unitsForProfit)} highlight />
+          <Stat
+            label="Units for Desired Profit"
+            value={formatUnits(unitsForProfit)}
+            highlight
+          />
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Stat label="Revenue for Desired Profit" value={formatCurrency(revenueForProfit)} highlight />
+          <Stat
+            label="Revenue for Desired Profit"
+            value={formatCurrency(revenueForProfit, currency)}
+            highlight
+          />
         </Grid>
       </Grid>
 
@@ -121,7 +136,9 @@ function BreakEvenSummary({ project }) {
           type="number"
           size="small"
           value={desiredProfit}
-          onChange={(event) => setDesiredProfit(Number(event.target.value) || 0)}
+          onChange={(event) =>
+            setDesiredProfit(Number(event.target.value) || 0)
+          }
         />
       </Box>
 
@@ -132,7 +149,7 @@ function BreakEvenSummary({ project }) {
         breakEvenUnits={breakEvenUnits}
       />
     </Box>
-  )
+  );
 }
 
-export default BreakEvenSummary
+export default BreakEvenSummary;

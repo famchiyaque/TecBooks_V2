@@ -2,6 +2,8 @@ import React from "react";
 import EditableTable from "@/components/global/EditableTable";
 import { equitySlice } from "@/store/balance.store";
 import useEffectiveBalanceTotals from "@/sims/project-feasibility/balance/useEffectiveBalanceTotals.js";
+import { computeEquity } from "@/sims/project-feasibility/balance/computeEquity.js";
+import useTableRowsSync from "@/hooks/sims/project/useTableRowsSync.js";
 
 const EQUITY_ROWS = [
   { key: "legacy", label: "Legacy" },
@@ -17,25 +19,13 @@ const EQUITY_ROWS = [
  * Actives/Defered Actives/Current Passives/Long term passives now actually
  * moves Shareholder's Equity, not just its own table's total.
  */
-function Equity({ project }) {
+function Equity({ project, currency }) {
+  useTableRowsSync(project.gameId, equitySlice, "equity");
   const cbm = project.cbm;
   const years = cbm.timeline.years;
-  const totalsByYear = useEffectiveBalanceTotals(cbm);
+  const totalsByYear = useEffectiveBalanceTotals(cbm, project.gameId);
 
-  const periodUtility = {};
-  years.forEach((year) => { periodUtility[year] = totalsByYear[year].netIncome; });
-
-  const acumUtility = {};
-  years.forEach((year, idx) => {
-    acumUtility[year] = idx === 0 ? 0 : periodUtility[years[idx - 1]] + periodUtility[year];
-  });
-
-  const legacy = {};
-  years.forEach((year) => {
-    const { totalActives, totalPassives } = totalsByYear[year];
-    legacy[year] = totalActives - totalPassives - periodUtility[year] - acumUtility[year];
-  });
-
+  const { legacy, periodUtility, acumUtility } = computeEquity(totalsByYear, years);
   const equityByRow = { legacy, periodUtility, acumUtility };
   const columns = years.map((year) => ({ key: year, label: year }));
   const getValue = (rowKey, year) => equityByRow[rowKey]?.[year] ?? 0;
@@ -48,6 +38,7 @@ function Equity({ project }) {
       rows={EQUITY_ROWS}
       getValue={getValue}
       totalLabel="Total Shareholder's equity"
+      currency={currency}
     />
   );
 }

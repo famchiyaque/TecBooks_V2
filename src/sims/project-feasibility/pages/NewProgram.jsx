@@ -4,9 +4,13 @@ import { Alert, Box, Button, Card, Chip, Collapse, IconButton, Stack, TextField,
 import DeleteOutline from '@mui/icons-material/DeleteOutline'
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined'
 import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined'
+import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
 import { useStaging } from '../staging/StagingContext.jsx'
 import ProjectDropzone from './ProjectDropzone.jsx'
 import BackButton from '@/components/global/BackButton'
+import TemplateGuideModal from './TemplateGuideModal.jsx'
+
+const TEMPLATE_FILE_URL = '/official-input-template.xlsx'
 
 function StagedProjectCard({ item, onRemove }) {
   const [warningsOpen, setWarningsOpen] = useState(false)
@@ -19,10 +23,10 @@ function StagedProjectCard({ item, onRemove }) {
     >
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 600, color: '#073a5a' }} noWrap>
+          <Typography sx={{ fontWeight: 600, fontSize: 20, color: '#073a5a' }} noWrap>
             {item.project.metadata.name || item.fileName}
           </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.6 }} noWrap>
+          <Typography variant="body2" sx={{ fontSize: 18, opacity: 0.6 }} noWrap>
             {item.fileName}
           </Typography>
         </Box>
@@ -42,12 +46,12 @@ function StagedProjectCard({ item, onRemove }) {
             onClick={() => setWarningsOpen((open) => !open)}
             deleteIcon={<ExpandMoreOutlined sx={{ transform: warningsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />}
             onDelete={() => setWarningsOpen((open) => !open)}
-            sx={{ cursor: 'pointer' }}
+            sx={{ cursor: 'pointer', fontSize: 15 }}
           />
           <Collapse in={warningsOpen}>
             <Stack spacing={0.5} sx={{ mt: 1, pl: 1, borderLeft: '2px solid', borderColor: 'warning.light' }}>
               {warnings.map((warning, i) => (
-                <Typography key={i} variant="caption" sx={{ opacity: 0.75, display: 'block' }}>
+                <Typography key={i} variant="caption" sx={{ fontSize: 15, opacity: 0.75, display: 'block' }}>
                   {warning}
                 </Typography>
               ))}
@@ -61,6 +65,7 @@ function StagedProjectCard({ item, onRemove }) {
 
 function NewProgram() {
   const navigate = useNavigate()
+  const [guideOpen, setGuideOpen] = useState(false)
   const {
     programName,
     setProgramName,
@@ -80,44 +85,69 @@ function NewProgram() {
     }
   }
 
+  // Downloads the official template via a real <a download>, then opens the
+  // walkthrough modal right away - no extra click to find the explanation.
+  const onDownloadTemplate = () => {
+    setGuideOpen(true)
+  }
+
   return (
     <Box sx={{ p: 4 }}>
       <BackButton label="Programs" sx={{ mb: 1, ml: -1 }} />
 
       <Box sx={{ maxWidth: 720, mx: 'auto', textAlign: 'left' }}>
-      <Typography variant="h5" sx={{ fontWeight: 700, color: '#073a5a', mb: 2 }}>
-        New program
-      </Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 2 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: 33, color: '#073a5a' }}>
+          New program
+        </Typography>
+        <Button
+          component="a"
+          href={TEMPLATE_FILE_URL}
+          download="official-input-template.xlsx"
+          onClick={onDownloadTemplate}
+          variant="outlined"
+          startIcon={<DownloadOutlined />}
+          sx={{ fontSize: 16, borderRadius: 999, flexShrink: 0 }}
+        >
+          Download template
+        </Button>
+      </Stack>
+
+      <TemplateGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
 
       <TextField
         label="Program name"
         fullWidth
         value={programName}
         onChange={(event) => setProgramName(event.target.value)}
-        sx={{ mb: 3 }}
+        sx={{ mb: 3, "& .MuiInputLabel-root": { fontSize: 20 }, "& .MuiInputBase-input": { fontSize: 20 } }}
       />
 
       <ProjectDropzone />
 
       {fileErrors.map((error) => (
-        <Alert key={error.fileName || error.messages[0]} severity="error" sx={{ mt: 2 }}>
-          {error.fileName ? `${error.fileName}: ` : ''}
-          {error.messages.join(' ')}
+        <Alert key={error.fileName || error.messages[0]} severity="error" sx={{ mt: 2, fontSize: 18 }}>
+          {error.fileName && <strong>{error.fileName}</strong>}
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {error.messages.map((message, index) => (
+              <li key={message}><strong>Error {index + 1}:</strong> {message}</li>
+            ))}
+          </ul>
         </Alert>
       ))}
 
       {confirmError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="error" sx={{ mt: 2, fontSize: 18 }}>
           {confirmError}
         </Alert>
       )}
 
-      <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 600, color: '#073a5a' }}>
+      <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 600, fontSize: 23, color: '#073a5a' }}>
         Staged projects
       </Typography>
 
       {items.length === 0 ? (
-        <Typography sx={{ opacity: 0.8 }}>No validated projects yet.</Typography>
+        <Typography sx={{ fontSize: 20, opacity: 0.8 }}>No validated projects yet.</Typography>
       ) : (
         <Stack spacing={1.5}>
           {items.map((item, index) => (
@@ -134,7 +164,7 @@ function NewProgram() {
         variant="contained"
         disabled={!canConfirm}
         onClick={onConfirm}
-        sx={{ mt: 3, bgcolor: '#073a5a', borderRadius: 999, px: 3 }}
+        sx={{ mt: 3, fontSize: 18, bgcolor: '#073a5a', borderRadius: 999, px: 3 }}
       >
         {isSubmitting ? 'Saving…' : 'Confirm program'}
       </Button>

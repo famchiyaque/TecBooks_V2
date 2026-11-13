@@ -33,7 +33,6 @@ export default function computeAmortizationInterest(totalInvestment, project) {
   const yearInterest = computeInterest(interest, periods);
 
   const result = { amortization, interest, yearAmortization, yearInterest };
-  console.log(result)
   logger.debug("computeAmortizationInterest", { totalInvestment: totalInvestmentInput, periods, interestRate, ...result });
   return result;
 }

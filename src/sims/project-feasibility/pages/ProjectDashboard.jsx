@@ -13,6 +13,10 @@ import {
   TableRow,
   Tabs,
   Typography,
+  FormControl, 
+  Select, 
+  MenuItem,
+  InputLabel,
 } from "@mui/material";
 import Construction from "@mui/icons-material/Construction";
 import Outflows from "@/components/sims/program/Outflows";
@@ -150,6 +154,7 @@ function ProjectDashboard() {
     programId,
     projectId,
   );
+  const [currency, setCurrency] = useState("MXN");
 
   // Shared by Cost Table + Operating Expenses + Financial Result + Taxes +
   // Profit Summary + Balance Sheet (Current/Defered Actives, Passives,
@@ -200,17 +205,32 @@ function ProjectDashboard() {
 
   return (
     <Box sx={{ p: 4, textAlign: "left" }}>
-      <Typography variant="overline" sx={{ color: "#073a5a" }}>
+      <Typography variant="overline" sx={{ color: "#073a5a", fontSize: 15 }}>
         {program.name}
       </Typography>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
         <Typography
           variant="h5"
-          sx={{ fontWeight: 700, color: "#073a5a", mb: 0 }}
+          sx={{ fontWeight: 700, fontSize: 33, color: "#073a5a", mb: 0 }}
         >
           {projectDisplayName(project)}
         </Typography>
         <TourButton tour={projectDashboardTour} />
+        <FormControl size="small" sx={{ minWidth: 160, ml: "auto", "& .MuiInputLabel-root": { fontSize: 18 }, "& .MuiSelect-select": { fontSize: 18 }, "& .MuiMenuItem-root": { fontSize: 18 } }}>
+          <InputLabel id="currency-label">Currency</InputLabel>
+
+          <Select
+            labelId="currency-label"
+            id="filter"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            label="Currency"
+          >
+            <MenuItem value="MXN">MXN</MenuItem>
+            <MenuItem value="EUR">EUR</MenuItem>
+            <MenuItem value="USD">USD</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       <Tabs
@@ -219,7 +239,11 @@ function ProjectDashboard() {
         onChange={(_, next) => setTab(next)}
         variant="scrollable"
         scrollButtons="auto"
-        sx={{ borderBottom: 1, borderColor: "divider" }}
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          "& .MuiTab-root": { fontSize: 18, minHeight: 48 },
+        }}
       >
         {TABS.map((item) => (
           <Tab key={item.id} label={item.label} />
@@ -234,6 +258,7 @@ function ProjectDashboard() {
               programId={programId}
               projectId={projectId}
               project={project}
+              currency={currency}
             />
           </Provider>
         </Box>
@@ -242,10 +267,12 @@ function ProjectDashboard() {
   );
 }
 
-function TabContent({ activeTab, programId, projectId, project }) {
+function TabContent({ activeTab, programId, projectId, project, currency }) {
   const placeholder = PLACEHOLDER_TABS[activeTab.id];
   const { data: cbm, isPending, isError } = useFeasibilityModel(
     LIVE_TAB_IDS.has(activeTab.id) ? project.gameId : undefined,
+    "MXN",
+    currency,
   );
   const projectWithCbm = { ...project, cbm };
 
@@ -263,7 +290,7 @@ function TabContent({ activeTab, programId, projectId, project }) {
 
   if (!project.gameId) {
     return (
-      <Alert severity="warning">
+      <Alert severity="warning" sx={{ fontSize: 18 }}>
         This project has no game id, so its tables cannot load from the
         database.
       </Alert>
@@ -271,22 +298,22 @@ function TabContent({ activeTab, programId, projectId, project }) {
   }
 
   if (isPending)
-    return <Typography sx={{ mt: 2 }}>Loading project data…</Typography>;
+    return <Typography sx={{ mt: 2, fontSize: 20 }}>Loading project data…</Typography>;
 
   if (isError || !cbm) {
     return (
-      <Alert severity="error">
+      <Alert severity="error" sx={{ fontSize: 18 }}>
         Couldn&apos;t load this project&apos;s rows from the server.
       </Alert>
     );
   }
 
-  if (activeTab.id === "inflows") return <Income project={projectWithCbm} />;
-  if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} />;
-  if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} />;
-  if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} />;
-  if (activeTab.id === "balance") return <Balance project={projectWithCbm} />;
-  if (activeTab.id === "ratios") return <FinancialRatios project={projectWithCbm} />;
+  if (activeTab.id === "inflows") return <Income project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "outflows") return <Outflows project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "income-statement") return <Ratios project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "cash-flows") return <CashFlow project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "balance") return <Balance project={projectWithCbm} currency={currency}/>;
+  if (activeTab.id === "ratios") return <FinancialRatios project={projectWithCbm} currency={currency}/>;
 
   return (
     <MockStatement

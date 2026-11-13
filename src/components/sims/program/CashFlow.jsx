@@ -5,20 +5,20 @@ import OutflowsTable from "@/sims/project-feasibility/costTable/OutflowsTable.js
 import ProjectEvaluationSummary from "@/sims/project-feasibility/costTable/ProjectEvaluationSummary.jsx";
 import NetFlowGraph from "@/sims/project-feasibility/costTable/NetFlowGraph.jsx";
 
-function CashFlow({ project }) {
+function CashFlow({ project, currency }) {
   return (
     <>
       <CollapsibleSection title="Cash Inflows" defaultExpanded>
-        <CashTable project={project} />
+        <CashTable project={project} currency={currency}/>
       </CollapsibleSection>
       <CollapsibleSection title="Cash Outflows">
-        <OutflowsTable project={project} />
+        <OutflowsTable project={project} currency={currency}/>
       </CollapsibleSection>
       <CollapsibleSection title="Net Flow Graph">
-        <NetFlowGraph project={project} />
+        <NetFlowGraph project={project} currency={currency}/>
       </CollapsibleSection>
       <CollapsibleSection title="TREMA / TIR / VNA">
-        <ProjectEvaluationSummary project={project} />
+        <ProjectEvaluationSummary project={project} currency={currency}/>
       </CollapsibleSection>
     </>
   );

@@ -9,7 +9,7 @@ import { buildCostOfSales } from './buildCostOfSales'
  * shared with ProfitSummary so edits here are reflected there
  * live (RF-54-07). Must be rendered under that shared <Provider>.
  */
-function ProjectCostSummary({ project }) {
+function ProjectCostSummary({ project, currency }) {
   const result = React.useMemo(() => buildCostOfSales(project.cbm), [project])
 
   if (result.error) {
@@ -18,13 +18,17 @@ function ProjectCostSummary({ project }) {
 
   return (
     <>
+      <p className="mb-3 text-[17.5px] text-slate-500">
+        Cost of Sales, broken down by input: raw material, labor and salaries
+        that go directly into producing what this project sells.
+      </p>
       {result.unclassifiedEmployees.length > 0 && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           {result.unclassifiedEmployees.length} employee{result.unclassifiedEmployees.length === 1 ? '' : 's'} with an
           unrecognized category weren't counted in this table: {result.unclassifiedEmployees.join(', ')}
         </Alert>
       )}
-      <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} />
+      <CostOfSalesTable costOfSalesByYear={result.costOfSalesByYear} gameId={project.gameId} currency={currency} />
     </>
   )
 }

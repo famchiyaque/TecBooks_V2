@@ -11,6 +11,45 @@ import IconButton from '@mui/material/IconButton'
 import ClearAllIcon from '@mui/icons-material/ClearAll'
 import { useSelector, useDispatch } from 'react-redux'
 import { referenceProjectHistory } from '@/store/project-evaluation.store'
+import { getBreakEven, getIRR, getNPV, getROI, getEUAC } from '@/utils/sims/investments/Calculators'
+
+const EXAMPLE_PROJECTS = [
+  {
+    project: 'Project A',
+    lifetime: 5,
+    initialInvestment: 80000,
+    discountRate: 8,
+    salvageValue: 10000,
+    inflows: [0, 25000, 28000, 30000, 32000, 35000],
+    outflows: [80000, 4000, 4000, 5000, 5000, 6000],
+  },
+  {
+    project: 'Project B',
+    lifetime: 4,
+    initialInvestment: 50000,
+    discountRate: 12,
+    salvageValue: 5000,
+    inflows: [0, 8000, 10000, 12000, 15000],
+    outflows: [50000, 6000, 7000, 8000, 9000],
+  },
+]
+
+function buildHistoryEntry(index, projectInfo) {
+  console.log("project Info: ", projectInfo)
+  const cashflows = projectInfo.inflows.map((inflow, i) => inflow - projectInfo.outflows[i])
+  const npv = getNPV(cashflows, projectInfo.discountRate)
+  const euac = getEUAC(projectInfo.outflows, projectInfo.discountRate, projectInfo.salvage_value)
+
+  return {
+    index,
+    projectInfo,
+    results: {
+      npv,
+      irr: getIRR(projectInfo.inflows, projectInfo.outflows, npv),
+      euac,
+    },
+  }
+}
 
 function History() {
   const dispatch = useDispatch()
@@ -21,7 +60,14 @@ function History() {
   useEffect(() => {
     const loadHistory = () => {
       const storedHistory = sessionStorage.getItem("projEvalHistory")
-      setHistory(storedHistory ? JSON.parse(storedHistory) : [])
+      if (storedHistory) {
+        setHistory(JSON.parse(storedHistory))
+        return
+      }
+
+      const examples = EXAMPLE_PROJECTS.map((project, i) => buildHistoryEntry(i + 1, project))
+      sessionStorage.setItem("projEvalHistory", JSON.stringify(examples))
+      setHistory(examples)
     }
   
     loadHistory() // initial load
@@ -31,6 +77,7 @@ function History() {
   }, [])
 
   const setPastProject = (index) => {
+    console.log("full project: ", history)
     dispatch(referenceProjectHistory(index))
   }
 
@@ -48,7 +95,7 @@ function History() {
   }
 
   return (
-    <TableContainer  style={{ boxShadow: 'none' }}>
+    <TableContainer  style={{ boxShadow: 'none', flex: 1, minHeight: 0, overflow: 'auto' }}>
       <div className='w-[95%] flex justify-between items-center mx-auto'>
         <p><span className='text-gray-500 italic'>Saved Projects</span></p>
         <IconButton onClick={clearAllHistory} title="Clear All">
@@ -59,10 +106,9 @@ function History() {
         <TableHead>
           <TableRow>
             <TableCell align="left" style={{  padding: '0.2rem 0 0.2rem 1rem'}}>Name</TableCell>
-            <TableCell align="center" style={{  padding: '0'}}>BE</TableCell>
-            <TableCell align="center" style={{  padding: '0'}}>ROI</TableCell>
             <TableCell align="center" style={{  padding: '0'}}>NPV</TableCell>
             <TableCell align="center" style={{  padding: '0'}}>IRR</TableCell>
+            <TableCell align="center" style={{  padding: '0'}}>EUAC</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -80,10 +126,9 @@ function History() {
               <TableCell component="th" scope="row" align="left">
                 {proj.projectInfo.project}
               </TableCell>
-              <TableCell align="right">{proj.results.breakEven} years</TableCell>
-              <TableCell align="right">{proj.results.roi}%</TableCell>
               <TableCell align="right">${proj.results.npv}</TableCell>
               <TableCell align="right">{proj.results.irr}%</TableCell>
+              <TableCell align="right">${proj.results.euac}</TableCell>
               <TableCell align="center" sx={{ padding: '0' }}>
                 <IconButton 
                   onClick={(e) => {
